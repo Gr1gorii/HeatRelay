@@ -2,7 +2,7 @@ const plannedSteps = [
   {
     number: "01",
     title: "Understand the warning",
-    copy: "A future version will retrieve trusted heat information and preserve where it came from and how fresh it is.",
+    copy: "The backend can now normalize model-derived weather context with source and freshness details. The browser is not connected to it yet.",
   },
   {
     number: "02",
@@ -12,16 +12,16 @@ const plannedSteps = [
   {
     number: "03",
     title: "Choose a verified next step",
-    copy: "Verified local places and concise plans are planned only after source checks, ranking, and backend validation exist.",
+    copy: "A reviewed Barcelona place snapshot and deterministic candidate ranking now exist server-side. The browser is not connected to them yet.",
   },
 ];
 
 const deferredCapabilities = [
-  "Live weather and heat-warning retrieval",
-  "Verified cooling-place data and ranking",
+  "User-facing live context and the complete action flow",
+  "Official heat-warning retrieval and action-priority logic",
   "Maps, routing, and location access",
   "GPT-5.6 extraction and plan generation",
-  "Authentication, deployment, and the full golden path",
+  "Authentication, deployment, and additional cities",
 ];
 
 export default function App() {
@@ -52,13 +52,13 @@ export default function App() {
       <main id="main-content">
         <section className="hero page-width" aria-labelledby="hero-title">
           <div className="hero-copy">
-            <p className="eyebrow">Barcelona pilot · Milestone 0</p>
+            <p className="eyebrow">Barcelona pilot · Milestone 1</p>
             <h1 id="hero-title">From heat warning to a safe next step.</h1>
             <p className="hero-intro">
               HeatRelay is being built to turn trusted heat information into
-              clear, practical actions. This release establishes the product
-              foundation only; it does not provide live conditions or
-              recommendations.
+              clear, practical actions. This release adds backend weather
+              context and candidate-place services; the interface still does
+              not provide live conditions or recommendations.
             </p>
             <div className="hero-links" aria-label="Page links">
               <a className="primary-link" href="#scope">
@@ -78,8 +78,8 @@ export default function App() {
             </div>
             <h2 id="status-title">A clear boundary from day one</h2>
             <p>
-              The shell and API health contract are ready for development.
-              Live heat guidance is intentionally deferred.
+              The shell, health API, and bounded context APIs are ready for
+              development. Live heat guidance is intentionally deferred.
             </p>
             <dl className="status-list">
               <div>
@@ -89,6 +89,10 @@ export default function App() {
               <div>
                 <dt>Health API</dt>
                 <dd className="available">Available</dd>
+              </div>
+              <div>
+                <dt>Context APIs</dt>
+                <dd className="available">Backend only</dd>
               </div>
               <div>
                 <dt>Live guidance</dt>
@@ -108,8 +112,9 @@ export default function App() {
             <h2 id="journey-title">One warning. A calmer path forward.</h2>
             <p>
               The planned experience separates trusted facts, safety
-              priorities, and generated language. None of these steps is live
-              in Milestone 0.
+              priorities, and generated language. Only the bounded backend
+              fact services exist in Milestone 1; the user-facing journey is
+              not live.
             </p>
           </div>
 
@@ -147,8 +152,9 @@ export default function App() {
             <div>
               <h3>Local by design</h3>
               <p>
-                This version does not retrieve Barcelona weather, identify
-                cooling places, rank destinations, or show a map.
+                The backend can retrieve model-derived weather context and
+                rank reviewed candidate places. This interface does not
+                request a location, call those APIs, or show a map.
               </p>
             </div>
           </div>
@@ -167,12 +173,13 @@ export default function App() {
           <div className="trust-grid">
             <article className="trust-card safety-card">
               <p className="card-label">Safety</p>
-              <h3>Not a live heat-warning service</h3>
+              <h3>Not an official heat-warning service</h3>
               <p>
                 HeatRelay is informational and is not a medical or emergency
-                service. This version does not issue live warnings or
-                personalized safety advice. If someone is in immediate danger,
-                contact local emergency services.
+                service. Model-derived weather context is not an official
+                warning, and this version does not provide personalized safety
+                advice. If someone is in immediate danger, contact local
+                emergency services.
               </p>
             </article>
 
@@ -180,9 +187,10 @@ export default function App() {
               <p className="card-label">Privacy</p>
               <h3>No personal details requested</h3>
               <p>
-                Milestone 0 has no accounts, forms, analytics, location access,
-                or intentional collection of personal information. Do not
-                share personal or medical information.
+                The interface has no accounts, forms, analytics, or location
+                access. Backend requests can contain coordinates, which are not
+                intentionally logged or stored. Do not share personal or
+                medical information.
               </p>
             </article>
           </div>
@@ -216,7 +224,7 @@ export default function App() {
             </span>
             <span>HeatRelay</span>
           </a>
-          <p>Milestone 0 · English shell · Barcelona pilot boundary</p>
+          <p>Milestone 1 · English shell · Barcelona pilot boundary</p>
         </div>
       </footer>
     </div>

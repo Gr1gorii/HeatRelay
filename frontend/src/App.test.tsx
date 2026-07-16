@@ -16,8 +16,9 @@ describe("HeatRelay shell", () => {
     expect(screen.getByText("Barcelona pilot", { selector: "h2" })).toBeTruthy();
     expect(
       screen.getByRole("heading", {
-        name: "Not a live heat-warning service",
+        name: "Not an official heat-warning service",
       }),
     ).toBeTruthy();
+    expect(screen.getByText("Backend only")).toBeTruthy();
   });
 });

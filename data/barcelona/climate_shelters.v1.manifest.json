@@ -1,0 +1,21 @@
+{
+  "attribution": "Source: Ajuntament de Barcelona, “Climate shelters network in the city of Barcelona”, licensed under CC BY 4.0. HeatRelay selected and normalized a small reviewed subset; changes were made to structure, strings, feature states, and opening schedules.",
+  "dataset_url": "https://opendata-ajuntament.barcelona.cat/data/en/dataset/xarxa-refugis-climatics",
+  "distribution_url": "https://opendata-ajuntament.barcelona.cat/data/dataset/8f9da263-ff41-4765-ab0d-61b97d7a00b2/resource/d88129fe-7aaa-4ae6-b9fd-908ad3f7480d/download",
+  "input_count": 535,
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "normalized_sha256": "c958b7ba10b133132d9f1c8b98d84cd1b53644d27cbbd225b5b46bb98d89202b",
+  "publisher": "Ajuntament de Barcelona",
+  "raw_sha256": "37939392d6e2ca6d905eb291d9bded958e188d7d552354d2baa98407032adadd",
+  "rejected_count": 520,
+  "rejection_reasons": {
+    "missing_summer_classification": 4,
+    "not_selected_for_reviewed_snapshot": 516
+  },
+  "retrieved_at": "2026-07-16T19:08:41Z",
+  "schema_version": "1.0.0",
+  "selected_count": 15,
+  "snapshot_id": "barcelona-climate-shelters-v1-2026-07-16",
+  "upstream_max_modified": "2026-07-09T14:05:12.962376+02:00"
+}

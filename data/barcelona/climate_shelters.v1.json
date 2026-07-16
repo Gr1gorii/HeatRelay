@@ -1,0 +1,1164 @@
+{
+  "attribution": "Source: Ajuntament de Barcelona, “Climate shelters network in the city of Barcelona”, licensed under CC BY 4.0. HeatRelay selected and normalized a small reviewed subset; changes were made to structure, strings, feature states, and opening schedules.",
+  "dataset_url": "https://opendata-ajuntament.barcelona.cat/data/en/dataset/xarxa-refugis-climatics",
+  "distribution_url": "https://opendata-ajuntament.barcelona.cat/data/dataset/8f9da263-ff41-4765-ab0d-61b97d7a00b2/resource/d88129fe-7aaa-4ae6-b9fd-908ad3f7480d/download",
+  "license": "CC BY 4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "places": [
+    {
+      "accessibility": true,
+      "address": {
+        "city": "Barcelona",
+        "number": "2 - 8",
+        "postal_code": "08015",
+        "street": "Carrer de Viladomat"
+      },
+      "district": "Eixample",
+      "features": {
+        "indoor_space": true,
+        "micro_shelter": null,
+        "pets_allowed": false,
+        "potable_water": true,
+        "toilets": true
+      },
+      "information_url": "https://cotxeresborrell.net/",
+      "last_checked": "2026-07-16",
+      "latitude": 41.37557224589931,
+      "longitude": 2.1629307624189775,
+      "name": "Centre Cívic Cotxeres Borrell",
+      "neighborhood": "Sant Antoni",
+      "opening_schedule": {
+        "seasons": [
+          {
+            "valid_from": "2026-01-01",
+            "valid_through": "2026-06-30",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "21:00",
+                    "opens": "09:00"
+                  }
+                ],
+                "weekdays": [
+                  "monday",
+                  "tuesday",
+                  "wednesday",
+                  "thursday",
+                  "friday"
+                ]
+              },
+              {
+                "intervals": [
+                  {
+                    "closes": "14:00",
+                    "opens": "10:00"
+                  }
+                ],
+                "weekdays": [
+                  "saturday"
+                ]
+              }
+            ]
+          },
+          {
+            "valid_from": "2026-07-01",
+            "valid_through": "2026-07-31",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "22:00",
+                    "opens": "09:00"
+                  }
+                ],
+                "weekdays": [
+                  "monday",
+                  "tuesday",
+                  "wednesday",
+                  "thursday",
+                  "friday"
+                ]
+              }
+            ]
+          },
+          {
+            "valid_from": "2026-09-01",
+            "valid_through": "2026-09-30",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "22:00",
+                    "opens": "09:00"
+                  }
+                ],
+                "weekdays": [
+                  "monday",
+                  "tuesday",
+                  "wednesday",
+                  "thursday",
+                  "friday"
+                ]
+              }
+            ]
+          },
+          {
+            "valid_from": "2026-10-01",
+            "valid_through": "2026-12-31",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "21:00",
+                    "opens": "09:00"
+                  }
+                ],
+                "weekdays": [
+                  "monday",
+                  "tuesday",
+                  "wednesday",
+                  "thursday",
+                  "friday"
+                ]
+              },
+              {
+                "intervals": [
+                  {
+                    "closes": "14:00",
+                    "opens": "10:00"
+                  }
+                ],
+                "weekdays": [
+                  "saturday"
+                ]
+              }
+            ]
+          }
+        ],
+        "timezone": "Europe/Madrid"
+      },
+      "place_id": "bcn-2011131453",
+      "schedule_verification_status": "verified",
+      "source_modified_at": "2026-06-03T10:40:40.529995+02:00",
+      "source_record_id": "2011131453",
+      "source_url": "https://opendata-ajuntament.barcelona.cat/data/en/dataset/xarxa-refugis-climatics"
+    },
+    {
+      "accessibility": null,
+      "address": {
+        "city": "Barcelona",
+        "number": "1",
+        "postal_code": "08028",
+        "street": "Passatge del Vapor Vell"
+      },
+      "district": "Sants-Montjuïc",
+      "features": {
+        "indoor_space": true,
+        "micro_shelter": null,
+        "pets_allowed": false,
+        "potable_water": true,
+        "toilets": true
+      },
+      "information_url": "http://www.barcelona.cat/bibvaporvell",
+      "last_checked": "2026-07-16",
+      "latitude": 41.37692859666653,
+      "longitude": 2.134751788846474,
+      "name": "Biblioteca Vapor Vell",
+      "neighborhood": "Sants",
+      "opening_schedule": {
+        "seasons": [
+          {
+            "valid_from": "2026-06-24",
+            "valid_through": "2026-09-24",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "13:30",
+                    "opens": "09:30"
+                  },
+                  {
+                    "closes": "20:30",
+                    "opens": "15:30"
+                  }
+                ],
+                "weekdays": [
+                  "monday",
+                  "wednesday",
+                  "thursday"
+                ]
+              },
+              {
+                "intervals": [
+                  {
+                    "closes": "20:30",
+                    "opens": "09:30"
+                  }
+                ],
+                "weekdays": [
+                  "tuesday",
+                  "friday"
+                ]
+              },
+              {
+                "intervals": [
+                  {
+                    "closes": "14:00",
+                    "opens": "10:00"
+                  }
+                ],
+                "weekdays": [
+                  "saturday"
+                ]
+              }
+            ]
+          }
+        ],
+        "timezone": "Europe/Madrid"
+      },
+      "place_id": "bcn-249121118",
+      "schedule_verification_status": "verified",
+      "source_modified_at": "2026-06-17T10:06:50.198276+02:00",
+      "source_record_id": "249121118",
+      "source_url": "https://opendata-ajuntament.barcelona.cat/data/en/dataset/xarxa-refugis-climatics"
+    },
+    {
+      "accessibility": true,
+      "address": {
+        "city": "Barcelona",
+        "number": "3",
+        "postal_code": "08010",
+        "street": "Passeig de Sant Joan"
+      },
+      "district": "Eixample",
+      "features": {
+        "indoor_space": true,
+        "micro_shelter": true,
+        "pets_allowed": null,
+        "potable_water": false,
+        "toilets": false
+      },
+      "information_url": "https://www.farmaguia.net/desktop/",
+      "last_checked": "2026-07-16",
+      "latitude": 41.39190602300628,
+      "longitude": 2.1791089058928805,
+      "name": "Farmàcia Morera Inglés",
+      "neighborhood": "la Dreta de l'Eixample",
+      "opening_schedule": null,
+      "place_id": "bcn-75990000684",
+      "schedule_verification_status": "unknown",
+      "source_modified_at": "2025-10-27T16:40:10.892544+01:00",
+      "source_record_id": "75990000684",
+      "source_url": "https://opendata-ajuntament.barcelona.cat/data/en/dataset/xarxa-refugis-climatics"
+    },
+    {
+      "accessibility": true,
+      "address": {
+        "city": "Barcelona",
+        "number": "26",
+        "postal_code": "08007",
+        "street": "Carrer de Balmes"
+      },
+      "district": "Eixample",
+      "features": {
+        "indoor_space": true,
+        "micro_shelter": true,
+        "pets_allowed": true,
+        "potable_water": true,
+        "toilets": true
+      },
+      "information_url": "https://www.bookish.org/ca/libreria/alibri",
+      "last_checked": "2026-07-16",
+      "latitude": 41.38789659900608,
+      "longitude": 2.164741306620013,
+      "name": "Llibreria Alibri",
+      "neighborhood": "la Dreta de l'Eixample",
+      "opening_schedule": null,
+      "place_id": "bcn-75990552606",
+      "schedule_verification_status": "unknown",
+      "source_modified_at": "2026-05-08T14:18:48.360572+02:00",
+      "source_record_id": "75990552606",
+      "source_url": "https://opendata-ajuntament.barcelona.cat/data/en/dataset/xarxa-refugis-climatics"
+    },
+    {
+      "accessibility": null,
+      "address": {
+        "city": "Barcelona",
+        "number": "1",
+        "postal_code": "08005",
+        "street": "Plaça de Josep Maria Huertas Claveria"
+      },
+      "district": "Sant Martí",
+      "features": {
+        "indoor_space": true,
+        "micro_shelter": null,
+        "pets_allowed": false,
+        "potable_water": true,
+        "toilets": true
+      },
+      "information_url": "http://www.cccanfelipa.cat",
+      "last_checked": "2026-07-16",
+      "latitude": 41.40367975860696,
+      "longitude": 2.20050971216533,
+      "name": "Centre Cívic Can Felipa",
+      "neighborhood": "el Poblenou",
+      "opening_schedule": {
+        "seasons": [
+          {
+            "valid_from": "2026-01-01",
+            "valid_through": "2026-07-31",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "14:00",
+                    "opens": "09:00"
+                  },
+                  {
+                    "closes": "21:00",
+                    "opens": "16:00"
+                  }
+                ],
+                "weekdays": [
+                  "monday",
+                  "tuesday",
+                  "wednesday",
+                  "thursday",
+                  "friday"
+                ]
+              },
+              {
+                "intervals": [
+                  {
+                    "closes": "14:00",
+                    "opens": "10:00"
+                  },
+                  {
+                    "closes": "19:00",
+                    "opens": "16:00"
+                  }
+                ],
+                "weekdays": [
+                  "saturday"
+                ]
+              }
+            ]
+          },
+          {
+            "valid_from": "2026-08-01",
+            "valid_through": "2026-08-31",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "15:00",
+                    "opens": "10:00"
+                  }
+                ],
+                "weekdays": [
+                  "monday",
+                  "tuesday",
+                  "wednesday",
+                  "thursday",
+                  "friday"
+                ]
+              }
+            ]
+          },
+          {
+            "valid_from": "2026-09-01",
+            "valid_through": "2026-12-31",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "14:00",
+                    "opens": "09:00"
+                  },
+                  {
+                    "closes": "21:00",
+                    "opens": "16:00"
+                  }
+                ],
+                "weekdays": [
+                  "monday",
+                  "tuesday",
+                  "wednesday",
+                  "thursday",
+                  "friday"
+                ]
+              },
+              {
+                "intervals": [
+                  {
+                    "closes": "14:00",
+                    "opens": "10:00"
+                  },
+                  {
+                    "closes": "19:00",
+                    "opens": "16:00"
+                  }
+                ],
+                "weekdays": [
+                  "saturday"
+                ]
+              }
+            ]
+          }
+        ],
+        "timezone": "Europe/Madrid"
+      },
+      "place_id": "bcn-92086035490",
+      "schedule_verification_status": "verified",
+      "source_modified_at": "2026-06-18T08:50:31.086017+02:00",
+      "source_record_id": "92086035490",
+      "source_url": "https://opendata-ajuntament.barcelona.cat/data/en/dataset/xarxa-refugis-climatics"
+    },
+    {
+      "accessibility": true,
+      "address": {
+        "city": "Barcelona",
+        "number": "87 - 89",
+        "postal_code": "08019",
+        "street": "Rambla de Prim"
+      },
+      "district": "Sant Martí",
+      "features": {
+        "indoor_space": true,
+        "micro_shelter": null,
+        "pets_allowed": false,
+        "potable_water": true,
+        "toilets": true
+      },
+      "information_url": "https://ajuntament.barcelona.cat/ccivics/elbesosielmaresme",
+      "last_checked": "2026-07-16",
+      "latitude": 41.416486356252896,
+      "longitude": 2.211812118761215,
+      "name": "Centre Cívic del Besòs i el Maresme",
+      "neighborhood": "el Besòs i el Maresme",
+      "opening_schedule": {
+        "seasons": [
+          {
+            "valid_from": "2026-01-01",
+            "valid_through": "2026-07-31",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "14:00",
+                    "opens": "09:00"
+                  },
+                  {
+                    "closes": "21:00",
+                    "opens": "15:00"
+                  }
+                ],
+                "weekdays": [
+                  "monday",
+                  "tuesday",
+                  "wednesday",
+                  "thursday",
+                  "friday"
+                ]
+              },
+              {
+                "intervals": [
+                  {
+                    "closes": "14:00",
+                    "opens": "10:00"
+                  }
+                ],
+                "weekdays": [
+                  "saturday"
+                ]
+              }
+            ]
+          },
+          {
+            "valid_from": "2026-08-01",
+            "valid_through": "2026-08-31",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "14:00",
+                    "opens": "09:00"
+                  },
+                  {
+                    "closes": "20:00",
+                    "opens": "15:00"
+                  }
+                ],
+                "weekdays": [
+                  "monday",
+                  "tuesday",
+                  "wednesday",
+                  "thursday",
+                  "friday"
+                ]
+              }
+            ]
+          },
+          {
+            "valid_from": "2026-09-01",
+            "valid_through": "2026-12-31",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "14:00",
+                    "opens": "09:00"
+                  },
+                  {
+                    "closes": "21:00",
+                    "opens": "15:00"
+                  }
+                ],
+                "weekdays": [
+                  "monday",
+                  "tuesday",
+                  "wednesday",
+                  "thursday",
+                  "friday"
+                ]
+              },
+              {
+                "intervals": [
+                  {
+                    "closes": "14:00",
+                    "opens": "10:00"
+                  }
+                ],
+                "weekdays": [
+                  "saturday"
+                ]
+              }
+            ]
+          }
+        ],
+        "timezone": "Europe/Madrid"
+      },
+      "place_id": "bcn-93316140842",
+      "schedule_verification_status": "verified",
+      "source_modified_at": "2026-05-28T14:41:14.688270+02:00",
+      "source_record_id": "93316140842",
+      "source_url": "https://opendata-ajuntament.barcelona.cat/data/en/dataset/xarxa-refugis-climatics"
+    },
+    {
+      "accessibility": true,
+      "address": {
+        "city": "BARCELONA",
+        "number": "1",
+        "postal_code": "08003",
+        "street": "Pg Salvat Papasseit"
+      },
+      "district": "Ciutat Vella",
+      "features": {
+        "indoor_space": true,
+        "micro_shelter": null,
+        "pets_allowed": false,
+        "potable_water": true,
+        "toilets": true
+      },
+      "information_url": "http://ajuntament.barcelona.cat/lafabricadelsol",
+      "last_checked": "2026-07-16",
+      "latitude": 41.383031580266,
+      "longitude": 2.1912801963845494,
+      "name": "La Fàbrica del Sol",
+      "neighborhood": "la Barceloneta",
+      "opening_schedule": {
+        "seasons": [
+          {
+            "valid_from": "2026-07-01",
+            "valid_through": "2026-08-31",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "14:30",
+                    "opens": "09:00"
+                  }
+                ],
+                "weekdays": [
+                  "monday",
+                  "tuesday",
+                  "wednesday",
+                  "thursday",
+                  "friday"
+                ]
+              }
+            ]
+          }
+        ],
+        "timezone": "Europe/Madrid"
+      },
+      "place_id": "bcn-99117135915",
+      "schedule_verification_status": "verified",
+      "source_modified_at": "2026-06-18T13:05:49.348086+02:00",
+      "source_record_id": "99117135915",
+      "source_url": "https://opendata-ajuntament.barcelona.cat/data/en/dataset/xarxa-refugis-climatics"
+    },
+    {
+      "accessibility": true,
+      "address": {
+        "city": "Barcelona",
+        "number": "64",
+        "postal_code": "08030",
+        "street": "Carrer d'Estadella"
+      },
+      "district": "Sant Andreu",
+      "features": {
+        "indoor_space": true,
+        "micro_shelter": null,
+        "pets_allowed": false,
+        "potable_water": true,
+        "toilets": true
+      },
+      "information_url": "http://www.barcelona.cat/bibbonpastor",
+      "last_checked": "2026-07-16",
+      "latitude": 41.43519522535179,
+      "longitude": 2.204676708689729,
+      "name": "Biblioteca El Bon Pastor – Josefina Castellví",
+      "neighborhood": "el Bon Pastor",
+      "opening_schedule": {
+        "seasons": [
+          {
+            "valid_from": "2026-06-24",
+            "valid_through": "2026-09-24",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "20:00",
+                    "opens": "15:00"
+                  }
+                ],
+                "weekdays": [
+                  "monday",
+                  "friday"
+                ]
+              },
+              {
+                "intervals": [
+                  {
+                    "closes": "13:30",
+                    "opens": "09:30"
+                  },
+                  {
+                    "closes": "20:00",
+                    "opens": "15:00"
+                  }
+                ],
+                "weekdays": [
+                  "tuesday",
+                  "thursday"
+                ]
+              },
+              {
+                "intervals": [
+                  {
+                    "closes": "20:00",
+                    "opens": "09:30"
+                  }
+                ],
+                "weekdays": [
+                  "wednesday"
+                ]
+              }
+            ]
+          }
+        ],
+        "timezone": "Europe/Madrid"
+      },
+      "place_id": "bcn-99400098833",
+      "schedule_verification_status": "verified",
+      "source_modified_at": "2026-06-17T13:09:47.083555+02:00",
+      "source_record_id": "99400098833",
+      "source_url": "https://opendata-ajuntament.barcelona.cat/data/en/dataset/xarxa-refugis-climatics"
+    },
+    {
+      "accessibility": true,
+      "address": {
+        "city": "Barcelona",
+        "number": "3*LB",
+        "postal_code": "08033",
+        "street": "Carrer de Vallcivera"
+      },
+      "district": "Nou Barris",
+      "features": {
+        "indoor_space": true,
+        "micro_shelter": null,
+        "pets_allowed": false,
+        "potable_water": true,
+        "toilets": true
+      },
+      "information_url": "http://www.barcelona.cat/bibzonanord",
+      "last_checked": "2026-07-16",
+      "latitude": 41.46126807109291,
+      "longitude": 2.17989262234208,
+      "name": "Biblioteca Zona Nord - Mària Sánchez",
+      "neighborhood": "Torre Baró",
+      "opening_schedule": {
+        "seasons": [
+          {
+            "valid_from": "2026-06-24",
+            "valid_through": "2026-09-24",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "20:00",
+                    "opens": "15:30"
+                  }
+                ],
+                "weekdays": [
+                  "monday",
+                  "wednesday"
+                ]
+              },
+              {
+                "intervals": [
+                  {
+                    "closes": "13:30",
+                    "opens": "09:30"
+                  },
+                  {
+                    "closes": "20:00",
+                    "opens": "15:30"
+                  }
+                ],
+                "weekdays": [
+                  "tuesday",
+                  "thursday",
+                  "friday"
+                ]
+              }
+            ]
+          }
+        ],
+        "timezone": "Europe/Madrid"
+      },
+      "place_id": "bcn-99400236720",
+      "schedule_verification_status": "verified",
+      "source_modified_at": "2026-06-17T13:01:58.716097+02:00",
+      "source_record_id": "99400236720",
+      "source_url": "https://opendata-ajuntament.barcelona.cat/data/en/dataset/xarxa-refugis-climatics"
+    },
+    {
+      "accessibility": true,
+      "address": {
+        "city": "Barcelona",
+        "number": "145",
+        "postal_code": "08036",
+        "street": "Carrer del Comte d'Urgell"
+      },
+      "district": "Eixample",
+      "features": {
+        "indoor_space": true,
+        "micro_shelter": null,
+        "pets_allowed": false,
+        "potable_water": true,
+        "toilets": true
+      },
+      "information_url": "http://www.barcelona.cat/bibcentelles",
+      "last_checked": "2026-07-16",
+      "latitude": 41.38689535147527,
+      "longitude": 2.152049712385728,
+      "name": "Biblioteca L'Esquerra de l'Eixample - Agustí Centelles",
+      "neighborhood": "la Nova Esquerra de l'Eixample",
+      "opening_schedule": {
+        "seasons": [
+          {
+            "valid_from": "2026-06-24",
+            "valid_through": "2026-09-24",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "13:30",
+                    "opens": "09:30"
+                  },
+                  {
+                    "closes": "20:30",
+                    "opens": "15:30"
+                  }
+                ],
+                "weekdays": [
+                  "monday",
+                  "tuesday",
+                  "wednesday",
+                  "thursday"
+                ]
+              },
+              {
+                "intervals": [
+                  {
+                    "closes": "20:30",
+                    "opens": "09:30"
+                  }
+                ],
+                "weekdays": [
+                  "friday"
+                ]
+              },
+              {
+                "intervals": [
+                  {
+                    "closes": "14:00",
+                    "opens": "10:00"
+                  }
+                ],
+                "weekdays": [
+                  "saturday"
+                ]
+              }
+            ]
+          }
+        ],
+        "timezone": "Europe/Madrid"
+      },
+      "place_id": "bcn-99400270325",
+      "schedule_verification_status": "verified",
+      "source_modified_at": "2026-06-17T09:36:02.122657+02:00",
+      "source_record_id": "99400270325",
+      "source_url": "https://opendata-ajuntament.barcelona.cat/data/en/dataset/xarxa-refugis-climatics"
+    },
+    {
+      "accessibility": true,
+      "address": {
+        "city": "Barcelona",
+        "number": "16",
+        "postal_code": "08030",
+        "street": "Carrer de Galícia"
+      },
+      "district": "Sant Andreu",
+      "features": {
+        "indoor_space": true,
+        "micro_shelter": null,
+        "pets_allowed": false,
+        "potable_water": true,
+        "toilets": true
+      },
+      "information_url": "http://www.barcelona.cat/bibtrinitatvella",
+      "last_checked": "2026-07-16",
+      "latitude": 41.44931398700405,
+      "longitude": 2.1907655514008186,
+      "name": "Biblioteca La Trinitat Vella – José Barbero",
+      "neighborhood": "la Trinitat Vella",
+      "opening_schedule": {
+        "seasons": [
+          {
+            "valid_from": "2026-06-24",
+            "valid_through": "2026-07-31",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "20:00",
+                    "opens": "15:30"
+                  }
+                ],
+                "weekdays": [
+                  "monday",
+                  "friday"
+                ]
+              },
+              {
+                "intervals": [
+                  {
+                    "closes": "13:30",
+                    "opens": "09:30"
+                  },
+                  {
+                    "closes": "20:00",
+                    "opens": "15:30"
+                  }
+                ],
+                "weekdays": [
+                  "tuesday",
+                  "wednesday",
+                  "thursday"
+                ]
+              }
+            ]
+          },
+          {
+            "valid_from": "2026-09-01",
+            "valid_through": "2026-09-24",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "20:00",
+                    "opens": "15:30"
+                  }
+                ],
+                "weekdays": [
+                  "monday",
+                  "friday"
+                ]
+              },
+              {
+                "intervals": [
+                  {
+                    "closes": "13:30",
+                    "opens": "09:30"
+                  },
+                  {
+                    "closes": "20:00",
+                    "opens": "15:30"
+                  }
+                ],
+                "weekdays": [
+                  "tuesday",
+                  "wednesday",
+                  "thursday"
+                ]
+              }
+            ]
+          }
+        ],
+        "timezone": "Europe/Madrid"
+      },
+      "place_id": "bcn-99400287783",
+      "schedule_verification_status": "verified",
+      "source_modified_at": "2026-06-18T09:10:05.980146+02:00",
+      "source_record_id": "99400287783",
+      "source_url": "https://opendata-ajuntament.barcelona.cat/data/en/dataset/xarxa-refugis-climatics"
+    },
+    {
+      "accessibility": true,
+      "address": {
+        "city": "Barcelona",
+        "number": "1",
+        "postal_code": "08017",
+        "street": "Plaça de Sarrià"
+      },
+      "district": "Sarrià-Sant Gervasi",
+      "features": {
+        "indoor_space": true,
+        "micro_shelter": null,
+        "pets_allowed": false,
+        "potable_water": true,
+        "toilets": true
+      },
+      "information_url": "https://ajuntament.barcelona.cat/biblioteques/ca/bibjvfoix",
+      "last_checked": "2026-07-16",
+      "latitude": 41.40001108079365,
+      "longitude": 2.122120839557872,
+      "name": "Biblioteca Sarrià – J. V. Foix",
+      "neighborhood": "Sarrià",
+      "opening_schedule": {
+        "seasons": [
+          {
+            "valid_from": "2026-06-24",
+            "valid_through": "2026-09-24",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "20:00",
+                    "opens": "15:30"
+                  }
+                ],
+                "weekdays": [
+                  "monday",
+                  "thursday"
+                ]
+              },
+              {
+                "intervals": [
+                  {
+                    "closes": "13:30",
+                    "opens": "09:30"
+                  },
+                  {
+                    "closes": "20:00",
+                    "opens": "15:30"
+                  }
+                ],
+                "weekdays": [
+                  "tuesday",
+                  "wednesday"
+                ]
+              },
+              {
+                "intervals": [
+                  {
+                    "closes": "20:00",
+                    "opens": "09:30"
+                  }
+                ],
+                "weekdays": [
+                  "friday"
+                ]
+              }
+            ]
+          }
+        ],
+        "timezone": "Europe/Madrid"
+      },
+      "place_id": "bcn-99400672437",
+      "schedule_verification_status": "verified",
+      "source_modified_at": "2026-06-17T11:43:48.044562+02:00",
+      "source_record_id": "99400672437",
+      "source_url": "https://opendata-ajuntament.barcelona.cat/data/en/dataset/xarxa-refugis-climatics"
+    },
+    {
+      "accessibility": null,
+      "address": {
+        "city": "Barcelona",
+        "number": "259",
+        "postal_code": "08030",
+        "street": "Carrer Gran de Sant Andreu"
+      },
+      "district": "Sant Andreu",
+      "features": {
+        "indoor_space": true,
+        "micro_shelter": true,
+        "pets_allowed": null,
+        "potable_water": null,
+        "toilets": null
+      },
+      "information_url": null,
+      "last_checked": "2026-07-16",
+      "latitude": 41.43550376837996,
+      "longitude": 2.1896185009565423,
+      "name": "Botiga Abans Morta que Senzilla",
+      "neighborhood": "Sant Andreu",
+      "opening_schedule": null,
+      "place_id": "bcn-99400766080",
+      "schedule_verification_status": "unknown",
+      "source_modified_at": "2025-10-27T10:52:27.163739+01:00",
+      "source_record_id": "99400766080",
+      "source_url": "https://opendata-ajuntament.barcelona.cat/data/en/dataset/xarxa-refugis-climatics"
+    },
+    {
+      "accessibility": true,
+      "address": {
+        "city": "Barcelona",
+        "number": "5",
+        "postal_code": "08001",
+        "street": "Carrer de Montalegre"
+      },
+      "district": "Ciutat Vella",
+      "features": {
+        "indoor_space": true,
+        "micro_shelter": null,
+        "pets_allowed": false,
+        "potable_water": true,
+        "toilets": true
+      },
+      "information_url": "https://www.cccb.org/",
+      "last_checked": "2026-07-16",
+      "latitude": 41.38391450226559,
+      "longitude": 2.1668129104163323,
+      "name": "Refugi Climàtic Vestíbul planta -1",
+      "neighborhood": "el Raval",
+      "opening_schedule": {
+        "seasons": [
+          {
+            "valid_from": "2026-06-16",
+            "valid_through": "2026-09-13",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "20:00",
+                    "opens": "10:00"
+                  }
+                ],
+                "weekdays": [
+                  "tuesday",
+                  "wednesday",
+                  "thursday",
+                  "friday",
+                  "saturday",
+                  "sunday"
+                ]
+              }
+            ]
+          }
+        ],
+        "timezone": "Europe/Madrid"
+      },
+      "place_id": "bcn-99400783086",
+      "schedule_verification_status": "verified",
+      "source_modified_at": "2026-06-11T11:13:20.779163+02:00",
+      "source_record_id": "99400783086",
+      "source_url": "https://opendata-ajuntament.barcelona.cat/data/en/dataset/xarxa-refugis-climatics"
+    },
+    {
+      "accessibility": true,
+      "address": {
+        "city": "Barcelona",
+        "number": "5",
+        "postal_code": "08001",
+        "street": "Carrer de Montalegre"
+      },
+      "district": "Ciutat Vella",
+      "features": {
+        "indoor_space": true,
+        "micro_shelter": null,
+        "pets_allowed": false,
+        "potable_water": true,
+        "toilets": true
+      },
+      "information_url": "https://www.cccb.org/",
+      "last_checked": "2026-07-16",
+      "latitude": 41.38391450226559,
+      "longitude": 2.1668129104163323,
+      "name": "Refugi Climàtic Espai Familiar planta 0",
+      "neighborhood": "el Raval",
+      "opening_schedule": {
+        "seasons": [
+          {
+            "valid_from": "2026-06-16",
+            "valid_through": "2026-09-06",
+            "weekly_rules": [
+              {
+                "intervals": [
+                  {
+                    "closes": "19:30",
+                    "opens": "16:30"
+                  }
+                ],
+                "weekdays": [
+                  "tuesday",
+                  "wednesday",
+                  "thursday",
+                  "friday"
+                ]
+              },
+              {
+                "intervals": [
+                  {
+                    "closes": "14:00",
+                    "opens": "11:00"
+                  },
+                  {
+                    "closes": "19:30",
+                    "opens": "16:30"
+                  }
+                ],
+                "weekdays": [
+                  "saturday"
+                ]
+              }
+            ]
+          }
+        ],
+        "timezone": "Europe/Madrid"
+      },
+      "place_id": "bcn-99400783087",
+      "schedule_verification_status": "verified",
+      "source_modified_at": "2026-07-06T12:19:41.580158+02:00",
+      "source_record_id": "99400783087",
+      "source_url": "https://opendata-ajuntament.barcelona.cat/data/en/dataset/xarxa-refugis-climatics"
+    }
+  ],
+  "publisher": "Ajuntament de Barcelona",
+  "schema_version": "1.0.0",
+  "snapshot_id": "barcelona-climate-shelters-v1-2026-07-16"
+}
