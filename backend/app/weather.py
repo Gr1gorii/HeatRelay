@@ -9,7 +9,14 @@ from typing import Annotated, Any, Literal
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import httpx
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
+from pydantic import (
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    Field,
+    ValidationError,
+    field_validator,
+)
 
 OPEN_METEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 OPEN_METEO_DOCUMENTATION_URL = "https://open-meteo.com/en/docs"
@@ -82,6 +89,30 @@ class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
 
+FiniteTemperature = Annotated[
+    float,
+    Field(ge=-100.0, le=70.0, allow_inf_nan=False),
+]
+FiniteApparentTemperature = Annotated[
+    float,
+    Field(ge=-120.0, le=80.0, allow_inf_nan=False),
+]
+FiniteHumidity = Annotated[
+    float,
+    Field(ge=0.0, le=100.0, allow_inf_nan=False),
+]
+FiniteUvIndex = Annotated[
+    float,
+    Field(ge=0.0, le=100.0, allow_inf_nan=False),
+]
+
+
+def _validate_weather_code(value: int) -> int:
+    if value not in DOCUMENTED_WMO_CODES:
+        raise ValueError("weather code is not documented by Open-Meteo")
+    return value
+
+
 class WeatherContextRequest(StrictModel):
     """Private-coordinate request body for normalized weather context."""
 
@@ -106,20 +137,25 @@ class WeatherUnits(StrictModel):
 class CurrentWeatherContext(StrictModel):
     """Current model-derived conditions."""
 
-    observed_at: datetime
-    temperature_c: float
-    apparent_temperature_c: float
-    relative_humidity_pct: float
+    observed_at: AwareDatetime
+    temperature_c: FiniteTemperature
+    apparent_temperature_c: FiniteApparentTemperature
+    relative_humidity_pct: FiniteHumidity
     weather_code: int
+
+    @field_validator("weather_code")
+    @classmethod
+    def validate_weather_code(cls, value: int) -> int:
+        return _validate_weather_code(value)
 
 
 class DailyWeatherContext(StrictModel):
     """Same-day model-derived maxima."""
 
     date: date
-    temperature_max_c: float
-    apparent_temperature_max_c: float
-    uv_index_max: float
+    temperature_max_c: FiniteTemperature
+    apparent_temperature_max_c: FiniteApparentTemperature
+    uv_index_max: FiniteUvIndex
 
 
 class WeatherSource(StrictModel):
@@ -137,7 +173,7 @@ class WeatherSource(StrictModel):
 class WeatherContextResponse(StrictModel):
     """Normalized weather context without echoing request coordinates."""
 
-    retrieved_at: datetime
+    retrieved_at: AwareDatetime
     timezone: str
     units: WeatherUnits
     current: CurrentWeatherContext
@@ -152,6 +188,13 @@ class WeatherContextResponse(StrictModel):
     def validate_timezone(cls, value: str) -> str:
         return _validate_timezone_identifier(value)
 
+    @field_validator("retrieved_at")
+    @classmethod
+    def validate_retrieved_at_is_utc(cls, value: datetime) -> datetime:
+        if value.utcoffset() != timezone.utc.utcoffset(value):
+            raise ValueError("retrieved_at must use UTC")
+        return value
+
 
 class WeatherUnavailable(Exception):
     """Stable, non-sensitive failure exposed by the API layer."""
@@ -161,16 +204,6 @@ class WeatherUnavailable(Exception):
 
     def __init__(self) -> None:
         super().__init__(self.message)
-
-
-FiniteTemperature = Annotated[
-    float,
-    Field(ge=-100.0, le=70.0, allow_inf_nan=False),
-]
-FiniteApparentTemperature = Annotated[
-    float,
-    Field(ge=-120.0, le=80.0, allow_inf_nan=False),
-]
 
 
 class _UpstreamCurrentUnits(BaseModel):
@@ -200,18 +233,13 @@ class _UpstreamCurrent(BaseModel):
     interval: Annotated[int, Field(gt=0)]
     temperature_2m: FiniteTemperature
     apparent_temperature: FiniteApparentTemperature
-    relative_humidity_2m: Annotated[
-        float,
-        Field(ge=0.0, le=100.0, allow_inf_nan=False),
-    ]
+    relative_humidity_2m: FiniteHumidity
     weather_code: int
 
     @field_validator("weather_code")
     @classmethod
     def validate_weather_code(cls, value: int) -> int:
-        if value not in DOCUMENTED_WMO_CODES:
-            raise ValueError("weather code is not documented by Open-Meteo")
-        return value
+        return _validate_weather_code(value)
 
 
 class _UpstreamDaily(BaseModel):
@@ -220,9 +248,7 @@ class _UpstreamDaily(BaseModel):
     time: list[str]
     temperature_2m_max: list[FiniteTemperature]
     apparent_temperature_max: list[FiniteApparentTemperature]
-    uv_index_max: list[
-        Annotated[float, Field(ge=0.0, le=100.0, allow_inf_nan=False)]
-    ]
+    uv_index_max: list[FiniteUvIndex]
 
 
 class _UpstreamWeatherResponse(BaseModel):

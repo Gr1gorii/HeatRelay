@@ -657,3 +657,474 @@ credential, starting `make dev`, or making an OpenAI or other network request.
 | Snapshot and manifest `shasum -a 256` | 0 | Both committed data hashes remained unchanged. |
 | Pre-record `git diff --check`, redacted key-shaped and OpenAI-prefixed `VITE_` scans, empty-placeholder check, and project whitespace scan | 0 | No diff error, key-shaped value, OpenAI frontend variable, nonempty example key, or trailing whitespace was found; scans printed no candidate secret value. |
 | Ignored `.env.local` metadata and Git-state checks | 0 | The file remained a non-symlinked regular file with mode `0600`, ignored and untracked; the index was empty and only the same 16 intended working-tree paths were listed. Its contents were not read or measured. |
+
+## Milestone 2 publication — primary Codex build thread
+
+According to the author-supplied publication report, the primary Codex build
+thread created commit
+`9386d1b4ffc6b2aaf0f85a9c7617407ad2b0c337` with message
+`feat: add multilingual situation extraction` and pushed it normally to
+`origin/main`. This attribution comes from that publication report, not from
+Git author metadata. It is distinct from the author-performed Milestone 0
+publication and the primary-thread Milestone 1 publication recorded above.
+
+## Milestone 3 implementation and verification pass 1 — 2026-07-17
+
+> **Historical-state note:** This section preserves the implementation and
+> verification evidence recorded after pass 1. Its `112`/`061` split,
+> cancellation-cooperative M2 provider deadline, and “complete” payload-cap
+> wording were superseded by the adversarial correction record below. The
+> command results remain historical facts and are not rewritten as results of
+> the later correction.
+
+The primary Codex build thread started from clean local and remote `main` at
+Milestone 2 commit `9386d1b4ffc6b2aaf0f85a9c7617407ad2b0c337`. The author
+supplied the bounded Barcelona policy, safety, privacy, paid-smoke, and scope
+decisions. Codex inspected the existing contracts, reviewed the named official
+sources, implemented the backend workflow and tests, performed adversarial
+follow-up review, and updated project documentation and minimal truthful shell
+copy. No Milestone 3 publication action belongs to this pass.
+
+Implemented work:
+
+- a strict Barcelona-only `POST /api/v1/action-plan` request and discriminated
+  urgent/normal response;
+- one server-owned UTC evaluation instant, existing M2 extraction, an urgent
+  fixed-contact bypass, existing model-derived weather, versioned deterministic
+  priority, immutable place eligibility, and exactly one grounded plan call;
+- a pure `heatrelay-barcelona-action-policy-1.0.0` precedence function using
+  the `36.0°C` and `34.0°C` daytime boundaries only as HeatRelay heuristics,
+  never as proof of an official municipal alert;
+- accessibility-before-rank filtering for explicit wheelchair or step-free
+  requirements, movement and support-person invariants, and an exact frozen
+  request-candidate whitelist;
+- a second GPT-5.6 Structured Output that can select only reviewed codes and
+  one exact candidate ID, followed by strict local semantic validation and
+  coordinate-free hydration from backend-owned catalogs and trusted objects;
+- fixed urgent `112`/`061` contact content, with `112` precedence for the
+  bounded emergency-indicator set and no climate-shelter normal plan in the
+  urgent branch; and
+- a hard request-path bound for a cancellation-resistant plan provider task,
+  separate bounded best-effort client cleanup, zero retries, a 20,000-byte
+  complete application-payload ceiling, a 1,024-token output ceiling, and
+  sanitized fixed errors.
+
+A fresh adversarial review found and corrected issues before the final gates:
+the first provider deadline used cancellation-cooperative `wait_for`; the full
+place object could echo an origin that exactly matched a place coordinate; a
+verified-place reason was not paired with an actual selection; unrelated
+mobility facts could offer an invented mobility aid; an invalid server clock
+was misclassified; priority reasons were not closed; closed/stale candidates
+needed workflow defense in depth; and two fixed action/explanation branches
+could imply facts not actually reported. Regression tests now cover each case.
+
+### Reviewed sources and derived rules
+
+All sources below were accessed on `2026-07-17`. The HeatRelay rule is a
+project decision derived from the source, not copied publisher wording.
+
+| Publisher and source | HeatRelay rule |
+| --- | --- |
+| Ajuntament de Barcelona — Serveis Socials, [published thresholds](https://ajuntament.barcelona.cat/serveissocials/es/noticia/crece-la-red-de-refugios-climaticos-para-protegerse-del-calor_1523924) | Use published `34.0°C` and `36.0°C` daytime boundaries as versioned heuristics over model-derived same-day maximum temperature, not as official activation. |
+| Ajuntament de Barcelona — Barcelona pel Clima, [climate-shelter network](https://www.barcelona.cat/barcelona-pel-clima/ca/accions-concretes/xarxa-de-refugis-climatics) | Preserve the hours warning and never present a shelter as medical care. |
+| Generalitat de Catalunya — Canal Salut, [excess-heat effects](https://canalsalut.gencat.cat/ca/vida-saludable/consells-estacionals/estiu/calor/efectes-exces/) | Explicit bounded warning symptoms take the fixed urgent branch; retain `061 Salut Respon` as backend-owned urgent heat-health contact content. |
+| Generalitat de Catalunya — 112 emergències, [112 FAQ](https://112.gencat.cat/es/us-del-112/preguntes-frequeents/) | Keep `112` emergency and `061` medical-urgency contacts fixed; HeatRelay conservatively gives `112` precedence for its bounded emergency-indicator set. |
+| World Health Organization, [Heat and health](https://www.who.int/news-room/fact-sheets/detail/climate-change-heat-and-health) | Treat heat as a serious hazard without diagnosis, probability, or a medical risk score. |
+| OpenAI, [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs) | Use Pydantic Structured Outputs and refusal handling, then independently validate request-scoped semantics. |
+| OpenAI, [API pricing](https://developers.openai.com/api/docs/pricing) | Recheck standard rates before the one authorized plan smoke and do not call if configured bounds can exceed USD `$0.15`. |
+
+The exact symptom split is a conservative HeatRelay mapping, not a verbatim
+official symptom-by-symptom table. Chest pain, difficulty breathing, seizure,
+or fainting/loss of consciousness selects `112`; confusion or repeated
+vomiting selects `061`; `112` wins for a mixed reported set.
+
+### Offline verification record
+
+Ordinary tests used injected synthetic fakes and made no OpenAI, weather,
+download, or other network call. The real `.env.local` value was not read,
+printed, measured, or modified.
+
+| Command or check | Exit status | Result |
+| --- | ---: | --- |
+| `.venv/bin/python -m pytest backend/tests/test_action_priority.py backend/tests/test_grounded_plan.py backend/tests/test_action_plan_workflow.py backend/tests/test_action_plan_api.py -q` | 0 | All 179 focused policy, adapter, validation, workflow, and HTTP-contract tests passed. These are synthetic contract/adversarial fixtures, not a general live-model accuracy evaluation. |
+| `make test-backend` | 0 | All 432 backend tests passed. |
+| `make test-frontend` | 0 | The single frontend rendering smoke test passed. |
+| `make test` | 0 | The complete root suite passed: 432 backend tests and one frontend test. |
+| `make build` | 0 | TypeScript checking and the Vite production build passed. |
+| `.venv/bin/python -m pip check` | 0 | No broken requirements; pip emitted only its existing unwritable-cache warning. |
+| `npm --prefix frontend ls --depth=0` | 0 | Installed direct frontend versions matched the unchanged manifest. |
+| Installed direct-dependency metadata checks | 0 | Backend and frontend licenses matched the existing documented MIT, Apache-2.0, BSD-3-Clause, and OpenAI SDK Apache-2.0 records; no dependency changed. |
+| Snapshot and manifest `shasum -a 256` | 0 | Hashes remained `c958b7ba10b133132d9f1c8b98d84cd1b53644d27cbbd225b5b46bb98d89202b` and `d0ce55c3dd8cd730307324a12e214fdc54ad6783b8ce97a5bb3f14ac1c783c9f`. |
+| Request-scoped place-ID evaluation | 0 | The exact current candidate was accepted; all 15 fabricated, filtered, case-changed, padded, encoded, or Unicode-confusable IDs were rejected. A real snapshot-known but request-filtered ID also failed closed: zero noncandidate IDs were accepted. |
+| Redacted credential, environment, frontend-variable, and whitespace checks | 0 | No real key-shaped value, unexpected environment file, OpenAI-prefixed `VITE_` variable, or trailing whitespace was found. `.env.local` remained regular, non-symlinked, mode `0600`, ignored, and untracked; its contents were not inspected. |
+| `git diff --check` and cached-diff check | 0 | No diff whitespace error was found and the index remained empty. |
+
+The first normalized no-`VITE_` shell wrapper exited 1 because it assigned to
+zsh's read-only `status` variable; the underlying bare search had also exited 1
+with no output, which is ripgrep's normal no-match result. Replacing the wrapper
+variable with `rc` produced the recorded exit 0 and `openai_vite_scan=clear`.
+No source change was required.
+
+At the time this verification record was written, all Milestone 3 changes were
+intentionally uncommitted and unpublished. The one authorized paid direct-plan
+smoke is recorded separately below only if actually attempted.
+
+### One authorized paid grounded-plan smoke
+
+Immediately before the attempt, the primary thread re-read OpenAI's official
+pricing page. Standard `gpt-5.6-sol` pricing remained `$5.00` per million input
+tokens and `$30.00` per million output tokens. The configured conservative
+worst-case estimate remained `$0.13072`, below the author-approved `$0.15`
+ceiling.
+
+The internal `GroundedPlanService` was invoked directly once with a short,
+synthetic, prevalidated profile and synthetic backend-owned weather/candidate
+facts. It did not invoke the public action workflow, M2 extraction, Open-Meteo,
+place downloads, or another network service. SDK retries and application
+retries were both zero, and no second attempt was made.
+
+| Safe evidence | Result |
+| --- | --- |
+| Responses API attempts | `1` |
+| Result | Passed on the first and only attempt |
+| Returned model metadata | `gpt-5.6-sol` |
+| Strict Pydantic model validation | Passed |
+| Exact request-scoped candidate whitelist | Passed |
+| Aggregate token counts | 1,161 input; 171 output; 1,332 total |
+| Coarse standard-rate estimate | `$0.010935` |
+| Configured cost ceiling | `$0.15` |
+
+No credential, response ID, raw request, origin, complete profile, full plan,
+provider body, account balance, or `.env.local` content was printed or added to
+the repository. This one scenario verifies the live adapter/schema/whitelist
+path only; it is not evidence of general model accuracy.
+
+## Milestone 3 adversarial correction pass — 2026-07-17
+
+The primary Codex build thread continued the existing uncommitted Milestone 3
+working tree. It did not restart the implementation, alter dependencies, or
+make a publication action. This correction made no OpenAI, weather, download,
+or other network request and did not read the ignored `.env.local` contents.
+The prior one-attempt grounded-plan smoke remains historical evidence; it was
+not repeated.
+
+The correction makes these safety invariants backend-owned and fail-closed:
+
+- Every normal priority has an exact required action matrix. All three require
+  immediate cooler-space, reduced-effort, and conditionally worded hydration
+  actions. `act_now` additionally requires continued hydration, staying cool,
+  and updated weather before its fixed three-action tonight core;
+  `prepare_now` requires continued hydration, updated weather, tonight
+  preparation, and that same tonight core; `monitor_and_prepare` requires
+  updated weather, tonight preparation, nearby water, and a night-weather
+  check. Every deterministic priority and applicable branch reason is also
+  required; the model can choose only compatible supplemental codes.
+- No-travel output requires no selected ID, travel action, bring item, or local
+  phrase. Travel requires one exact request candidate, the `now` travel code,
+  at least water and phone, and one allowed phrase. Movement prohibition also
+  requires `remain_at_current_location`.
+- Every reported bounded time or mobility constraint suppresses immediate
+  travel because exact timing, route, travel time, deadline, and walking-range
+  compatibility cannot be proven from retained facts. The fixed
+  `unresolved_travel_constraint` reason and public notice explain the
+  suppression; accessibility remains a filter, not proof of reachability.
+- Reported air conditioning may expose home cooling. Reported fan-only cooling
+  exposes it only when current and same-day maximum temperatures are both
+  strictly below `40.0°C`. This conservative WHO-derived HeatRelay rule is not
+  an official alert threshold.
+- Every value in the explicit fixed closed catalog—confusion, fainting/loss of
+  consciousness, seizure, difficulty breathing, chest pain, and repeated
+  vomiting—now routes to fixed `112` content. Code asserts that this separately
+  declared policy set equals both the extraction literal and canonical order,
+  so a future symptom cannot silently inherit a default. This universal rule
+  supersedes the pass-1 symptom partition; urgent requests still bypass
+  weather, places, and the second GPT call.
+- The normal workflow captures its evaluation instant after extraction,
+  requires `Europe/Madrid`-compatible weather metadata and the same Barcelona
+  local date, and uses that instant for place eligibility. Mismatches fail the
+  entire workflow without a partial plan.
+- Both OpenAI adapters now place provider work in an explicit task and bound
+  request-path waiting with `asyncio.wait`. Cancellation-resistant timed-out
+  work is cancelled and detached best effort, its eventual outcome is consumed
+  privately, and timeout does not prove the task stopped. Extraction gives
+  cleanup only the remainder of its overall asynchronous budget, while the
+  grounded adapter retains separate provider and cleanup bounds. Both share
+  process-local non-queueing limits of four provider tasks and four cleanup
+  tasks; a slot remains occupied until the actual task finishes.
+- The 20,000-byte pre-client bound now counts the compact UTF-8 serialization
+  of the complete application-defined model-visible request, including role and
+  content wrappers, instruction, minimized context, and the fully wrapped
+  strict JSON Schema response format. Candidate closing timestamps are
+  timezone-aware typed values.
+- Separately named action-origin constants define a coarse Barcelona pilot
+  rectangle. Their current numbers intentionally match the place-record
+  validation rectangle, but neither rectangle establishes municipal membership
+  or an administrative-boundary geofence.
+
+Offline verification used only injected synthetic fakes. It did not load the
+real credential, start the development services, or make an OpenAI, weather,
+download, or other network request.
+
+| Command or check | Exit status | Result |
+| --- | ---: | --- |
+| `.venv/bin/python -m pytest backend/tests/test_action_priority.py backend/tests/test_grounded_plan.py backend/tests/test_action_plan_workflow.py backend/tests/test_action_plan_api.py backend/tests/test_situation.py -q` | 0 | All 346 focused priority, invariant, adapter, workflow, and API tests passed. |
+| Eleven explicitly selected hard-timeout, caller-cancellation, provider-capacity, cleanup-capacity, and cross-adapter saturation tests | 0 | All 11 passed. The tests use `0.01`-second synthetic deadlines, assert request-path return below `0.08` or `0.12` seconds as applicable, and assert saturated rejection below `0.05` seconds while resistant tasks remain retained until explicitly released. |
+| `make test-backend` | 0 | All 535 backend tests passed. |
+| `make test-frontend` | 0 | The frontend rendering test passed, including Milestone 3/backend-only/no-live-guidance truth-boundary assertions. |
+| `make test` | 0 | The complete root suite passed: 535 backend tests and one frontend test. |
+| `make build` | 0 | TypeScript checking and the Vite production build passed. |
+| `.venv/bin/python -m pip check` | 0 | No broken requirements; pip printed only the existing unwritable-cache warning. |
+| `npm --prefix frontend ls --depth=0` | 0 | Installed direct frontend versions matched the unchanged manifest. |
+| Snapshot and manifest `shasum -a 256` | 0 | Hashes remained `c958b7ba10b133132d9f1c8b98d84cd1b53644d27cbbd225b5b46bb98d89202b` and `d0ce55c3dd8cd730307324a12e214fdc54ad6783b8ce97a5bb3f14ac1c783c9f`. |
+| `git diff --check` | 0 | No diff whitespace error was found. |
+| Project-wide trailing-whitespace, key-shaped credential, and OpenAI-prefixed `VITE_` scans | 1 for each `rg` no-match search | No matching line or filename was found; ripgrep uses status 1 for no matches and no candidate value was printed. |
+| `.env.local` and example metadata checks | 0 | `.env.local` remained ignored, untracked, regular, non-symlinked, and mode `0600`; `.env.example` retained exactly one empty `OPENAI_API_KEY=` placeholder. Only filenames and metadata were inspected. |
+| Dependency-manifest, snapshot-byte, index, changed-scope, and final status checks | 0 | Dependency manifests and data bytes were unchanged, the index was empty, and only the intended Milestone 3/correction paths were listed. |
+
+At the time this verification was recorded, Milestone 3 remained intentionally
+uncommitted and unpublished.
+
+## Milestone 3 final adversarial correction pass — 2026-07-17
+
+The primary Codex build thread continued the existing uncommitted Milestone 3
+working tree without restarting the implementation or changing dependencies.
+This record supersedes the prior pass's current cleanup statement: cancelling
+and detaching a timed-out `client.close()` was insufficient with the pinned SDK
+because later object destruction could schedule untracked asynchronous close
+work.
+
+The corrected boundary requires both provider and cleanup reservations before
+constructing either OpenAI client. Saturation therefore rejects before client
+construction or provider work. Every constructed client remains held by its
+cleanup reservation; a timed-out close is detached without cancellation, and
+capacity is released only after actual successful closure. Ordinary close
+failure is retained in a finite fail-closed quarantine rather than exposing an
+untracked SDK destructor path. Provider timeout may still request cancellation,
+but provider capacity remains occupied until actual task completion. Extraction
+also rechecks its remaining monotonic budget immediately before provider task
+creation: synchronous client-factory work cannot be preempted, but no provider
+coroutine starts after expiry. Fixed callbacks consume late outcomes without
+private data, and caller cancellation continues to propagate.
+
+The deterministic workflow corrections are also fail-closed:
+
+- `unknown` mobility or time-constraint status suppresses candidates, travel,
+  preparation items, and local phrase just as an unresolved reported value
+  does; `not_stated` and `explicit_none` remain distinct.
+- Barcelona-pilot weather now requires finite range-valid values, aware
+  timestamps, aware UTC retrieval from evaluation through
+  `WEATHER_TIMEOUT_SECONDS + 1` second, a maximum 90-minute observation age,
+  no more than five minutes of future observation skew, matching Madrid-local
+  observed/daily/evaluation dates, and daily maxima no lower than current
+  values. Near-midnight and Barcelona daylight-saving-transition cases retain
+  one aware evaluation instant. Failure occurs before priority, places, or
+  planning.
+- Candidate and snapshot responses require canonical paired IDs, strict
+  strings and URLs, finite Barcelona source coordinates, aware timestamps,
+  lowercase hashes, approved provenance, and candidate-source/dataset
+  agreement. The workflow recomputes Haversine distance from the private
+  request origin and rejects any mismatch or request-range violation before
+  the model call.
+- The canonical safety matrix has an explicit unsheltered variant that removes
+  room- and window-dependent actions. One production matrix function governs
+  context construction, context validation, generated-plan validation, and
+  strict public normal-response validation. Urgent and normal public models
+  independently enforce fixed branch facts and exact backend-owned hydration.
+- A pinned `openai==2.46.0` regression uses `httpx.MockTransport` to compare
+  the real SDK's serialized model-visible `input` and `text.format` with the
+  application-owned payload and byte count, including multibyte content.
+  Separate real-client offline cases cover cleanup saturation and garbage
+  collection without opening a network socket.
+
+This correction pass is offline-only. It does not repeat either historical
+paid smoke, read the ignored credential contents, or make an OpenAI, weather,
+download, Git-remote, or other network request. At the time this record is
+written, Milestone 3 remains intentionally uncommitted and unpublished.
+
+Final-pass verification recorded in the primary thread:
+
+The first complete backend run in this final pass exited 2 with two newly
+added intrinsic-matrix fixtures: their synthetic `monitor_and_prepare`
+weather used current `31.5°C` with a `30.0°C` daily maximum, so the new
+coherence guard correctly rejected them. The fixtures were corrected to use a
+coherent `29.0°C` current value; no production rule was weakened. The rerun
+below passed.
+
+| Command or check | Exit status | Result |
+| --- | ---: | --- |
+| `.venv/bin/python -m pytest backend/tests/test_situation.py backend/tests/test_grounded_plan.py backend/tests/test_action_priority.py backend/tests/test_action_plan_workflow.py backend/tests/test_action_plan_api.py backend/tests/test_places.py backend/tests/test_weather.py -q` | 0 | All 585 focused adapter, policy, workflow, API, place-contract, and weather-contract tests passed, including the explicit Barcelona daylight-saving-transition case. |
+| 14 explicitly selected real-SDK cleanup/payload, deadline, cancellation, capacity, process-control, and metadata test functions | 0 | All 22 parametrized cases passed offline with synthetic inputs and `httpx.MockTransport`. |
+| Ten explicitly selected universal-urgent and fan-boundary test functions | 0 | All 34 parametrized cases passed. Every closed symptom, mixed/nonreported controls, and coherent `39.9`/`40.0`/`40.1°C` fan boundaries passed; incoherent current-above-maximum fixtures failed before fan policy. |
+| `make test-backend` | 0 | 675 backend tests passed. |
+| `make test-frontend` | 0 | One frontend rendering test passed. |
+| `make test` | 0 | 675 backend tests and one frontend test passed. |
+| `make build` | 0 | TypeScript checking and the Vite production build passed. |
+| `.venv/bin/python -m pip check` | 0 | No broken requirements were found; pip emitted its existing unwritable-cache warning. |
+| `npm --prefix frontend ls --depth=0` | 0 | Installed direct frontend dependencies matched the unchanged manifest. |
+| Snapshot and manifest `shasum -a 256` | 0 | The accepted snapshot and manifest hashes remained unchanged. |
+| `git diff --check`; cached-diff check | 0 | No diff whitespace error was found and the index remained empty. |
+| Corrected redacted key-shaped, OpenAI-prefixed `VITE_`, `.env.example`, and project-wide trailing-whitespace scan | 0 | No candidate filename was found, the OpenAI placeholder remained empty, and no trailing whitespace was found. An initial over-broad expression exited 1 because Markdown punctuation following the documented empty placeholder was treated as a value; a redacted diagnostic printed only filenames and redacted lines, and the corrected expression passed. |
+| `.env.local` metadata-only check | 0 | It remained ignored, untracked, regular, non-symlinked, and mode `0600`; contents and size were not inspected. |
+| Generated-path ignore check | 0 after correcting the shell wrapper | `.venv`, `frontend/node_modules`, `frontend/dist`, pytest, and Python caches remained ignored. The first wrapper exited 1 because assigning to zsh's special `path` variable removed `git` from command lookup; renaming the loop variable fixed the check without a source change. |
+
+## Milestone 3 public-contract and provenance correction pass — 2026-07-17
+
+The primary Codex build thread continued the existing uncommitted Milestone 3
+working tree with a strictly offline, zero-cost correction. It did not repeat
+the historical paid smoke, inspect the ignored credential contents, or make an
+OpenAI, weather, download, Git-remote, or other network request.
+
+Direct adversarial construction showed that the previous strict public model
+could still accept some catalog-valid but situation-incompatible supplemental
+codes, false branch reasons, inapplicable phrases, and well-formed but
+untrusted snapshot or selected-place projections. The earlier statements that
+all such supplemental incompatibilities or arbitrary committed membership were
+already rejected are superseded by this correction; the historical test
+results themselves remain unchanged.
+
+The correction uses one pure backend-owned normal-plan contract for both model
+context construction and public normal-response validation. It derives the
+applicable movement, support, accessibility, unresolved-travel, cooling,
+household, housing, language, candidate, allowed-code, and phrase facts. The
+existing canonical required-code function remains the single minimum-action
+matrix. Public selected codes must be subsets of the shared allowed lists, and
+explanations must equal the deterministic priority and applicable branch
+reasons plus `verified_open_candidate` if and only if travel is selected.
+
+Snapshot provenance now compares the full immutable identity derived from the
+validated committed snapshot and manifest, including schema and snapshot IDs,
+publisher, dataset and distribution URLs, retrieval and upstream-modification
+timestamps, license and URL, exact attribution, and normalized hash. Candidate
+source and chronology must agree with that identity. At the final API boundary,
+a selected projection is independently reconciled with an eligible committed
+repository record using the private origin, evaluation time, request distance
+preference, and applicable accessibility filter. This is the implemented
+independent trust source; it is not a claim that every arbitrary malicious
+internal dependency is safe.
+
+The pass-1 Build Log description of the action-plan route as “strict
+Barcelona-only” is also explicitly superseded. The route uses a coarse
+Barcelona pilot rectangle to bound product coverage; that rectangle does not
+prove municipal membership and is not an administrative-boundary geofence.
+
+The one paid grounded-plan smoke recorded above remains historical pass-1
+evidence only. It did not exercise this corrected model-facing and public
+validation contract, which has not been live re-smoked. Any future re-smoke
+requires separate author authorization and a fresh check of official OpenAI
+pricing. At the time this record is written, Milestone 3 remains intentionally
+uncommitted and unpublished.
+
+Verification for this correction was entirely offline. The first one-off
+adversarial reproduction command confirmed 12 direct-model acceptances and
+HTTP 200 fake-workflow responses, then exited 1 because its remaining
+chronology fixture supplied a datetime string to a strict internal model. The
+corrected reproduction used aware `datetime` objects and confirmed the
+remaining closing, distance, provenance, and unknown-ID acceptances. During
+implementation, the first API/workflow collection then exited 2 because the
+old synthetic snapshot identity was no longer authoritative. After switching
+the controls to committed provenance, two historical schedule tests correctly
+failed because their evaluation instants preceded snapshot retrieval; the
+fixtures moved to valid post-retrieval instants, including the later 2026
+Madrid DST transition. The first targeted rerun then exposed a test-only
+fixed-offset-versus-`ZoneInfo` equality assertion and initially selected a
+season that ended before retrieval; the test now compares the UTC instant and
+offset and selects a reviewed post-retrieval interval. No production guard was
+weakened.
+
+| Command or check | Exit status | Result |
+| --- | ---: | --- |
+| `.venv/bin/python -m pytest backend/tests/test_action_plan_api.py -q -k 'normal_public_model or asgi or shared_normal_contract or committed_candidate'` | 0 | 57 direct-model, fake-workflow ASGI, shared-contract, and committed-candidate cases passed; 30 were deselected. |
+| `.venv/bin/python -m pytest backend/tests/test_action_plan_workflow.py backend/tests/test_places.py -q -k 'provenance or chronology or committed or forged'` | 0 | 72 provenance, chronology, committed-data, and forged-input cases passed; 191 were deselected. |
+| `.venv/bin/python -m pytest backend/tests/test_action_plan_api.py backend/tests/test_action_plan_workflow.py backend/tests/test_places.py backend/tests/test_weather.py backend/tests/test_grounded_plan.py -q` | 0 | All 498 focused public-model, ASGI, workflow, provenance, places, weather, and grounded-plan tests passed. |
+| `make test-backend` | 0 | All 737 backend tests passed. |
+| `make test-frontend` | 0 | The one frontend rendering test passed. |
+| `make test` | 0 | The complete root suite passed: 737 backend tests and one frontend test. |
+| `make build` | 0 | TypeScript checking and the Vite production build passed. |
+| `.venv/bin/python -m pip check` | 0 | No broken requirements were found; pip emitted only the existing unwritable-cache warning. |
+| `npm --prefix frontend ls --depth=0` | 0 | Installed direct frontend dependencies matched the unchanged manifest. |
+| Snapshot and manifest `shasum -a 256` | 0 | Both accepted hashes remained unchanged. |
+| `git diff --check`; cached-diff check | 0 | No diff whitespace error was found and the index remained empty. |
+| Corrected redacted credential, OpenAI-prefixed `VITE_`, empty-placeholder, and trailing-whitespace scans | 0 | No non-fixture credential candidate, frontend OpenAI assignment, nonempty placeholder, or trailing whitespace was found. The one key-shaped match is the intentional provider-metadata sanitization fixture. |
+| `.env.local` and generated-path metadata checks | 0 | `.env.local` remained ignored, untracked, regular, non-symlinked, and mode `0600`; generated dependency/build/cache paths remained ignored. Contents and size were not inspected. |
+
+## Milestone 3 final trust-boundary correction and authorized smoke — 2026-07-17
+
+The primary Codex build thread preserved the existing uncommitted Milestone 3
+implementation. Before the live request, `main` and local `origin/main` both
+resolved to `9386d1b4ffc6b2aaf0f85a9c7617407ad2b0c337`, the index was empty,
+and the working tree contained exactly the expected 21 Milestone 3 paths,
+including `backend/tests/test_situation_api.py`.
+
+The final correction added three narrow backend-owned invariants:
+
+- Explicitly unsheltered housing never exposes
+  `use_available_home_cooling`, even with reported air conditioning or
+  fan-only cooling at `39.9°C`. Stable and temporary housing retain air
+  conditioning and fan-only cooling only under the existing strict below-
+  `40.0°C` boundary.
+- `missing_information` must exactly match the canonically ordered
+  `not_stated` and `unknown` fields. Missing, extra, duplicate, or reordered
+  entries fail validation. The standalone extraction route explicitly
+  revalidates a service response and uses the sanitized 502 invalid-response
+  error; an invalid nested action-plan profile uses the sanitized 503 workflow
+  error.
+- The action-plan endpoint captures injectable strict UTC instants immediately
+  before and after `workflow.create()`. Urgent and normal response evaluation
+  times must fall inside that interval; naive or reversed clocks and outside
+  times fail before final trusted place-repository reconciliation.
+
+Focused correction verification passed 8 cooling cases, 3 canonical missing-
+information/standalone-response cases, and 10 endpoint-time or nested-response
+cases. The complete correction suite then passed 757 backend tests and one
+frontend test, plus the production build and dependency checks.
+
+### One final authorized corrected-contract grounded-plan smoke
+
+Using the supplied standard rates of `$5.00` per million input tokens and
+`$30.00` per million output tokens, the existing 20,000-byte input bound and
+1,024-token output cap produced the unchanged conservative `$0.13072` ceiling,
+below the authorized `$0.15` limit. The secure repository helper loaded the
+ignored backend credential into process memory without printing or passing it
+on the command line.
+
+Exactly one direct `GroundedPlanService` Responses API attempt was made with a
+short synthetic prevalidated normal profile, synthetic weather, and one exact
+candidate from the committed repository. SDK retries and application retries
+were zero. The public workflow, M2 extraction, weather service, downloads, and
+Git remotes were not called, and no retry was made.
+
+| Safe evidence | Result |
+| --- | --- |
+| Responses API attempts | `1` |
+| Result | Passed on the first and only attempt |
+| Returned safe model metadata | `gpt-5.6-sol` |
+| Strict Pydantic response validation | Passed |
+| Allowed-action-code validation | Passed |
+| Exact request-scoped candidate whitelist | Passed |
+| Aggregate token counts | 1,326 input; 171 output; 1,497 total |
+| Coarse standard-rate estimate | `$0.01176` |
+| Configured conservative bound | `$0.13072`, below the `$0.15` ceiling |
+
+No raw request, response, plan, response ID, profile, origin, candidate detail,
+provider body, credential, or account balance was printed or recorded. The
+earlier pass-1 smoke remains historical evidence; this final smoke separately
+exercises the corrected direct grounded-plan schema, allowed-code, and exact
+candidate-whitelist path. It does not prove general model accuracy or exercise
+the full public workflow. After this attempt, no additional network call was
+made.
+
+Final post-smoke verification remained local and offline:
+
+| Command | Exit status | Result |
+| --- | ---: | --- |
+| `make test` | 0 | 757 backend tests and one frontend test passed. |
+| `make build` | 0 | TypeScript checking and the Vite production build passed. |
+| `.venv/bin/python -m pip check` | 0 | No broken requirements were found; pip emitted only its existing unwritable-cache warning. |
+| `npm --prefix frontend ls --depth=0` | 0 | Installed direct frontend dependencies matched the unchanged manifest. |
+| `git diff --check` | 0 | No diff whitespace error was found. |
+
+Only `README.md`, `docs/ARCHITECTURE.md`, `docs/COMPLIANCE.md`, and this Build
+Log were edited during the final smoke-record synchronization. The index
+remained empty; nothing was staged, committed, pushed, tagged, or otherwise
+published. At the time this verification record was written, Milestone 3 was
+uncommitted and unpublished.

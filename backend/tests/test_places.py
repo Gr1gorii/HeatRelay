@@ -13,6 +13,7 @@ from httpx import ASGITransport, AsyncClient
 from backend.app.places import (
     BARCELONA_PLACE_MAX_LATITUDE,
     CANDIDATE_NOTICE,
+    CandidatePlace,
     CC_BY_4_LICENSE,
     CC_BY_4_LICENSE_URL,
     EMPTY_EXPLANATION,
@@ -24,7 +25,10 @@ from backend.app.places import (
     OpeningSchedule,
     PlaceDataError,
     PlaceRepository,
+    PlacesCandidatesResponse,
     PlacesCandidatesRequest,
+    SnapshotProvenance,
+    get_committed_snapshot_provenance,
     get_place_repository,
     router,
     schedule_closing_time,
@@ -192,6 +196,36 @@ def _request(
     return PlacesCandidatesRequest.model_validate(payload)
 
 
+def _candidate_contract_payload() -> dict[str, Any]:
+    payload = _place("101", accessibility=True)
+    payload.pop("opening_schedule")
+    payload.update(
+        {
+            "distance_m": 25,
+            "closes_at": "2026-07-20T18:00:00+02:00",
+        }
+    )
+    return payload
+
+
+def _provenance_contract_payload() -> dict[str, Any]:
+    return {
+        "schema_version": "1.0.0",
+        "snapshot_id": "barcelona-climate-shelters-v1-test",
+        "publisher": OFFICIAL_PUBLISHER,
+        "dataset_url": OFFICIAL_DATASET_URL,
+        "distribution_url": OFFICIAL_DISTRIBUTION_URL,
+        "retrieved_at": "2026-07-16T12:00:00Z",
+        "upstream_max_modified": "2026-07-15T10:00:00Z",
+        "license": CC_BY_4_LICENSE,
+        "license_url": CC_BY_4_LICENSE_URL,
+        "attribution": (
+            "Barcelona City Council source data, normalized by HeatRelay."
+        ),
+        "normalized_sha256": "a" * 64,
+    }
+
+
 def _test_app(repository: PlaceRepository) -> FastAPI:
     app = FastAPI()
     app.include_router(router)
@@ -246,6 +280,82 @@ def test_repository_validates_manifest_hash_counts_and_provenance(
         and -180 <= place.longitude <= 180
         and place.source_url == OFFICIAL_DATASET_URL
         for place in repository.snapshot.places
+    )
+    assert repository.provenance == SnapshotProvenance(
+        schema_version=manifest_payload["schema_version"],
+        snapshot_id=manifest_payload["snapshot_id"],
+        publisher=manifest_payload["publisher"],
+        dataset_url=manifest_payload["dataset_url"],
+        distribution_url=manifest_payload["distribution_url"],
+        retrieved_at=manifest_payload["retrieved_at"],
+        upstream_max_modified=manifest_payload["upstream_max_modified"],
+        license=manifest_payload["license"],
+        license_url=manifest_payload["license_url"],
+        attribution=manifest_payload["attribution"],
+        normalized_sha256=manifest_payload["normalized_sha256"],
+    )
+
+
+def test_committed_provenance_is_derived_from_validated_manifest() -> None:
+    provenance = get_committed_snapshot_provenance()
+
+    assert provenance == get_place_repository().provenance
+    assert provenance.snapshot_id == "barcelona-climate-shelters-v1-2026-07-16"
+    assert provenance.normalized_sha256 == (
+        "c958b7ba10b133132d9f1c8b98d84cd1b53644d27cbbd225b5b46bb98d89202b"
+    )
+
+
+@pytest.mark.parametrize(
+    ("place_updates", "manifest_changes", "error_match"),
+    [
+        (
+            {"source_modified_at": "2026-07-15T10:00:01Z"},
+            None,
+            "newer than the upstream maximum",
+        ),
+        (
+            {"last_checked": "2026-07-15"},
+            None,
+            "last_checked is inconsistent",
+        ),
+    ],
+)
+def test_repository_rejects_place_chronology_inconsistent_with_manifest(
+    tmp_path: Path,
+    place_updates: dict[str, Any],
+    manifest_changes: dict[str, Any] | None,
+    error_match: str,
+) -> None:
+    place = _place("101")
+    place.update(place_updates)
+    repository, _, _ = _write_repository(
+        tmp_path,
+        [place],
+        manifest_changes=manifest_changes,
+    )
+
+    with pytest.raises(PlaceDataError, match=error_match):
+        repository.load()
+
+
+def test_repository_does_not_invent_source_modified_before_retrieval_rule(
+    tmp_path: Path,
+) -> None:
+    place = _place("101")
+    place["source_modified_at"] = "2026-07-17T10:00:00Z"
+    repository, _, _ = _write_repository(
+        tmp_path,
+        [place],
+        manifest_changes={
+            "upstream_max_modified": "2026-07-17T10:00:00Z",
+        },
+    )
+
+    repository.load()
+
+    assert repository.snapshot.places[0].source_modified_at > (
+        repository.manifest.retrieved_at
     )
 
 
@@ -378,6 +488,178 @@ def test_repository_rejects_invalid_information_url(
 
     with pytest.raises(PlaceDataError, match="schema validation"):
         repository.load()
+
+
+@pytest.mark.parametrize(
+    ("field_name", "invalid_value"),
+    [
+        ("place_id", "bcn-synthetic-101"),
+        ("place_id", "bcn-102"),
+        ("source_record_id", "synthetic-101"),
+        ("source_record_id", "102"),
+        ("name", " \t"),
+        ("district", ""),
+        ("neighborhood", "\n"),
+        ("latitude", float("nan")),
+        ("latitude", float("inf")),
+        ("latitude", BARCELONA_PLACE_MAX_LATITUDE + 0.01),
+        ("longitude", float("-inf")),
+        ("distance_m", -1),
+        ("distance_m", 1.5),
+        ("distance_m", True),
+        ("closes_at", None),
+        ("closes_at", "2026-07-20T18:00:00"),
+        ("source_modified_at", "2026-07-15T10:00:00"),
+        ("accessibility", 1),
+    ],
+)
+def test_candidate_contract_rejects_forged_or_weak_factual_fields(
+    field_name: str,
+    invalid_value: object,
+) -> None:
+    payload = _candidate_contract_payload()
+    payload[field_name] = invalid_value
+
+    with pytest.raises(ValueError):
+        CandidatePlace.model_validate(payload)
+
+
+@pytest.mark.parametrize(
+    "address_changes",
+    [
+        {"street": ""},
+        {"number": "  "},
+        {"postal_code": "\t"},
+        {"city": "\n"},
+    ],
+)
+def test_candidate_contract_reuses_strict_nonblank_address_fields(
+    address_changes: dict[str, object],
+) -> None:
+    payload = _candidate_contract_payload()
+    payload["address"].update(address_changes)
+
+    with pytest.raises(ValueError):
+        CandidatePlace.model_validate(payload)
+
+
+@pytest.mark.parametrize(
+    ("field_name", "invalid_url"),
+    [
+        ("information_url", "javascript:alert(1)"),
+        ("information_url", "file:///tmp/place"),
+        ("information_url", "https://user:password@example.test/place"),
+        ("information_url", "https://example.test/%zz"),
+        ("source_url", "javascript:alert(1)"),
+        ("source_url", "file:///tmp/place"),
+        ("source_url", "https://user:password@example.test/place"),
+        ("source_url", "https://example.test/%zz"),
+    ],
+)
+def test_candidate_contract_rejects_unsafe_urls(
+    field_name: str,
+    invalid_url: str,
+) -> None:
+    payload = _candidate_contract_payload()
+    payload[field_name] = invalid_url
+
+    with pytest.raises(ValueError):
+        CandidatePlace.model_validate(payload)
+
+
+def test_candidate_contract_accepts_exact_reviewed_factual_shape() -> None:
+    payload = _candidate_contract_payload()
+    payload["information_url"] = (
+        "https://example.test/a%20b?next=%2Fsafe"
+    )
+
+    candidate = CandidatePlace.model_validate(payload)
+
+    assert candidate.place_id == "bcn-101"
+    assert candidate.source_record_id == "101"
+    assert candidate.distance_m == 25
+    assert candidate.information_url == payload["information_url"]
+
+
+@pytest.mark.parametrize(
+    ("field_name", "invalid_value"),
+    [
+        ("schema_version", "1"),
+        ("snapshot_id", " "),
+        ("publisher", "\t"),
+        ("license", ""),
+        ("attribution", "\n"),
+        ("retrieved_at", "2026-07-16T12:00:00"),
+        ("retrieved_at", "2026-07-16T14:00:00+02:00"),
+        ("upstream_max_modified", "2026-07-15T10:00:00"),
+        ("normalized_sha256", "A" * 64),
+        ("normalized_sha256", "a" * 63),
+    ],
+)
+def test_snapshot_provenance_rejects_weak_fields(
+    field_name: str,
+    invalid_value: object,
+) -> None:
+    payload = _provenance_contract_payload()
+    payload[field_name] = invalid_value
+
+    with pytest.raises(ValueError):
+        SnapshotProvenance.model_validate(payload)
+
+
+@pytest.mark.parametrize(
+    "field_name",
+    ["dataset_url", "distribution_url", "license_url"],
+)
+@pytest.mark.parametrize(
+    "invalid_url",
+    [
+        "javascript:alert(1)",
+        "file:///tmp/provenance",
+        "https://user:password@example.test/data",
+        "https://example.test/%zz",
+    ],
+)
+def test_snapshot_provenance_rejects_unsafe_urls(
+    field_name: str,
+    invalid_url: str,
+) -> None:
+    payload = _provenance_contract_payload()
+    payload[field_name] = invalid_url
+
+    with pytest.raises(ValueError):
+        SnapshotProvenance.model_validate(payload)
+
+
+def test_candidate_response_requires_source_url_to_match_snapshot() -> None:
+    candidate_payload = _candidate_contract_payload()
+    candidate_payload["source_url"] = "https://example.test/other-dataset"
+
+    with pytest.raises(ValueError, match="source_url"):
+        PlacesCandidatesResponse.model_validate(
+            {
+                "candidates": [candidate_payload],
+                "snapshot": _provenance_contract_payload(),
+                "explanation": MATCH_EXPLANATION,
+                "hours_warning": HOURS_WARNING,
+                "candidate_notice": CANDIDATE_NOTICE,
+            }
+        )
+
+
+def test_candidate_response_rejects_duplicate_identifiers() -> None:
+    first = _candidate_contract_payload()
+
+    with pytest.raises(ValueError, match="must be unique"):
+        PlacesCandidatesResponse.model_validate(
+            {
+                "candidates": [first, deepcopy(first)],
+                "snapshot": _provenance_contract_payload(),
+                "explanation": MATCH_EXPLANATION,
+                "hours_warning": HOURS_WARNING,
+                "candidate_notice": CANDIDATE_NOTICE,
+            }
+        )
 
 
 @pytest.mark.parametrize(
@@ -603,6 +885,31 @@ def test_required_features_fail_closed_for_false_and_null(
     )
 
     assert [place.place_id for place in response.candidates] == ["bcn-101"]
+
+
+def test_action_candidates_filter_accessibility_before_rank_and_limit(
+    tmp_path: Path,
+) -> None:
+    repository, _, _ = _write_repository(
+        tmp_path,
+        [
+            _place("101", latitude=41.38741, accessibility=False),
+            _place("102", latitude=41.38742, accessibility=None),
+            _place("103", latitude=41.38750, accessibility=True),
+        ],
+    )
+
+    response = repository.find_action_candidates(
+        _request(limit=1),
+        accessibility_required=True,
+    )
+    unchanged_public_response = repository.find_candidates(_request(limit=1))
+
+    assert [place.place_id for place in response.candidates] == ["bcn-103"]
+    assert response.candidates[0].accessibility is True
+    assert [
+        place.place_id for place in unchanged_public_response.candidates
+    ] == ["bcn-101"]
 
 
 def test_candidates_rank_by_raw_haversine_then_lexical_place_id(

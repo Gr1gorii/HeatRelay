@@ -1,6 +1,6 @@
 import asyncio
 from copy import deepcopy
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Any
 from urllib.parse import parse_qs
 
@@ -15,9 +15,14 @@ from backend.app.weather import (
     OPEN_METEO_FORECAST_URL,
     WEATHER_UNAVAILABLE_CODE,
     WEATHER_UNAVAILABLE_MESSAGE,
+    CurrentWeatherContext,
+    DailyWeatherContext,
     WeatherContextRequest,
+    WeatherContextResponse,
     WeatherService,
+    WeatherSource,
     WeatherUnavailable,
+    WeatherUnits,
 )
 
 FIXED_NOW = datetime(2026, 7, 16, 12, 30, tzinfo=timezone.utc)
@@ -356,6 +361,98 @@ def test_naive_retrieval_clock_is_unavailable() -> None:
         )
 
     assert_weather_unavailable_is_sanitized(caught.value)
+
+
+def normalized_weather_payload() -> dict[str, Any]:
+    return {
+        "retrieved_at": FIXED_NOW,
+        "timezone": "Europe/Madrid",
+        "units": WeatherUnits().model_dump(),
+        "current": CurrentWeatherContext(
+            observed_at=datetime(
+                2026,
+                7,
+                16,
+                14,
+                15,
+                tzinfo=timezone(timedelta(hours=2)),
+            ),
+            temperature_c=31.2,
+            apparent_temperature_c=33.4,
+            relative_humidity_pct=58.0,
+            weather_code=1,
+        ).model_dump(),
+        "today": DailyWeatherContext(
+            date=date(2026, 7, 16),
+            temperature_max_c=34.1,
+            apparent_temperature_max_c=36.2,
+            uv_index_max=8.3,
+        ).model_dump(),
+        "source": WeatherSource().model_dump(),
+        "notice": MODEL_DERIVED_NOTICE,
+    }
+
+
+@pytest.mark.parametrize(
+    "retrieved_at",
+    [
+        datetime(2026, 7, 16, 12, 30),
+        datetime(
+            2026,
+            7,
+            16,
+            14,
+            30,
+            tzinfo=timezone(timedelta(hours=2)),
+        ),
+    ],
+    ids=["naive", "non-utc"],
+)
+def test_public_weather_requires_aware_utc_retrieval_time(
+    retrieved_at: datetime,
+) -> None:
+    payload = normalized_weather_payload()
+    payload["retrieved_at"] = retrieved_at
+
+    with pytest.raises(ValidationError):
+        WeatherContextResponse.model_validate(payload)
+
+
+def test_public_weather_requires_aware_observation_time() -> None:
+    payload = normalized_weather_payload()
+    payload["current"]["observed_at"] = datetime(2026, 7, 16, 14, 15)
+
+    with pytest.raises(ValidationError):
+        WeatherContextResponse.model_validate(payload)
+
+
+@pytest.mark.parametrize(
+    ("section", "field", "invalid_value"),
+    [
+        ("current", "temperature_c", float("nan")),
+        ("current", "temperature_c", float("inf")),
+        ("current", "temperature_c", 70.1),
+        ("current", "apparent_temperature_c", float("-inf")),
+        ("current", "apparent_temperature_c", 80.1),
+        ("current", "relative_humidity_pct", -0.1),
+        ("current", "relative_humidity_pct", 100.1),
+        ("current", "weather_code", 4),
+        ("today", "temperature_max_c", float("nan")),
+        ("today", "apparent_temperature_max_c", float("inf")),
+        ("today", "uv_index_max", -0.1),
+        ("today", "uv_index_max", 100.1),
+    ],
+)
+def test_public_weather_rejects_nonfinite_or_out_of_contract_values(
+    section: str,
+    field: str,
+    invalid_value: Any,
+) -> None:
+    payload = normalized_weather_payload()
+    payload[section][field] = invalid_value
+
+    with pytest.raises(ValidationError):
+        WeatherContextResponse.model_validate(payload)
 
 
 def assert_weather_unavailable_is_sanitized(error: WeatherUnavailable) -> None:

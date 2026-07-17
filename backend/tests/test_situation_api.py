@@ -179,9 +179,33 @@ def test_situation_endpoint_returns_exact_server_owned_contract() -> None:
         ],
         "notice": SITUATION_NOTICE,
     }
-    assert service.calls == [SituationExtractionRequest(situation_text=situation_text)]
+    assert service.calls == [
+        SituationExtractionRequest(situation_text=situation_text)
+    ]
     assert situation_text not in response_text
     assert "situation_text" not in payload
+
+
+def test_situation_endpoint_revalidates_bypassed_public_response() -> None:
+    situation_text = "Synthetic private response-validation case"
+    valid = build_public_response(_model_extraction("unknown"))
+    invalid = valid.model_copy(update={"missing_information": []})
+    service = FakeSituationService(response=invalid)
+
+    status_code, payload, response_text = _run_with_service(
+        service,
+        {"situation_text": situation_text},
+    )
+
+    assert status_code == 502
+    assert payload == {
+        "detail": {
+            "code": "situation_extraction_invalid_response",
+            "message": "Situation extraction returned an unusable response.",
+        }
+    }
+    assert service.calls == [SituationExtractionRequest(situation_text=situation_text)]
+    assert situation_text not in response_text
 
 
 @pytest.mark.parametrize(

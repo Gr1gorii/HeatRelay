@@ -39,6 +39,16 @@ from pydantic import (
     model_validator,
 )
 
+from backend.app.openai_runtime import (
+    BoundedTaskCapacity,
+    SHARED_OPENAI_CLIENT_CLEANUP_CAPACITY,
+    SHARED_OPENAI_PROVIDER_CAPACITY,
+    TaskCapacityLease,
+    close_reserved_openai_client,
+    close_unstarted_awaitable,
+    try_reserve_openai_client,
+)
+
 SITUATION_ENDPOINT_PATH = "/api/v1/situation/extract"
 SITUATION_SCHEMA_VERSION = "1.0.0"
 SITUATION_MODEL = "gpt-5.6"
@@ -440,17 +450,33 @@ class SituationExtractionResponse(StrictModel):
         "This output is a structured summary of explicitly reported information. It is not medical advice, an emergency assessment, or an action plan."
     ]
 
+    @model_validator(mode="after")
+    def validate_missing_information(self) -> SituationExtractionResponse:
+        expected = _missing_information_for(self)
+        if self.missing_information != expected:
+            raise ValueError(
+                "missing_information must exactly match unresolved fields"
+            )
+        return self
+
+
+def _missing_information_for(
+    extraction: ModelSituationExtraction | SituationExtractionResponse,
+) -> list[MissingInformation]:
+    """Return the one canonical backend-owned unresolved-field sequence."""
+
+    return [
+        field_name
+        for field_name in MISSING_INFORMATION_ORDER
+        if getattr(extraction, field_name).status in {"not_stated", "unknown"}
+    ]
+
 
 def build_public_response(
     extraction: ModelSituationExtraction,
 ) -> SituationExtractionResponse:
     """Add only deterministic backend-owned public fields."""
 
-    missing = [
-        field_name
-        for field_name in MISSING_INFORMATION_ORDER
-        if getattr(extraction, field_name).status in {"not_stated", "unknown"}
-    ]
     return SituationExtractionResponse(
         schema_version=SITUATION_SCHEMA_VERSION,
         detected_input_language=extraction.detected_input_language,
@@ -461,7 +487,7 @@ def build_public_response(
         housing_situation=extraction.housing_situation,
         time_constraints=extraction.time_constraints,
         reported_symptoms=extraction.reported_symptoms,
-        missing_information=missing,
+        missing_information=_missing_information_for(extraction),
         notice=SITUATION_NOTICE,
     )
 
@@ -489,6 +515,21 @@ class SituationExtractionInvalidResponse(SituationExtractionFailure):
     message = INVALID_RESPONSE_MESSAGE
 
 
+def validate_situation_extraction_response(
+    response: object,
+) -> SituationExtractionResponse:
+    """Strictly revalidate a possibly bypass-constructed public response."""
+
+    if not isinstance(response, SituationExtractionResponse):
+        raise SituationExtractionInvalidResponse()
+    try:
+        return SituationExtractionResponse.model_validate_json(
+            response.model_dump_json()
+        )
+    except Exception as error:
+        raise SituationExtractionInvalidResponse() from error
+
+
 class SituationExtractionNotConfigured(SituationExtractionFailure):
     status_code = 503
     code = NOT_CONFIGURED_CODE
@@ -508,74 +549,91 @@ class SituationExtractionTimeout(SituationExtractionFailure):
 
 
 logger = logging.getLogger(__name__)
-_DETACHED_CLIENT_CLEANUPS: set[asyncio.Task[Any]] = set()
 
 
-def _consume_client_cleanup_result(task: asyncio.Task[Any]) -> None:
-    """Retrieve a cleanup outcome without exposing private exception details."""
+def _consume_provider_call_result(task: asyncio.Task[Any]) -> None:
+    """Consume a detached provider result without exposing private details."""
 
-    _DETACHED_CLIENT_CLEANUPS.discard(task)
     try:
         error = task.exception()
     except asyncio.CancelledError:
         return
     except BaseException:
-        logger.warning("Situation extraction client cleanup failed")
+        logger.warning("Situation extraction provider task failed after timeout")
         return
     if error is not None:
-        logger.warning("Situation extraction client cleanup failed")
+        logger.warning("Situation extraction provider task failed after timeout")
 
 
-def _detach_client_cleanup(task: asyncio.Task[Any]) -> None:
-    """Retain a background cleanup until its fixed callback consumes it."""
+def _detach_provider_call(task: asyncio.Task[Any]) -> None:
+    task.add_done_callback(_consume_provider_call_result)
 
-    _DETACHED_CLIENT_CLEANUPS.add(task)
-    task.add_done_callback(_consume_client_cleanup_result)
+
+async def _await_provider_response_with_bounded_wait(
+    response_awaitable: Any,
+    timeout_seconds: float,
+    capacity_lease: TaskCapacityLease,
+) -> object:
+    """Bound request waiting even when provider cancellation is resisted."""
+
+    if timeout_seconds <= 0:
+        capacity_lease.release()
+        close_unstarted_awaitable(response_awaitable)
+        logger.warning("Situation extraction request timed out")
+        raise SituationExtractionTimeout()
+
+    try:
+        response_task = asyncio.create_task(
+            response_awaitable,
+            name="heatrelay-situation-provider-call",
+        )
+        capacity_lease.bind(response_task)
+    except BaseException:
+        capacity_lease.release()
+        close_unstarted_awaitable(response_awaitable)
+        raise
+
+    try:
+        done, _ = await asyncio.wait({response_task}, timeout=timeout_seconds)
+    except asyncio.CancelledError:
+        _detach_provider_call(response_task)
+        response_task.cancel()
+        raise
+
+    if response_task in done:
+        try:
+            return response_task.result()
+        except asyncio.CancelledError as error:
+            raise SituationExtractionTimeout() from error
+
+    logger.warning("Situation extraction request timed out")
+    _detach_provider_call(response_task)
+    response_task.cancel()
+    raise SituationExtractionTimeout()
 
 
 async def _close_client_with_bounded_wait(
     client: Any,
     timeout_seconds: float,
+    cleanup_lease: TaskCapacityLease,
 ) -> None:
-    """Wait at most the configured interval for best-effort client cleanup."""
+    """Delegate one pre-reserved cleanup to the shared bounded runtime."""
 
-    try:
-        cleanup_task = asyncio.create_task(
-            client.close(),
-            name="heatrelay-situation-client-cleanup",
-        )
-    except Exception:
-        logger.warning("Situation extraction client cleanup failed")
-        return
-
-    try:
-        done, _ = await asyncio.wait(
-            {cleanup_task},
-            timeout=timeout_seconds,
-        )
-    except asyncio.CancelledError:
-        _detach_client_cleanup(cleanup_task)
-        cleanup_task.cancel()
-        raise
-
-    if cleanup_task in done:
-        _consume_client_cleanup_result(cleanup_task)
-        return
-
-    logger.warning("Situation extraction client cleanup timed out")
-    _detach_client_cleanup(cleanup_task)
-    cleanup_task.cancel()
+    await close_reserved_openai_client(
+        client,
+        timeout_seconds,
+        cleanup_lease,
+        task_name="heatrelay-situation-client-cleanup",
+        timeout_warning="Situation extraction client cleanup timed out",
+        failure_warning="Situation extraction client cleanup failed",
+        logger=logger,
+    )
 
 
 def _safe_text_metadata(value: object) -> str:
-    if not isinstance(value, str) or not value:
-        return "unavailable"
-    if len(value) > 80 or any(
-        not (character.isalnum() or character in {"-", "_", "."})
-        for character in value
-    ):
-        return "unavailable"
-    return value
+    if isinstance(value, str) and value in (SITUATION_MODEL, "gpt-5.6-sol"):
+        return value
+    return "unavailable"
 
 
 def _safe_token_count(value: object) -> int | None:
@@ -670,6 +728,10 @@ class SituationExtractionService:
         sdk_timeout_seconds: float = SITUATION_SDK_TIMEOUT_SECONDS,
         overall_timeout_seconds: float = SITUATION_OVERALL_TIMEOUT_SECONDS,
         cleanup_timeout_seconds: float = SITUATION_CLEANUP_TIMEOUT_SECONDS,
+        provider_capacity: BoundedTaskCapacity = SHARED_OPENAI_PROVIDER_CAPACITY,
+        cleanup_capacity: BoundedTaskCapacity = (
+            SHARED_OPENAI_CLIENT_CLEANUP_CAPACITY
+        ),
     ) -> None:
         if not math.isfinite(sdk_timeout_seconds) or sdk_timeout_seconds <= 0:
             raise ValueError("sdk_timeout_seconds must be positive and finite")
@@ -682,6 +744,8 @@ class SituationExtractionService:
         self._sdk_timeout_seconds = sdk_timeout_seconds
         self._overall_timeout_seconds = overall_timeout_seconds
         self._cleanup_timeout_seconds = cleanup_timeout_seconds
+        self._provider_capacity = provider_capacity
+        self._cleanup_capacity = cleanup_capacity
 
     def _create_client(self) -> Any:
         return self._client_factory(
@@ -698,39 +762,52 @@ class SituationExtractionService:
         if self._api_key is None or not self._api_key.strip():
             raise SituationExtractionNotConfigured()
 
+        reservations = try_reserve_openai_client(
+            self._provider_capacity,
+            self._cleanup_capacity,
+        )
+        if reservations is None:
+            raise SituationExtractionUnavailable()
+
+        loop = asyncio.get_running_loop()
+        request_deadline = loop.time() + self._overall_timeout_seconds
         client: Any | None = None
+        provider_lease_transferred = False
         try:
             client = self._create_client()
-            response = await asyncio.wait_for(
-                client.responses.parse(
-                    model=SITUATION_MODEL,
-                    input=[
-                        {
-                            "role": "developer",
-                            "content": [
-                                {
-                                    "type": "input_text",
-                                    "text": DEVELOPER_INSTRUCTION,
-                                }
-                            ],
-                        },
-                        {
-                            "role": "user",
-                            "content": [
-                                {
-                                    "type": "input_text",
-                                    "text": request.situation_text,
-                                }
-                            ],
-                        },
-                    ],
-                    text_format=ModelSituationExtraction,
-                    reasoning={"effort": "none"},
-                    max_output_tokens=SITUATION_MAX_OUTPUT_TOKENS,
-                    store=False,
-                    prompt_cache_options={"mode": "explicit"},
-                ),
-                timeout=self._overall_timeout_seconds,
+            response_awaitable = client.responses.parse(
+                model=SITUATION_MODEL,
+                input=[
+                    {
+                        "role": "developer",
+                        "content": [
+                            {
+                                "type": "input_text",
+                                "text": DEVELOPER_INSTRUCTION,
+                            }
+                        ],
+                    },
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "input_text",
+                                "text": request.situation_text,
+                            }
+                        ],
+                    },
+                ],
+                text_format=ModelSituationExtraction,
+                reasoning={"effort": "none"},
+                max_output_tokens=SITUATION_MAX_OUTPUT_TOKENS,
+                store=False,
+                prompt_cache_options={"mode": "explicit"},
+            )
+            provider_lease_transferred = True
+            response = await _await_provider_response_with_bounded_wait(
+                response_awaitable,
+                max(0.0, request_deadline - loop.time()),
+                reservations.provider,
             )
         except (asyncio.TimeoutError, TimeoutError, APITimeoutError) as error:
             raise SituationExtractionTimeout() from error
@@ -752,14 +829,24 @@ class SituationExtractionService:
             OpenAIError,
         ) as error:
             raise SituationExtractionUnavailable() from error
+        except SituationExtractionFailure:
+            raise
         except Exception as error:
             raise SituationExtractionUnavailable() from error
         finally:
+            if not provider_lease_transferred:
+                reservations.provider.release()
             if client is not None:
                 await _close_client_with_bounded_wait(
                     client,
-                    self._cleanup_timeout_seconds,
+                    min(
+                        self._cleanup_timeout_seconds,
+                        max(0.0, request_deadline - loop.time()),
+                    ),
+                    reservations.cleanup,
                 )
+            else:
+                reservations.cleanup.release()
 
         extraction = _validated_parsed_output(response)
         public_response = build_public_response(extraction)

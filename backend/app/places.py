@@ -119,6 +119,30 @@ def _validate_non_blank(value: str) -> str:
     return value
 
 
+def _validate_semantic_schema_version(value: str) -> str:
+    if _SCHEMA_VERSION_PATTERN.fullmatch(value) is None:
+        raise ValueError("schema_version must use semantic x.y.z form")
+    return value
+
+
+def _validate_lowercase_sha256(value: str) -> str:
+    if _SHA256_PATTERN.fullmatch(value) is None:
+        raise ValueError("must be a lowercase hexadecimal SHA-256")
+    return value
+
+
+def validate_place_identifier_pair(
+    place_id: str,
+    source_record_id: str,
+) -> None:
+    if _PLACE_ID_PATTERN.fullmatch(place_id) is None:
+        raise ValueError("place_id must match bcn-<decimal register_id>")
+    if _SOURCE_RECORD_ID_PATTERN.fullmatch(source_record_id) is None:
+        raise ValueError("source_record_id must be a decimal register_id")
+    if place_id != f"bcn-{source_record_id}":
+        raise ValueError("place_id must be derived from source_record_id")
+
+
 def _validate_http_url(value: str) -> str:
     if not value:
         raise ValueError("must not be empty")
@@ -418,12 +442,7 @@ class PlaceRecord(StrictModel):
 
     @model_validator(mode="after")
     def validate_identifiers_and_schedule(self) -> PlaceRecord:
-        if _PLACE_ID_PATTERN.fullmatch(self.place_id) is None:
-            raise ValueError("place_id must match bcn-<decimal register_id>")
-        if _SOURCE_RECORD_ID_PATTERN.fullmatch(self.source_record_id) is None:
-            raise ValueError("source_record_id must be a decimal register_id")
-        if self.place_id != f"bcn-{self.source_record_id}":
-            raise ValueError("place_id must be derived from source_record_id")
+        validate_place_identifier_pair(self.place_id, self.source_record_id)
 
         if self.schedule_verification_status == "verified":
             if self.opening_schedule is None:
@@ -449,9 +468,7 @@ class ClimateShelterSnapshot(StrictModel):
     @field_validator("schema_version")
     @classmethod
     def validate_schema_version(cls, value: str) -> str:
-        if _SCHEMA_VERSION_PATTERN.fullmatch(value) is None:
-            raise ValueError("schema_version must use semantic x.y.z form")
-        return value
+        return _validate_semantic_schema_version(value)
 
 
 class ClimateShelterManifest(StrictModel):
@@ -475,16 +492,12 @@ class ClimateShelterManifest(StrictModel):
     @field_validator("schema_version")
     @classmethod
     def validate_schema_version(cls, value: str) -> str:
-        if _SCHEMA_VERSION_PATTERN.fullmatch(value) is None:
-            raise ValueError("schema_version must use semantic x.y.z form")
-        return value
+        return _validate_semantic_schema_version(value)
 
     @field_validator("raw_sha256", "normalized_sha256")
     @classmethod
     def validate_sha256(cls, value: str) -> str:
-        if _SHA256_PATTERN.fullmatch(value) is None:
-            raise ValueError("must be a lowercase hexadecimal SHA-256")
-        return value
+        return _validate_lowercase_sha256(value)
 
     @field_validator("retrieved_at")
     @classmethod
@@ -518,43 +531,87 @@ class PlacesCandidatesRequest(StrictModel):
 class CandidatePlace(StrictModel):
     place_id: str
     source_record_id: str
-    name: str
+    name: NonBlankString
     address: Address
-    district: str | None
-    neighborhood: str | None
-    latitude: float
-    longitude: float
-    distance_m: int
-    closes_at: AwareDatetime | None
-    accessibility: bool | None
+    district: NonBlankString | None
+    neighborhood: NonBlankString | None
+    latitude: BarcelonaPlaceLatitude
+    longitude: BarcelonaPlaceLongitude
+    distance_m: NonNegativeInteger
+    closes_at: AwareDatetime
+    accessibility: StrictBool | None
     features: PlaceFeatures
-    information_url: str | None
+    information_url: HttpUrlString | None
     schedule_verification_status: Literal["verified"]
     source_modified_at: AwareDatetime
-    source_url: str
+    source_url: HttpUrlString
     last_checked: date
+
+    @model_validator(mode="after")
+    def validate_identifiers(self) -> CandidatePlace:
+        validate_place_identifier_pair(self.place_id, self.source_record_id)
+        return self
 
 
 class SnapshotProvenance(StrictModel):
     schema_version: str
-    snapshot_id: str
-    publisher: str
-    dataset_url: str
-    distribution_url: str
+    snapshot_id: NonBlankString
+    publisher: NonBlankString
+    dataset_url: HttpUrlString
+    distribution_url: HttpUrlString
     retrieved_at: AwareDatetime
     upstream_max_modified: AwareDatetime
-    license: str
-    license_url: str
-    attribution: str
+    license: NonBlankString
+    license_url: HttpUrlString
+    attribution: NonBlankString
     normalized_sha256: str
+
+    @field_validator("schema_version")
+    @classmethod
+    def validate_schema_version(cls, value: str) -> str:
+        return _validate_semantic_schema_version(value)
+
+    @field_validator("normalized_sha256")
+    @classmethod
+    def validate_sha256(cls, value: str) -> str:
+        return _validate_lowercase_sha256(value)
+
+    @field_validator("retrieved_at")
+    @classmethod
+    def validate_retrieval_time_is_utc(
+        cls,
+        value: datetime,
+    ) -> datetime:
+        if value.utcoffset() != timedelta(0):
+            raise ValueError("retrieved_at must be in UTC")
+        return value
 
 
 class PlacesCandidatesResponse(StrictModel):
-    candidates: list[CandidatePlace]
+    candidates: list[CandidatePlace] = Field(max_length=10)
     snapshot: SnapshotProvenance
-    explanation: str
-    hours_warning: str
-    candidate_notice: str
+    explanation: NonBlankString
+    hours_warning: NonBlankString
+    candidate_notice: NonBlankString
+
+    @model_validator(mode="after")
+    def validate_candidate_sources(self) -> PlacesCandidatesResponse:
+        place_ids = [candidate.place_id for candidate in self.candidates]
+        if len(place_ids) != len(set(place_ids)):
+            raise ValueError("candidate place IDs must be unique")
+        source_record_ids = [
+            candidate.source_record_id for candidate in self.candidates
+        ]
+        if len(source_record_ids) != len(set(source_record_ids)):
+            raise ValueError("candidate source record IDs must be unique")
+        if any(
+            candidate.source_url != self.snapshot.dataset_url
+            for candidate in self.candidates
+        ):
+            raise ValueError(
+                "candidate source_url must match snapshot dataset_url"
+            )
+        return self
 
 
 # Short aliases make integration and tests readable without changing the
@@ -682,6 +739,14 @@ class PlaceRepository:
         assert self._manifest is not None
         return self._manifest
 
+    @property
+    def provenance(self) -> SnapshotProvenance:
+        """Return the full identity of this validated snapshot/manifest pair."""
+
+        self._ensure_loaded()
+        assert self._manifest is not None
+        return self._provenance_from_manifest(self._manifest)
+
     def load(self) -> PlaceRepository:
         """Read and validate the snapshot and manifest immediately."""
 
@@ -803,14 +868,68 @@ class PlaceRepository:
                 raise PlaceDataError(
                     f"place {place.place_id} has an unexpected source_url"
                 )
+            if place.source_modified_at > manifest.upstream_max_modified:
+                raise PlaceDataError(
+                    f"place {place.place_id} is newer than the upstream maximum"
+                )
+            if place.last_checked != manifest.retrieved_at.date():
+                raise PlaceDataError(
+                    f"place {place.place_id} last_checked is inconsistent"
+                )
             place_ids.add(place.place_id)
             source_record_ids.add(place.source_record_id)
+
+    @staticmethod
+    def _provenance_from_manifest(
+        manifest: ClimateShelterManifest,
+    ) -> SnapshotProvenance:
+        return SnapshotProvenance(
+            schema_version=manifest.schema_version,
+            snapshot_id=manifest.snapshot_id,
+            publisher=manifest.publisher,
+            dataset_url=manifest.dataset_url,
+            distribution_url=manifest.distribution_url,
+            retrieved_at=manifest.retrieved_at,
+            upstream_max_modified=manifest.upstream_max_modified,
+            license=manifest.license,
+            license_url=manifest.license_url,
+            attribution=manifest.attribution,
+            normalized_sha256=manifest.normalized_sha256,
+        )
 
     def find_candidates(
         self,
         request: PlacesCandidatesRequest,
     ) -> PlacesCandidatesResponse:
         """Apply fail-closed schedule/features filters and deterministic rank."""
+
+        return self._find_candidates(
+            request,
+            accessibility_required=False,
+        )
+
+    def find_action_candidates(
+        self,
+        request: PlacesCandidatesRequest,
+        *,
+        accessibility_required: bool,
+    ) -> PlacesCandidatesResponse:
+        """Apply the M3 accessibility requirement before rank and limit."""
+
+        if type(accessibility_required) is not bool:
+            raise ValueError("accessibility_required must be a boolean")
+        return self._find_candidates(
+            request,
+            accessibility_required=accessibility_required,
+        )
+
+    def _find_candidates(
+        self,
+        request: PlacesCandidatesRequest,
+        *,
+        accessibility_required: bool,
+    ) -> PlacesCandidatesResponse:
+        """Shared immutable-snapshot query for public and action-plan paths."""
 
         self._ensure_loaded()
         assert self._snapshot is not None
@@ -848,6 +967,8 @@ class PlaceRepository:
                 for feature_name, required in required_features.items()
             ):
                 continue
+            if accessibility_required and place.accessibility is not True:
+                continue
 
             matches.append((distance_m, place.place_id, place, closes_at))
 
@@ -877,22 +998,9 @@ class PlaceRepository:
             for distance_m, _, place, closes_at in selected
         ]
 
-        provenance = SnapshotProvenance(
-            schema_version=self._manifest.schema_version,
-            snapshot_id=self._manifest.snapshot_id,
-            publisher=self._manifest.publisher,
-            dataset_url=self._manifest.dataset_url,
-            distribution_url=self._manifest.distribution_url,
-            retrieved_at=self._manifest.retrieved_at,
-            upstream_max_modified=self._manifest.upstream_max_modified,
-            license=self._manifest.license,
-            license_url=self._manifest.license_url,
-            attribution=self._manifest.attribution,
-            normalized_sha256=self._manifest.normalized_sha256,
-        )
         return PlacesCandidatesResponse(
             candidates=candidates,
-            snapshot=provenance,
+            snapshot=self.provenance,
             explanation=MATCH_EXPLANATION if candidates else EMPTY_EXPLANATION,
             hours_warning=HOURS_WARNING,
             candidate_notice=CANDIDATE_NOTICE,
@@ -904,6 +1012,12 @@ def get_place_repository() -> PlaceRepository:
     """Return the process-wide repository for the committed snapshot."""
 
     return PlaceRepository()
+
+
+def get_committed_snapshot_provenance() -> SnapshotProvenance:
+    """Derive the authoritative identity from the validated committed files."""
+
+    return get_place_repository().provenance
 
 
 router = APIRouter(prefix="/api/v1", tags=["places"])

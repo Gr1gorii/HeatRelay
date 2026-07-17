@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import gc
 import json
+import time
 from types import SimpleNamespace
 from typing import Any
 
@@ -22,9 +24,12 @@ from openai import (
     InternalServerError,
     PermissionDeniedError,
     RateLimitError,
+    AsyncOpenAI,
 )
+from openai._base_client import AsyncHttpxClientWrapper
 from pydantic import ValidationError
 
+from backend.app.openai_runtime import BoundedTaskCapacity
 from backend.app.situation import (
     CoolingAccess,
     DEVELOPER_INSTRUCTION,
@@ -35,11 +40,47 @@ from backend.app.situation import (
     SituationExtractionNotConfigured,
     SituationExtractionRefused,
     SituationExtractionRequest,
+    SituationExtractionResponse,
     SituationExtractionService,
     SituationExtractionTimeout,
     SituationExtractionUnavailable,
     build_public_response,
 )
+
+
+def _real_sdk_response_payload() -> dict[str, Any]:
+    return {
+        "id": "resp_synthetic_offline",
+        "object": "response",
+        "created_at": 1,
+        "status": "completed",
+        "error": None,
+        "incomplete_details": None,
+        "model": "gpt-5.6-sol",
+        "output": [
+            {
+                "id": "msg_synthetic_offline",
+                "type": "message",
+                "status": "completed",
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "output_text",
+                        "annotations": [],
+                        "logprobs": [],
+                        "text": json.dumps(_base_profile()),
+                    }
+                ],
+            }
+        ],
+        "usage": {
+            "input_tokens": 1,
+            "input_tokens_details": {"cached_tokens": 0},
+            "output_tokens": 1,
+            "output_tokens_details": {"reasoning_tokens": 0},
+            "total_tokens": 2,
+        },
+    }
 
 
 def _base_profile(language: str = "en") -> dict[str, Any]:
@@ -386,6 +427,44 @@ def test_missing_information_is_server_owned_and_deterministic() -> None:
     )
 
 
+def test_missing_information_accepts_only_the_exact_canonical_reconciliation() -> None:
+    extraction = _validated_profile(
+        _profile_with(
+            preferred_language={"status": "no_preference", "value": None},
+            vulnerability_factors={
+                "status": "reported",
+                "values": ["living_alone"],
+            },
+            cooling_access={"status": "unknown", "value": None},
+            reported_symptoms={"status": "explicit_none", "values": []},
+        )
+    )
+    valid = build_public_response(extraction).model_dump(mode="json")
+    expected = [
+        "mobility_constraints",
+        "cooling_access",
+        "housing_situation",
+        "time_constraints",
+    ]
+
+    assert (
+        SituationExtractionResponse.model_validate(valid).missing_information
+        == expected
+    )
+
+    invalid_values = [
+        expected[:-1],
+        [*expected, "preferred_language"],
+        [expected[0], expected[0], *expected[1:]],
+        [expected[1], expected[0], *expected[2:]],
+    ]
+    for missing_information in invalid_values:
+        payload = copy.deepcopy(valid)
+        payload["missing_information"] = missing_information
+        with pytest.raises(ValidationError):
+            SituationExtractionResponse.model_validate(payload)
+
+
 class FakeResponses:
     def __init__(self, result: object = None, error: Exception | None = None) -> None:
         self.result = result
@@ -646,6 +725,591 @@ def test_overall_deadline_is_enforced_and_client_is_closed() -> None:
     assert client.closed is True
 
 
+def test_expired_budget_does_not_start_provider_after_slow_client_factory() -> None:
+    provider_started = False
+    provider_capacity = BoundedTaskCapacity(1)
+    cleanup_capacity = BoundedTaskCapacity(1)
+
+    class Responses:
+        async def parse(self, **_kwargs: Any) -> object:
+            nonlocal provider_started
+            provider_started = True
+            return _response(parsed=_validated_profile())
+
+    client = FakeClient(Responses())  # type: ignore[arg-type]
+
+    def slow_factory(**_kwargs: Any) -> FakeClient:
+        time.sleep(0.03)
+        return client
+
+    service = SituationExtractionService(
+        api_key="synthetic-test-key",
+        client_factory=slow_factory,
+        overall_timeout_seconds=0.01,
+        provider_capacity=provider_capacity,
+        cleanup_capacity=cleanup_capacity,
+    )
+
+    with pytest.raises(SituationExtractionTimeout):
+        asyncio.run(
+            service.extract(
+                SituationExtractionRequest(situation_text="Synthetic text")
+            )
+        )
+
+    assert provider_started is False
+    assert client.closed is True
+    assert provider_capacity.in_use == 0
+    assert cleanup_capacity.in_use == 0
+
+
+@pytest.mark.parametrize(
+    "late_failure",
+    [
+        pytest.param(False, id="late-success"),
+        pytest.param(True, id="late-failure"),
+    ],
+)
+def test_cancellation_resistant_provider_cannot_extend_request_deadline(
+    caplog: pytest.LogCaptureFixture,
+    late_failure: bool,
+) -> None:
+    private_text = "Synthetic private cancellation-resistant situation"
+    private_detail = "synthetic private late provider detail"
+
+    async def exercise() -> None:
+        release = asyncio.Event()
+        cancelled = asyncio.Event()
+        finished = asyncio.Event()
+        provider_capacity = BoundedTaskCapacity(1)
+
+        class CancellationResistantResponses:
+            async def parse(self, **_kwargs: Any) -> object:
+                try:
+                    await asyncio.sleep(60)
+                except asyncio.CancelledError:
+                    cancelled.set()
+                    while not release.is_set():
+                        try:
+                            await release.wait()
+                        except asyncio.CancelledError:
+                            cancelled.set()
+                finished.set()
+                if late_failure:
+                    raise RuntimeError(private_detail)
+                return _response(parsed=_validated_profile())
+
+        client = FakeClient(CancellationResistantResponses())  # type: ignore[arg-type]
+        service = SituationExtractionService(
+            api_key="synthetic-test-key",
+            client_factory=lambda **_kwargs: client,
+            overall_timeout_seconds=0.01,
+            provider_capacity=provider_capacity,
+            cleanup_capacity=BoundedTaskCapacity(1),
+        )
+        loop = asyncio.get_running_loop()
+        loop_errors: list[dict[str, Any]] = []
+        previous_handler = loop.get_exception_handler()
+        loop.set_exception_handler(lambda _loop, context: loop_errors.append(context))
+        try:
+            started = loop.time()
+            with pytest.raises(SituationExtractionTimeout):
+                await service.extract(
+                    SituationExtractionRequest(situation_text=private_text)
+                )
+            elapsed = loop.time() - started
+
+            assert elapsed < 0.12
+            assert cancelled.is_set()
+            assert not finished.is_set()
+            assert provider_capacity.in_use == 1
+            assert provider_capacity.active_task_count == 1
+
+            release.set()
+            await asyncio.wait_for(finished.wait(), timeout=1.0)
+            for _ in range(100):
+                if provider_capacity.in_use == 0:
+                    break
+                await asyncio.sleep(0.01)
+            assert provider_capacity.in_use == 0
+            await asyncio.sleep(0)
+            await asyncio.sleep(0)
+            assert loop_errors == []
+        finally:
+            release.set()
+            loop.set_exception_handler(previous_handler)
+
+    with caplog.at_level("WARNING", logger="backend.app.situation"):
+        asyncio.run(exercise())
+
+    assert caplog.messages.count("Situation extraction request timed out") == 1
+    assert caplog.messages.count(
+        "Situation extraction provider task failed after timeout"
+    ) == int(late_failure)
+    assert private_text not in caplog.text
+    assert private_detail not in caplog.text
+
+
+def test_overall_deadline_also_bounds_cancellation_resistant_cleanup(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    async def exercise() -> None:
+        cleanup_cancelled = asyncio.Event()
+        cleanup_finished = asyncio.Event()
+        release_cleanup = asyncio.Event()
+
+        class SlowResponses:
+            async def parse(self, **_kwargs: Any) -> object:
+                await asyncio.sleep(60)
+                raise AssertionError("provider timeout failed")
+
+        class CancellationResistantCleanupClient(FakeClient):
+            async def close(self) -> None:
+                try:
+                    await release_cleanup.wait()
+                except asyncio.CancelledError:
+                    cleanup_cancelled.set()
+                    await release_cleanup.wait()
+                cleanup_finished.set()
+
+        cleanup_capacity = BoundedTaskCapacity(1)
+        client = CancellationResistantCleanupClient(  # type: ignore[arg-type]
+            SlowResponses()
+        )
+        service = SituationExtractionService(
+            api_key="synthetic-test-key",
+            client_factory=lambda **_kwargs: client,
+            overall_timeout_seconds=0.01,
+            cleanup_timeout_seconds=1.0,
+            provider_capacity=BoundedTaskCapacity(1),
+            cleanup_capacity=cleanup_capacity,
+        )
+        started = asyncio.get_running_loop().time()
+        with pytest.raises(SituationExtractionTimeout):
+            await service.extract(
+                SituationExtractionRequest(situation_text="Synthetic text")
+            )
+        elapsed = asyncio.get_running_loop().time() - started
+
+        assert elapsed < 0.08
+        assert not cleanup_finished.is_set()
+        assert not cleanup_cancelled.is_set()
+        assert cleanup_capacity.in_use == 1
+        release_cleanup.set()
+        await asyncio.wait_for(cleanup_finished.wait(), timeout=0.5)
+        await asyncio.sleep(0)
+        assert cleanup_capacity.in_use == 0
+
+    with caplog.at_level("WARNING", logger="backend.app.situation"):
+        asyncio.run(exercise())
+
+    assert caplog.messages.count("Situation extraction request timed out") == 1
+    assert caplog.messages.count(
+        "Situation extraction client cleanup timed out"
+    ) == 1
+
+
+def test_caller_cancellation_propagates_while_provider_finishes_later(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    private_text = "Synthetic private caller-cancelled situation"
+
+    async def exercise() -> None:
+        started = asyncio.Event()
+        cancelled = asyncio.Event()
+        release = asyncio.Event()
+        finished = asyncio.Event()
+        provider_capacity = BoundedTaskCapacity(1)
+
+        class CancellationResistantResponses:
+            async def parse(self, **_kwargs: Any) -> object:
+                started.set()
+                try:
+                    await asyncio.sleep(60)
+                except asyncio.CancelledError:
+                    cancelled.set()
+                    while not release.is_set():
+                        try:
+                            await release.wait()
+                        except asyncio.CancelledError:
+                            cancelled.set()
+                finished.set()
+                return _response(parsed=_validated_profile())
+
+        client = FakeClient(CancellationResistantResponses())  # type: ignore[arg-type]
+        service = SituationExtractionService(
+            api_key="synthetic-test-key",
+            client_factory=lambda **_kwargs: client,
+            provider_capacity=provider_capacity,
+            cleanup_capacity=BoundedTaskCapacity(1),
+        )
+        request_task = asyncio.create_task(
+            service.extract(SituationExtractionRequest(situation_text=private_text))
+        )
+        await asyncio.wait_for(started.wait(), timeout=0.1)
+        request_task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await request_task
+
+        assert cancelled.is_set()
+        assert not finished.is_set()
+        assert provider_capacity.in_use == 1
+        release.set()
+        await asyncio.wait_for(finished.wait(), timeout=1.0)
+        for _ in range(100):
+            if provider_capacity.in_use == 0:
+                break
+            await asyncio.sleep(0.01)
+        assert provider_capacity.in_use == 0
+
+    with caplog.at_level("WARNING", logger="backend.app.situation"):
+        asyncio.run(exercise())
+
+    assert "Situation extraction request timed out" not in caplog.messages
+    assert private_text not in caplog.text
+
+
+def test_provider_capacity_rejects_before_creating_unbounded_work(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    async def exercise() -> None:
+        release = asyncio.Event()
+        provider_capacity = BoundedTaskCapacity(2)
+        cleanup_capacity = BoundedTaskCapacity(2)
+        started: list[asyncio.Event] = []
+        finished: list[asyncio.Event] = []
+        constructed_clients = 0
+
+        class NeverFinishingResponses:
+            def __init__(self) -> None:
+                self.started = asyncio.Event()
+                self.finished = asyncio.Event()
+                started.append(self.started)
+                finished.append(self.finished)
+
+            async def parse(self, **_kwargs: Any) -> object:
+                self.started.set()
+                try:
+                    await asyncio.sleep(60)
+                except asyncio.CancelledError:
+                    while not release.is_set():
+                        try:
+                            await release.wait()
+                        except asyncio.CancelledError:
+                            pass
+                self.finished.set()
+                return _response(parsed=_validated_profile())
+
+        def client_factory(**_kwargs: Any) -> FakeClient:
+            nonlocal constructed_clients
+            constructed_clients += 1
+            return FakeClient(NeverFinishingResponses())  # type: ignore[arg-type]
+
+        def service() -> SituationExtractionService:
+            return SituationExtractionService(
+                api_key="synthetic-test-key",
+                client_factory=client_factory,
+                overall_timeout_seconds=0.01,
+                provider_capacity=provider_capacity,
+                cleanup_capacity=cleanup_capacity,
+            )
+
+        request = SituationExtractionRequest(situation_text="Synthetic text")
+        for _ in range(provider_capacity.limit):
+            with pytest.raises(SituationExtractionTimeout):
+                await service().extract(request)
+
+        assert provider_capacity.in_use == provider_capacity.limit == 2
+        assert provider_capacity.active_task_count == 2
+        assert constructed_clients == 2
+
+        started_at = asyncio.get_running_loop().time()
+        with pytest.raises(SituationExtractionUnavailable):
+            await service().extract(request)
+        saturated_elapsed = asyncio.get_running_loop().time() - started_at
+        assert saturated_elapsed < 0.05
+        assert constructed_clients == 2
+        assert provider_capacity.in_use == 2
+
+        release.set()
+        await asyncio.gather(
+            *(asyncio.wait_for(event.wait(), timeout=1.0) for event in finished)
+        )
+        for _ in range(100):
+            if provider_capacity.in_use == 0:
+                break
+            await asyncio.sleep(0.01)
+        assert provider_capacity.in_use == 0
+
+    with caplog.at_level("WARNING", logger="backend.app.situation"):
+        asyncio.run(exercise())
+
+    assert caplog.messages.count("Situation extraction request timed out") == 2
+
+
+def test_cleanup_capacity_bounds_cancellation_resistant_closes(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    async def exercise() -> None:
+        release = asyncio.Event()
+        cleanup_capacity = BoundedTaskCapacity(1)
+
+        class CancellationResistantCloseClient(FakeClient):
+            def __init__(self) -> None:
+                super().__init__(FakeResponses(result=_response(parsed=_validated_profile())))
+                self.close_calls = 0
+                self.close_finished = asyncio.Event()
+
+            async def close(self) -> None:
+                self.close_calls += 1
+                await release.wait()
+                self.close_finished.set()
+
+        first_client = CancellationResistantCloseClient()
+        first_service = SituationExtractionService(
+            api_key="synthetic-test-key",
+            client_factory=lambda **_kwargs: first_client,
+            cleanup_timeout_seconds=0.01,
+            provider_capacity=BoundedTaskCapacity(1),
+            cleanup_capacity=cleanup_capacity,
+        )
+        assert (
+            await first_service.extract(
+                SituationExtractionRequest(situation_text="Synthetic first")
+            )
+        ).schema_version == "1.0.0"
+        assert cleanup_capacity.in_use == 1
+        assert cleanup_capacity.active_task_count == 1
+
+        constructed_clients = 0
+
+        def second_factory(**_kwargs: Any) -> CancellationResistantCloseClient:
+            nonlocal constructed_clients
+            constructed_clients += 1
+            return CancellationResistantCloseClient()
+
+        second_provider_capacity = BoundedTaskCapacity(1)
+        second_service = SituationExtractionService(
+            api_key="synthetic-test-key",
+            client_factory=second_factory,
+            cleanup_timeout_seconds=0.01,
+            provider_capacity=second_provider_capacity,
+            cleanup_capacity=cleanup_capacity,
+        )
+        with pytest.raises(SituationExtractionUnavailable):
+            await second_service.extract(
+                SituationExtractionRequest(situation_text="Synthetic second")
+            )
+        assert constructed_clients == 0
+        assert second_provider_capacity.in_use == 0
+        assert cleanup_capacity.in_use == 1
+
+        release.set()
+        await asyncio.wait_for(first_client.close_finished.wait(), timeout=1.0)
+        for _ in range(100):
+            if cleanup_capacity.in_use == 0:
+                break
+            await asyncio.sleep(0.01)
+        assert cleanup_capacity.in_use == 0
+
+    with caplog.at_level("WARNING", logger="backend.app.situation"):
+        asyncio.run(exercise())
+
+    assert caplog.messages.count(
+        "Situation extraction client cleanup timed out"
+    ) == 1
+    assert "Situation extraction client cleanup failed" not in caplog.messages
+
+
+def test_real_sdk_cleanup_is_reserved_before_construction_and_never_escapes_bound(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Exercise pinned SDK destruction semantics with an offline transport."""
+
+    async def exercise() -> None:
+        release_close = asyncio.Event()
+        close_started = asyncio.Event()
+        transport_calls = 0
+        constructed_clients = 0
+        provider_capacity = BoundedTaskCapacity(1)
+        cleanup_capacity = BoundedTaskCapacity(1)
+
+        def offline_handler(request: httpx.Request) -> httpx.Response:
+            nonlocal transport_calls
+            transport_calls += 1
+            return httpx.Response(
+                200,
+                request=request,
+                json=_real_sdk_response_payload(),
+            )
+
+        def client_factory(**kwargs: Any) -> AsyncOpenAI:
+            nonlocal constructed_clients
+            constructed_clients += 1
+            wrapper = AsyncHttpxClientWrapper(
+                transport=httpx.MockTransport(offline_handler)
+            )
+            original_aclose = wrapper.aclose
+
+            async def delayed_actual_close() -> None:
+                close_started.set()
+                await release_close.wait()
+                await original_aclose()
+
+            wrapper.aclose = delayed_actual_close  # type: ignore[method-assign]
+            return AsyncOpenAI(
+                api_key=kwargs["api_key"],
+                base_url=kwargs["base_url"],
+                timeout=kwargs["timeout"],
+                max_retries=kwargs["max_retries"],
+                http_client=wrapper,
+            )
+
+        def service() -> SituationExtractionService:
+            return SituationExtractionService(
+                api_key="synthetic-test-key",
+                client_factory=client_factory,
+                cleanup_timeout_seconds=0.01,
+                provider_capacity=provider_capacity,
+                cleanup_capacity=cleanup_capacity,
+            )
+
+        request = SituationExtractionRequest(situation_text="Synthetic offline text")
+        assert (await service().extract(request)).schema_version == "1.0.0"
+        await asyncio.wait_for(close_started.wait(), timeout=0.1)
+        assert constructed_clients == transport_calls == 1
+        assert cleanup_capacity.in_use == cleanup_capacity.active_task_count == 1
+
+        for _ in range(6):
+            with pytest.raises(SituationExtractionUnavailable):
+                await service().extract(request)
+        assert constructed_clients == transport_calls == 1
+
+        gc.collect()
+        await asyncio.sleep(0)
+        live_background = {
+            task
+            for task in asyncio.all_tasks()
+            if task is not asyncio.current_task() and not task.done()
+        }
+        assert len(live_background) == 1
+        assert {task.get_name() for task in live_background} == {
+            "heatrelay-situation-client-cleanup"
+        }
+
+        release_close.set()
+        await asyncio.gather(*live_background)
+        await asyncio.sleep(0)
+        assert cleanup_capacity.in_use == 0
+        gc.collect()
+        await asyncio.sleep(0)
+        assert not {
+            task
+            for task in asyncio.all_tasks()
+            if task is not asyncio.current_task() and not task.done()
+        }
+
+    with caplog.at_level("WARNING", logger="backend.app.situation"):
+        asyncio.run(exercise())
+
+    assert caplog.messages.count(
+        "Situation extraction client cleanup timed out"
+    ) == 1
+    assert "Situation extraction client cleanup failed" not in caplog.messages
+
+
+def test_cleanup_setup_caller_cancellation_is_not_sanitized_or_swallowed(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    cleanup_capacity = BoundedTaskCapacity(1)
+
+    class CancelDuringCloseSetupClient(FakeClient):
+        def close(self) -> None:
+            raise asyncio.CancelledError()
+
+    client = CancelDuringCloseSetupClient(
+        FakeResponses(result=_response(parsed=_validated_profile()))
+    )
+    service = SituationExtractionService(
+        api_key="synthetic-test-key",
+        client_factory=lambda **_kwargs: client,
+        provider_capacity=BoundedTaskCapacity(1),
+        cleanup_capacity=cleanup_capacity,
+    )
+
+    with caplog.at_level("WARNING", logger="backend.app.situation"):
+        with pytest.raises(asyncio.CancelledError):
+            asyncio.run(
+                service.extract(
+                    SituationExtractionRequest(situation_text="Synthetic text")
+                )
+            )
+
+    assert cleanup_capacity.in_use == cleanup_capacity.quarantined_count == 1
+    assert "Situation extraction client cleanup failed" not in caplog.messages
+
+
+@pytest.mark.parametrize(
+    "process_exception",
+    [KeyboardInterrupt, SystemExit, GeneratorExit],
+)
+def test_cleanup_setup_process_control_exceptions_propagate(
+    caplog: pytest.LogCaptureFixture,
+    process_exception: type[BaseException],
+) -> None:
+    cleanup_capacity = BoundedTaskCapacity(1)
+
+    class ProcessControlCloseClient(FakeClient):
+        def close(self) -> None:
+            raise process_exception()
+
+    client = ProcessControlCloseClient(
+        FakeResponses(result=_response(parsed=_validated_profile()))
+    )
+    service = SituationExtractionService(
+        api_key="synthetic-test-key",
+        client_factory=lambda **_kwargs: client,
+        provider_capacity=BoundedTaskCapacity(1),
+        cleanup_capacity=cleanup_capacity,
+    )
+
+    with caplog.at_level("WARNING", logger="backend.app.situation"):
+        with pytest.raises(process_exception):
+            asyncio.run(
+                service.extract(
+                    SituationExtractionRequest(situation_text="Synthetic text")
+                )
+            )
+
+    assert cleanup_capacity.in_use == cleanup_capacity.quarantined_count == 1
+    assert "Situation extraction client cleanup failed" not in caplog.messages
+
+
+def test_task_capacity_is_reusable_across_isolated_event_loops() -> None:
+    provider_capacity = BoundedTaskCapacity(1)
+    cleanup_capacity = BoundedTaskCapacity(1)
+
+    async def extract_once() -> None:
+        client = FakeClient(
+            FakeResponses(result=_response(parsed=_validated_profile()))
+        )
+        service = SituationExtractionService(
+            api_key="synthetic-test-key",
+            client_factory=lambda **_kwargs: client,
+            provider_capacity=provider_capacity,
+            cleanup_capacity=cleanup_capacity,
+        )
+        response = await service.extract(
+            SituationExtractionRequest(situation_text="Synthetic text")
+        )
+        assert response.schema_version == "1.0.0"
+
+    asyncio.run(extract_once())
+    asyncio.run(extract_once())
+    assert provider_capacity.in_use == 0
+    assert cleanup_capacity.in_use == 0
+
+
 @pytest.mark.parametrize(
     ("provider_failure", "late_cleanup_failure"),
     [
@@ -664,6 +1328,9 @@ def test_cancellation_resistant_client_cleanup_does_not_delay_request_path(
     private_cleanup_detail = "synthetic private late cleanup detail"
 
     async def exercise() -> None:
+        release_cleanup = asyncio.Event()
+        cleanup_capacity = BoundedTaskCapacity(1)
+
         class CancellationResistantCloseClient(FakeClient):
             def __init__(self, responses: FakeResponses) -> None:
                 super().__init__(responses)
@@ -674,10 +1341,10 @@ def test_cancellation_resistant_client_cleanup_does_not_delay_request_path(
             async def close(self) -> None:
                 self.close_started.set()
                 try:
-                    await asyncio.sleep(60)
+                    await release_cleanup.wait()
                 except asyncio.CancelledError:
                     self.close_cancelled.set()
-                    await asyncio.sleep(0.30)
+                    await release_cleanup.wait()
 
                 self.close_finished.set()
                 if late_cleanup_failure:
@@ -701,6 +1368,8 @@ def test_cancellation_resistant_client_cleanup_does_not_delay_request_path(
             api_key=private_key,
             client_factory=lambda **_kwargs: client,
             cleanup_timeout_seconds=0.01,
+            provider_capacity=BoundedTaskCapacity(1),
+            cleanup_capacity=cleanup_capacity,
         )
         loop = asyncio.get_running_loop()
         loop_errors: list[dict[str, Any]] = []
@@ -729,14 +1398,20 @@ def test_cancellation_resistant_client_cleanup_does_not_delay_request_path(
             assert elapsed < 0.12
             assert client.close_started.is_set()
             assert not client.close_finished.is_set()
-
-            await asyncio.wait_for(client.close_cancelled.wait(), timeout=0.1)
+            assert not client.close_cancelled.is_set()
             assert not client.close_finished.is_set()
+            release_cleanup.set()
             await asyncio.wait_for(client.close_finished.wait(), timeout=1.0)
             await asyncio.sleep(0)
             await asyncio.sleep(0)
             assert loop_errors == []
+            if late_cleanup_failure:
+                assert cleanup_capacity.quarantined_count == 1
+                assert cleanup_capacity.in_use == 1
+            else:
+                assert cleanup_capacity.in_use == 0
         finally:
+            release_cleanup.set()
             loop.set_exception_handler(previous_exception_handler)
 
     with caplog.at_level("WARNING", logger="backend.app.situation"):
@@ -839,6 +1514,46 @@ def test_safe_success_log_contains_only_model_and_counts(caplog: pytest.LogCaptu
     assert "total_tokens=160" in log_text
     assert private_text not in log_text
     assert "fake-secret-material" not in log_text
+
+
+@pytest.mark.parametrize(
+    ("provider_model", "logged_model"),
+    [
+        pytest.param("gpt-5.6", "gpt-5.6", id="configured-model"),
+        pytest.param("gpt-5.6-sol", "gpt-5.6-sol", id="reviewed-alias"),
+        pytest.param(
+            "sk-synthetic-secret-shaped-provider-metadata",
+            "unavailable",
+            id="secret-shaped",
+        ),
+        pytest.param("x" * 200, "unavailable", id="oversized"),
+        pytest.param("gpt-5.6\nprivate", "unavailable", id="malformed"),
+    ],
+)
+def test_provider_model_metadata_is_allowlisted_before_logging(
+    caplog: pytest.LogCaptureFixture,
+    provider_model: str,
+    logged_model: str,
+) -> None:
+    response = _response(parsed=_validated_profile(), model=provider_model)
+    client = FakeClient(FakeResponses(result=response))
+    service = SituationExtractionService(
+        api_key="synthetic-test-key",
+        client_factory=lambda **_kwargs: client,
+        provider_capacity=BoundedTaskCapacity(1),
+        cleanup_capacity=BoundedTaskCapacity(1),
+    )
+
+    with caplog.at_level("INFO", logger="backend.app.situation"):
+        asyncio.run(
+            service.extract(
+                SituationExtractionRequest(situation_text="Synthetic text")
+            )
+        )
+
+    assert f"model={logged_model}" in caplog.text
+    if logged_model == "unavailable":
+        assert provider_model not in caplog.text
 
 
 def test_request_trims_outer_whitespace_counts_code_points_and_rejects_controls() -> None:

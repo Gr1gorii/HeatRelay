@@ -30,8 +30,9 @@ HeatRelay already satisfies every submission requirement.
 These are organizational confirmations, not inferred personal facts. The
 author performed the local Git identity, authentication, remote configuration,
 and initial Milestone 0 commit and push listed below; Codex did not perform or
-claim that initial publication work. Milestone 1 publication is recorded
-separately and attributed to the primary Codex build thread.
+claim that initial publication work. Milestone 1 and Milestone 2 publication
+are recorded separately and attributed to the primary Codex build thread from
+the supplied publication reports, not inferred from Git author metadata.
 
 | Confirmation | Status | Basis |
 | --- | --- | --- |
@@ -41,27 +42,96 @@ separately and attributed to the primary Codex build thread.
 | Local Git remote configuration | **Confirmed; author performed** | Repository inspection shows `origin` configured for the supplied GitHub URL. |
 | Initial Milestone 0 commit and push | **Confirmed; author performed** | The author published Milestone 0 as commit `709e1b7`; this remains a historical publication fact. |
 | Milestone 1 commit and push | **Confirmed; primary Codex build thread performed** | The primary Codex build thread published Milestone 1 as commit `6b3b3bc5c04cd6dbe31a603fe2b44e388ea98586`; this remains a historical publication fact even as branch refs advance. |
-| Codex access | **Confirmed for this build context** | Milestones 0 through 2 use the designated primary Codex build thread. |
+| Milestone 2 commit and push | **Confirmed; primary Codex build thread performed** | The supplied publication report records commit `9386d1b4ffc6b2aaf0f85a9c7617407ad2b0c337` (`feat: add multilingual situation extraction`) pushed normally to `origin/main`. |
+| Codex access | **Confirmed for this build context** | Milestones 0 through 3 use the designated primary Codex build thread. |
 | Separate OpenAI API access and billing for GPT-5.6 runtime use | **Author confirmed** | The author confirmed separate API access and billing; no balance amount is published. |
-| Live GPT-5.6 API access | **Verified for one bounded smoke on 2026-07-17** | One synthetic request through the documented local backend returned HTTP 200, passed the strict public schema, and matched its expected explicit facts on the first OpenAI network attempt. No broader accuracy claim is made. |
+| Live GPT-5.6 extraction access | **Verified for one bounded Milestone 2 smoke on 2026-07-17** | One synthetic extraction request through the documented local backend returned HTTP 200, passed the strict public schema, and matched its expected explicit facts on the first OpenAI network attempt. No broader accuracy claim is made. |
+| Live GPT-5.6 grounded-plan access | **Historical pass-1 verification on 2026-07-17** | One direct internal plan-service request with synthetic prevalidated backend facts succeeded on the first and only Responses API attempt; strict pass-1 model-schema and exact request-candidate whitelist checks passed. The public workflow, M2 extraction, and later corrected model-facing/public-validation contract were not exercised, and no broader accuracy claim is made. |
+| Corrected-contract grounded-plan access | **Verified by one separately authorized final smoke on 2026-07-17** | Exactly one direct `GroundedPlanService` request with zero retries passed strict Pydantic, allowed-code, safe-model-metadata, and exact candidate-whitelist validation. It used 1,326 input and 171 output tokens; this single scenario is not a general accuracy evaluation. |
+
+The Milestone 3 adversarial correction implementations and ordinary
+verification were deliberately offline. The later final smoke was a separate,
+explicitly authorized one-attempt direct adapter check; it did not invoke the
+public workflow, extraction, weather, downloads, or another network service.
+At the time this verification is recorded, the corrected Milestone 3 working
+tree remains intentionally uncommitted and unpublished. Any future live call
+requires separate author authorization and a fresh official price check.
 
 ## Scope, submitted text, and coordinate handling
 
-Milestone 2 adds server-side GPT-5.6 extraction of explicitly reported facts
-into a bounded schema. It preserves Milestone 1's model-derived weather
-context and deterministic queries over a reviewed Barcelona climate-shelter
-snapshot. It does not add generated plans, heat action priority, official heat
-warnings, medical or emergency decision logic, frontend API integration,
-maps, routing, browser geolocation, accounts, analytics, deployment, or the
-complete user-facing golden path.
+Milestone 3 preserves the M1 context services and M2 bounded extraction, then
+adds a bounded Barcelona-pilot deterministic action policy, fixed urgent
+routing, and a second GPT-5.6 task that selects only backend-owned plan codes
+and exact request-scoped candidate IDs. It does not add medical diagnosis or
+risk scoring, official-warning retrieval, routes, ETA, reservations, guaranteed
+hours, frontend API integration, maps, browser geolocation, accounts,
+analytics, deployment, additional cities, or the complete user-facing golden
+path. The action-plan origin rectangle is bounded pilot coverage, not evidence
+of Barcelona municipal membership and not an administrative-boundary geofence.
 
 Situation text is accepted only in the JSON body and sent server-side to
 OpenAI. HeatRelay does not intentionally log, persist, or echo it, parsed
 sensitive fields, complete provider responses, or OpenAI response IDs. The
-public output is a strict structured summary and explicitly is not medical
-advice, an emergency assessment, or an action plan. Refusals, incomplete or
+public extraction output is a strict structured summary and explicitly is not
+medical advice, an emergency assessment, or an action plan. Refusals, incomplete or
 unusable model output, provider failures, and timeouts return fixed sanitized
 errors without request or provider content.
+`missing_information` must exactly equal the canonically ordered fields whose
+status is `not_stated` or `unknown`. The extraction route explicitly
+revalidates service output, and nested action-plan profiles are revalidated at
+their separate sanitized workflow boundary.
+
+The second plan call receives no raw situation text, origin or candidate
+coordinates, names, addresses, URLs, phone numbers, credentials, source
+metadata, or full schedules. It receives only the normalized bounded profile,
+minimal weather facts, deterministic policy codes, and no more than three
+frozen request-scoped records containing `place_id`, integer straight-line
+distance, closing timestamp, accessibility, and five source-backed feature
+states, plus closed allowed- and required-code lists.
+One pure backend-owned normal-plan contract derives the applicable allowed
+actions, items, reasons, and local phrases from the normalized situation,
+weather, housing, language, movement, and candidate facts. Context construction
+and public validation share that contract, while the canonical required-code
+function remains the single minimum matrix. Backend code enforces byte-exact
+request-candidate membership and hydrates all public facts and text. Both model
+calls use the same application-side non-logging and sanitized-error boundary.
+The action-plan HTTP boundary also captures strict endpoint-owned UTC instants
+immediately before and after the workflow call. Both response branches must
+place their evaluation time inside that interval before any final trusted
+place-repository query.
+
+The second model cannot omit the backend-owned minimum safety matrix. All
+three normal priorities require the immediate `move_to_cooler_space`,
+`reduce_physical_effort`, and conditionally worded `drink_water` codes.
+`act_now` then requires continued hydration, staying cool, and an updated-
+weather check, plus coolest-room, nearby-water, and night-weather actions;
+`prepare_now` requires continued hydration, updated weather, and tonight
+preparation, plus the same three tonight actions; `monitor_and_prepare`
+requires updated weather and tonight preparation, plus nearby water and a
+night-weather check. Every deterministic priority reason and every applicable
+movement, travel-support, unresolved-travel, or verified-candidate branch
+reason is required, and those branch reasons are rejected when their fact does
+not apply. For explicitly unsheltered housing, a canonical branch variant
+removes the room-dependent coolest-room action and forbids window ventilation;
+only actions that do not assume a room, home, or window remain. Unsheltered
+output also never offers home cooling, even with reported air conditioning or
+fan-only cooling below `40.0°C`; those bounded cooling paths remain available
+for stable or temporary housing. The same backend-owned matrix is enforced at
+context construction, context validation, parsed-plan validation, and strict
+public-response validation. Public selected codes must also be subsets of the
+shared situation-, weather-, and candidate-derived allowed lists. Explanation
+codes equal the deterministic priority and applicable branch reasons, plus
+`verified_open_candidate` if and only if travel is selected.
+
+An `unknown` status or any reported bounded value in either the time-constraint
+or mobility-constraint field suppresses immediate travel because the
+extraction does not retain exact deadlines, routes, travel time, or walking
+range. The response supplies a fixed
+`unresolved_travel_constraint` reason and notice; accessibility filtering is
+not described as proof of reachability. No-travel output must have no selected
+place, travel action, bring items, or local phrase. A travel branch requires
+one exact request candidate, the immediate travel action, at least water and
+phone, and one allowed local phrase; these fields cannot appear independently.
 
 The Responses API request uses `store=False` and explicit prompt-cache mode
 without a breakpoint. OpenAI documents that this cache configuration disables
@@ -73,6 +143,63 @@ default abuse-monitoring logs may retain customer content for up to 30 days
 unless approved data controls apply, and API data is not used to train models
 unless the customer explicitly opts in.
 
+Both OpenAI adapters enforce hard request-path waits with an explicit provider
+task and bounded `asyncio.wait`, not cancellation-cooperative `wait_for`.
+Extraction gives cleanup only the remainder of its 30-second overall
+asynchronous budget, capped at one second; grounded planning keeps separate
+30-second provider and one-second cleanup waits. Timed-out provider tasks are
+cancelled and detached best effort, while timed-out cleanup is detached without
+cancellation; fixed private-safe callbacks consume eventual results, and a
+timeout does not prove the underlying operation stopped. Both a provider and
+cleanup reservation must be acquired before either adapter constructs a
+client. The adapters share a loop-neutral process-local limit of four actual
+provider tasks and four constructed-client cleanup paths. Saturation starts no
+client or provider task. Provider capacity remains occupied until actual
+provider completion; cleanup capacity remains occupied until successful actual
+closure. A failed close is retained in finite fail-closed quarantine so SDK
+destruction cannot schedule untracked cleanup work. Extraction rechecks its
+remaining budget immediately before provider task creation; blocking
+synchronous factory code cannot be preempted, but expiry starts no paid
+provider work. The grounded-plan adapter also
+rejects before client construction when the compact UTF-8 representation of
+the complete application-defined model-visible request exceeds 20,000 bytes.
+That count includes the role/content wrappers, instruction, minimized context,
+and fully wrapped strict JSON Schema response format rather than only the plain
+schema. An offline `httpx.MockTransport` regression against pinned
+`openai==2.46.0` compares the actual serialized `input` and `text.format` with
+the application-owned representation, including multibyte content. Related
+real-client offline tests cover cleanup saturation and destructor behavior
+without opening a socket.
+
+The Barcelona action workflow accepts weather only when it is finite and
+range-valid, reports `Europe/Madrid`, and coheres with its captured evaluation
+instant. The observed and daily dates must match the Barcelona evaluation day;
+UTC retrieval must be no earlier than evaluation and no later than the
+five-second weather allowance plus one second. The observation may be at most
+90 minutes old and at most five minutes ahead of retrieval. Current temperature
+and apparent temperature cannot exceed their same-day maxima. Failure is
+sanitized before priority, places, or plan generation; no impossible value is
+repaired.
+
+Candidate and snapshot responses are strictly revalidated before planning:
+canonical paired IDs, nonblank fields, finite Barcelona coordinates, aware
+timestamps, lowercase SHA-256 values, credential-free HTTP(S) URLs, and the
+complete immutable identity derived from the validated committed snapshot and
+manifest are mandatory. That identity includes schema and snapshot IDs,
+publisher, dataset and distribution URLs, retrieval and upstream-modified
+timestamps, license and URL, exact attribution, and normalized hash. Each
+candidate source and chronology must agree with it. Haversine distance is
+recomputed from the private origin, must exactly match integer `distance_m`,
+and is used for the maximum-distance check. Invalid data returns the existing
+sanitized place-unavailable boundary before any plan call. Strict urgent and
+normal public response models also enforce branch consistency and exact
+backend-owned catalog hydration. At the final API boundary, a selected
+projection is independently reconciled with an eligible committed repository
+record using the private request origin, server evaluation time, request
+distance preference, and applicable accessibility filter. This is a bounded
+independent trust check, not a general claim about arbitrary malicious internal
+dependencies.
+
 Both versioned context endpoints accept coordinates in JSON request bodies,
 not URL query parameters. HeatRelay does not intentionally log or store exact
 coordinates or request bodies. The weather response does not echo the request
@@ -83,10 +210,15 @@ Weather accepts valid global WGS84 coordinates. It asks Open-Meteo to resolve
 `timezone=auto`, validates the returned coordinate-local IANA timezone, and
 uses that timezone for the current timestamp and same-day calendar date.
 Verified place coverage remains Barcelona-only, and place schedules remain
-evaluated in `Europe/Madrid`. The inclusive Barcelona pilot bounds—latitude
-`41.2` through `41.6` and longitude `1.9` through `2.4`—apply only to
-normalized official place records, not weather coordinates or place-search
-origins.
+evaluated in `Europe/Madrid`. The inclusive place-record validation bounds—
+latitude `41.2` through `41.6` and longitude `1.9` through `2.4`—apply to
+normalized official place records. They do not restrict global weather
+coordinates or the standalone place-search origin. Separately named
+public-origin pilot constants currently use the same numbers for the
+action-plan route so Barcelona policy is not applied globally. This broad
+rectangle is a product-coverage bound; without a sourced municipal polygon it
+must not be described as proof of city membership or a geofence of Barcelona's
+administrative boundary.
 
 For weather requests, the backend must send the supplied coordinates to
 Open-Meteo. Open-Meteo's
@@ -102,9 +234,31 @@ supervisor rejects symlinks, non-regular files, and every group or other
 permission bit, preserves an already exported backend value, and removes
 `OPENAI_API_KEY` from the frontend child environment. The root Make targets
 also remove the variable from npm installation, test, and build processes.
-The production extraction client is explicitly pinned to
+Both production OpenAI clients are explicitly pinned to
 `https://api.openai.com/v1`, independent of ambient `OPENAI_BASE_URL` state.
 The credential must never use a `VITE_` prefix or be committed.
+
+## Milestone 3 reviewed policy and model sources
+
+The following primary sources were accessed on **2026-07-17**. Each row states
+the exact bounded rule HeatRelay derives; it does not attribute HeatRelay's
+implementation choices verbatim to the publisher.
+
+| Publisher and source | HeatRelay rule derived from the source |
+| --- | --- |
+| Ajuntament de Barcelona — Serveis Socials, [published heat thresholds](https://ajuntament.barcelona.cat/serveissocials/es/noticia/crece-la-red-de-refugios-climaticos-para-protegerse-del-calor_1523924) | Apply the published `34.0°C` and `36.0°C` daytime boundaries only as versioned HeatRelay heuristics over Open-Meteo's model-derived same-day maximum. Do not implement the article's nighttime criteria or claim municipal alert activation. |
+| Ajuntament de Barcelona — Barcelona pel Clima, [climate-shelter network](https://www.barcelona.cat/barcelona-pel-clima/ca/accions-concretes/xarxa-de-refugis-climatics) | Keep the check-hours-before-travel warning, never guarantee availability or reachability, and never offer a climate shelter as a substitute for medical attention. |
+| Generalitat de Catalunya — Canal Salut, [effects of excess heat](https://canalsalut.gencat.cat/ca/vida-saludable/consells-estacionals/estiu/calor/efectes-exces/) | An explicitly reported bounded warning symptom takes the fixed urgent branch and bypasses weather, place lookup, and plan generation; HeatRelay does not infer broader symptoms or diagnose an emergency. |
+| Generalitat de Catalunya — 112 emergències, [112 FAQ](https://112.gencat.cat/es/us-del-112/preguntes-frequeents/) | Route every value in the current closed six-symptom catalog to fixed backend-owned `112` content. Code asserts exact equality between this universal routing set and the extraction catalog so a future symptom cannot silently inherit a default. |
+| World Health Organization, [Heat and health](https://www.who.int/news-room/fact-sheets/detail/climate-change-heat-and-health) | Keep output informational and deterministic, with no diagnosis, probability, or medical risk score. Offer reported fan-only cooling only when current and same-day maximum temperatures are both strictly below `40.0°C`; this is a conservative HeatRelay action boundary, not an official alert threshold. |
+| OpenAI, [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs) | Use Responses API Pydantic Structured Outputs and explicit refusal handling, then perform independent local semantic validation because schema adherence does not establish factual or request-scoped candidate correctness. |
+| OpenAI, [API pricing](https://developers.openai.com/api/docs/pricing) | Before the separately authorized final smoke, the configured ceiling was recalculated at the supplied standard rates: `$5.00` per million input tokens and `$30.00` per million output tokens. The `$0.13072` conservative bound stayed below `$0.15`; actual aggregate usage produced a coarse `$0.01176` estimate. Any future live call requires separate author authorization and a fresh official price check. |
+
+The universal fixed urgent set is confusion, fainting or loss of consciousness,
+seizure, difficulty breathing, chest pain, and repeated vomiting. Every one
+routes to `112`. This is a closed server-owned contact rule, not a diagnosis,
+general symptom recognition, or a claim that the source publishes this exact
+application schema.
 
 ## Data source and license record
 
@@ -137,8 +291,8 @@ Future refreshes fail closed when a reviewed address is marked hidden, when a
 raw information URL would require cleanup or contains malformed percent
 escapes, invalid host or port syntax, credentials, or a non-HTTP(S) scheme, or
 when an official place coordinate falls outside the documented Barcelona
-pilot bounds. Accepted URLs are retained unchanged. These data checks do not
-restrict global weather coordinates or place-search origins.
+place-record validation bounds. Accepted URLs are retained unchanged. These
+data checks do not restrict global weather coordinates or place-search origins.
 
 ### Open-Meteo weather context
 
@@ -188,8 +342,8 @@ MIT license does not relicense third-party code.
 | --- | ---: | --- | --- |
 | [fastapi](https://pypi.org/project/fastapi/) | 0.139.2 | Typed HTTP API framework | MIT |
 | [httpx](https://pypi.org/project/httpx/) | 0.28.1 | Bounded Open-Meteo client and optional official JSON downloader | BSD-3-Clause |
-| [openai](https://pypi.org/project/openai/) | 2.46.0 | Official asynchronous Responses API client and Pydantic Structured Outputs | Apache-2.0 |
-| [pydantic](https://pypi.org/project/pydantic/) | 2.13.4 | Direct request, response, upstream, snapshot, and manifest validation | MIT |
+| [openai](https://pypi.org/project/openai/) | 2.46.0 | Official asynchronous Responses API client for extraction and grounded plan Structured Outputs | Apache-2.0 |
+| [pydantic](https://pypi.org/project/pydantic/) | 2.13.4 | Direct request, response, model, policy, upstream, snapshot, and manifest validation | MIT |
 | [uvicorn](https://pypi.org/project/uvicorn/) | 0.51.0 | Local ASGI server | BSD-3-Clause |
 
 ### Backend development and testing

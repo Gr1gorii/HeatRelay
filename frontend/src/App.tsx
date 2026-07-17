@@ -7,7 +7,7 @@ const plannedSteps = [
   {
     number: "02",
     title: "Prioritize safe actions",
-    copy: "Deterministic rules are planned to put urgent, practical actions ahead of convenience or generated wording.",
+    copy: "Versioned backend rules now put urgent, practical actions ahead of generated wording. The browser is not connected to them yet.",
   },
   {
     number: "03",
@@ -18,9 +18,9 @@ const plannedSteps = [
 
 const deferredCapabilities = [
   "User-facing live context and the complete action flow",
-  "Official heat-warning retrieval and action-priority logic",
+  "Official heat-warning retrieval and medical decision logic",
   "Maps, routing, and location access",
-  "GPT-5.6 plan generation and extraction UI integration",
+  "Frontend integration for backend GPT-5.6 extraction and grounded action planning",
   "Authentication, deployment, and additional cities",
 ];
 
@@ -52,13 +52,14 @@ export default function App() {
       <main id="main-content">
         <section className="hero page-width" aria-labelledby="hero-title">
           <div className="hero-copy">
-            <p className="eyebrow">Barcelona pilot · Milestone 2</p>
+            <p className="eyebrow">Barcelona pilot · Milestone 3</p>
             <h1 id="hero-title">From heat warning to a safe next step.</h1>
             <p className="hero-intro">
               HeatRelay is being built to turn trusted heat information into
               clear, practical actions. This release adds bounded backend
-              context and situation-extraction services; the interface still
-              does not collect a situation or provide live guidance.
+              context, situation extraction, deterministic priority, and
+              grounded plan services; the interface still does not collect a
+              situation or provide live guidance.
             </p>
             <div className="hero-links" aria-label="Page links">
               <a className="primary-link" href="#scope">
@@ -112,9 +113,11 @@ export default function App() {
             <h2 id="journey-title">One warning. A calmer path forward.</h2>
             <p>
               The planned experience separates trusted facts, safety
-              priorities, and generated language. Only the bounded backend
-              fact and extraction services exist server-side; the user-facing
-              journey is not live.
+              priorities, and generated language. GPT-5.6 extraction and
+              grounded action planning are implemented in the backend. In
+              Milestone 3, grounded action planning is available only through
+              the backend API; frontend integration and live guidance remain
+              unavailable.
             </p>
           </div>
 
@@ -177,8 +180,8 @@ export default function App() {
               <p>
                 HeatRelay is informational and is not a medical or emergency
                 service. Model-derived weather context is not an official
-                warning, and this version does not provide personalized safety
-                advice. If someone is in immediate danger, contact local
+                warning, and this interface does not provide live personalized
+                guidance. If someone is in immediate danger, contact local
                 emergency services.
               </p>
             </article>
@@ -224,7 +227,7 @@ export default function App() {
             </span>
             <span>HeatRelay</span>
           </a>
-          <p>Milestone 2 · English shell · Barcelona pilot boundary</p>
+          <p>Milestone 3 · English shell · Barcelona pilot boundary</p>
         </div>
       </footer>
     </div>
