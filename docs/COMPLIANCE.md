@@ -20,16 +20,18 @@ HeatRelay already satisfies every submission requirement.
 - The demo video must be public on YouTube, strictly under three minutes, and
   include audio explaining the project and its use of Codex and GPT-5.6.
 - Event Codex credits are not OpenAI API credits. They do not replace
-  separate API access or the author's responsibility for future API billing.
-- HeatRelay's planned live, server-side GPT-5.6 workflow is a stricter
+  separate API access or the author's responsibility for API billing.
+- HeatRelay's server-side GPT-5.6 workflow is a stricter
   internal implementation strategy. The Devpost requirements mandate
   meaningful GPT-5.6 use but do not prescribe that runtime transport.
 
 ## Author confirmations and publication status
 
 These are organizational confirmations, not inferred personal facts. The
-author performed the Git identity, authentication, commit, and push actions
-listed below; Codex did not perform or claim that publication work.
+author performed the local Git identity, authentication, remote configuration,
+and initial Milestone 0 commit and push listed below; Codex did not perform or
+claim that initial publication work. Milestone 1 publication is recorded
+separately and attributed to the primary Codex build thread.
 
 | Confirmation | Status | Basis |
 | --- | --- | --- |
@@ -37,17 +39,39 @@ listed below; Codex did not perform or claim that publication work.
 | Competition eligibility | **Author action required** | Eligibility depends on facts the author must review and confirm. |
 | GitHub public repository availability | **Confirmed** | The author confirmed [Gr1gorii/HeatRelay](https://github.com/Gr1gorii/HeatRelay), and the local `origin` URL matches it. |
 | Local Git remote configuration | **Confirmed; author performed** | Repository inspection shows `origin` configured for the supplied GitHub URL. |
-| First commit and push | **Confirmed; author performed** | Local `main` and `origin/main` point to Milestone 0 commit `709e1b7`. |
-| Codex access | **Confirmed for this build context** | Milestones 0 and 1 use the designated primary Codex build thread. |
-| Separate OpenAI API access and billing for future GPT-5.6 runtime use | **Author action required** | Codex access does not prove API project access, quota, credits, or billing. |
+| Initial Milestone 0 commit and push | **Confirmed; author performed** | The author published Milestone 0 as commit `709e1b7`; this remains a historical publication fact. |
+| Milestone 1 commit and push | **Confirmed; primary Codex build thread performed** | The primary Codex build thread published Milestone 1 as commit `6b3b3bc5c04cd6dbe31a603fe2b44e388ea98586`; this remains a historical publication fact even as branch refs advance. |
+| Codex access | **Confirmed for this build context** | Milestones 0 through 2 use the designated primary Codex build thread. |
+| Separate OpenAI API access and billing for GPT-5.6 runtime use | **Author confirmed** | The author confirmed separate API access and billing; no balance amount is published. |
+| Live GPT-5.6 API access | **Verified for one bounded smoke on 2026-07-17** | One synthetic request through the documented local backend returned HTTP 200, passed the strict public schema, and matched its expected explicit facts on the first OpenAI network attempt. No broader accuracy claim is made. |
 
-## Scope and coordinate handling
+## Scope, submitted text, and coordinate handling
 
-Milestone 1 adds server-side model-derived weather context and deterministic
-queries over a reviewed Barcelona climate-shelter snapshot. It does not add
-GPT-5.6, generated plans, official heat warnings, heat-severity thresholds,
-medical logic, emergency guidance, maps, routing, browser geolocation,
-accounts, analytics, deployment, or the complete user-facing golden path.
+Milestone 2 adds server-side GPT-5.6 extraction of explicitly reported facts
+into a bounded schema. It preserves Milestone 1's model-derived weather
+context and deterministic queries over a reviewed Barcelona climate-shelter
+snapshot. It does not add generated plans, heat action priority, official heat
+warnings, medical or emergency decision logic, frontend API integration,
+maps, routing, browser geolocation, accounts, analytics, deployment, or the
+complete user-facing golden path.
+
+Situation text is accepted only in the JSON body and sent server-side to
+OpenAI. HeatRelay does not intentionally log, persist, or echo it, parsed
+sensitive fields, complete provider responses, or OpenAI response IDs. The
+public output is a strict structured summary and explicitly is not medical
+advice, an emergency assessment, or an action plan. Refusals, incomplete or
+unusable model output, provider failures, and timeouts return fixed sanitized
+errors without request or provider content.
+
+The Responses API request uses `store=False` and explicit prompt-cache mode
+without a breakpoint. OpenAI documents that this cache configuration disables
+the implicit breakpoint and does not use prompt caching; `store=False` avoids
+stored Responses application state for later retrieval. These settings do not
+establish Zero Data Retention. Under OpenAI's
+[API data controls](https://developers.openai.com/api/docs/guides/your-data),
+default abuse-monitoring logs may retain customer content for up to 30 days
+unless approved data controls apply, and API data is not used to train models
+unless the customer explicitly opts in.
 
 Both versioned context endpoints accept coordinates in JSON request bodies,
 not URL query parameters. HeatRelay does not intentionally log or store exact
@@ -71,9 +95,16 @@ web-server logs may contain geographic coordinates and are deleted after 90
 days. This third-party handling is separate from HeatRelay's own logging
 policy and must be considered before production use.
 
-The repository contains no real secrets. `.env.example` contains an empty
-backend-only OpenAI placeholder. A future OpenAI credential must remain on the
-server, must never use a `VITE_` prefix, and must not be committed.
+Tracked repository content contains no real secrets. `.env.example` contains
+an empty backend-only OpenAI placeholder. The author-supplied local credential
+remains in the ignored, untracked repository-root `.env.local`; the development
+supervisor rejects symlinks, non-regular files, and every group or other
+permission bit, preserves an already exported backend value, and removes
+`OPENAI_API_KEY` from the frontend child environment. The root Make targets
+also remove the variable from npm installation, test, and build processes.
+The production extraction client is explicitly pinned to
+`https://api.openai.com/v1`, independent of ambient `OPENAI_BASE_URL` state.
+The credential must never use a `VITE_` prefix or be committed.
 
 ## Data source and license record
 
@@ -157,6 +188,7 @@ MIT license does not relicense third-party code.
 | --- | ---: | --- | --- |
 | [fastapi](https://pypi.org/project/fastapi/) | 0.139.2 | Typed HTTP API framework | MIT |
 | [httpx](https://pypi.org/project/httpx/) | 0.28.1 | Bounded Open-Meteo client and optional official JSON downloader | BSD-3-Clause |
+| [openai](https://pypi.org/project/openai/) | 2.46.0 | Official asynchronous Responses API client and Pydantic Structured Outputs | Apache-2.0 |
 | [pydantic](https://pypi.org/project/pydantic/) | 2.13.4 | Direct request, response, upstream, snapshot, and manifest validation | MIT |
 | [uvicorn](https://pypi.org/project/uvicorn/) | 0.51.0 | Local ASGI server | BSD-3-Clause |
 
@@ -164,7 +196,8 @@ MIT license does not relicense third-party code.
 
 | Dependency | Version | Purpose | Declared license |
 | --- | ---: | --- | --- |
+| [python-dotenv](https://pypi.org/project/python-dotenv/) | 1.2.2 | Explicit backend-only `.env.local` parsing for the development supervisor | BSD-3-Clause |
 | [pytest](https://pypi.org/project/pytest/) | 9.1.1 | Backend test runner | MIT |
 
-No OpenAI SDK, map library, routing client, authentication library, analytics
-library, scraping framework, or process-runner package is included.
+No map library, routing client, authentication library, analytics library,
+scraping framework, or process-runner package is included.

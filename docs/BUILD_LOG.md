@@ -429,3 +429,231 @@ the following commands verify this final follow-up.
 Live weather and localhost checks were not repeated because this hostname-only
 correction does not affect those systems. At verification time, it was
 uncommitted and unpublished.
+
+## Milestone 1 publication — primary Codex build thread
+
+After the final Milestone 1 verification, the primary Codex build thread
+staged the intended milestone files, created commit
+`6b3b3bc5c04cd6dbe31a603fe2b44e388ea98586` with message
+`feat: add deterministic Barcelona context services`, pushed `main` normally,
+and verified that local `main` and `origin/main` referenced that commit. This
+publication is distinct from the initial Milestone 0 identity,
+authentication, commit, and push work performed manually by the author.
+
+## Milestone 2 — extraction-only GPT-5.6 service — 2026-07-17
+
+### Baseline and official contract review
+
+Repository inspection found clean local and remote-tracking `main` at
+Milestone 1 commit `6b3b3bc5c04cd6dbe31a603fe2b44e388ea98586`, with the expected
+GitHub `origin`. The existing health, weather, places, snapshot, schedules,
+ranking, frontend, and Git history were preserved.
+
+Before implementation, the primary build thread reviewed current official
+OpenAI documentation for GPT-5.6, Structured Outputs, latest-model guidance,
+prompt caching, Responses API data handling, error codes, and the Responses
+API schema. The selected official SDK version supports asynchronous
+`responses.parse`, Pydantic Structured Outputs, `reasoning.effort="none"`,
+`store=False`, explicit prompt-cache mode, client timeouts, and disabled
+automatic retries. The `gpt-5.6` alias routes to GPT-5.6 Sol; it is not
+documented as a fixed snapshot.
+
+### Work performed with Codex in the primary build thread
+
+- Added a strict extraction request, a closed model-facing schema, and a
+  separate server-owned public response with deterministic list ordering,
+  status/value validation, `missing_information`, schema version, and notice.
+- Added an injected, lazy `AsyncOpenAI` adapter using the Responses API. It
+  keeps the fixed versioned developer instruction separate from untrusted
+  user text, uses no tools or streaming, disables SDK retries, bounds SDK and
+  overall time, caps output, disables stored Responses application state, and
+  disables the implicit prompt-cache breakpoint without adding an explicit
+  breakpoint.
+- Added explicit response walking, refusal detection, incomplete-response
+  rejection, exactly-one-parsed-result enforcement, strict local
+  revalidation, and server-owned sanitized 422/502/503/504 errors.
+- Added explicit repository-root `.env.local` loading for `make dev`. The
+  supervisor rejects symlinked and non-regular files, honors an already
+  exported backend value, forwards only the OpenAI key from the file, and
+  removes that key from the frontend child environment.
+- Added offline contract, schema, adapter, failure, privacy, and supervisor
+  coverage. Twelve synthetic profile fixtures are validation fixtures, not a
+  claim of live-model accuracy.
+- Updated only truthful frontend copy; the browser remains disconnected from
+  all backend APIs and no frontend design or workflow was added.
+- Updated setup, API, privacy, provider-handling, architecture, compliance,
+  dependency-license, and deferred-scope documentation.
+
+The author supplied the product fields, allowed categories, status semantics,
+privacy boundary, error contract, live-smoke limit, cost controls, and the
+requirement that action priority, generated plans, medical or emergency
+decisions, frontend integration, and later milestones remain out of scope.
+The author also confirmed separate OpenAI API access and billing without
+publishing a balance amount. The author retains final product, safety, scope,
+and submission decisions.
+
+OpenAI provides GPT-5.6 and the Responses API; the official SDK and every
+other dependency remain third-party work. Codex implementation and testing
+occurred in the primary build thread. No core implementation is attributed to
+the separate planning and compliance thread.
+
+### Offline verification record
+
+Commands were run from the repository root. At the time this initial
+verification was recorded, ordinary tests did not read the real `.env.local`,
+instantiate a live OpenAI client, or access the network.
+
+| Command or check | Exit status | Result |
+| --- | ---: | --- |
+| `.venv/bin/python -m pip install -r backend/requirements-dev.txt` | 0 | Installed the pinned manifests, including `openai==2.46.0` and `python-dotenv==1.2.2`; existing direct pins remained unchanged. |
+| `.venv/bin/python -m pytest backend/tests/test_situation.py backend/tests/test_situation_api.py backend/tests/test_dev_supervisor.py -q` | 0 | All 88 focused extraction, API, and credential-boundary tests passed. |
+| `make test-backend` | 0 | All 246 backend tests passed. |
+| `make test-frontend` | 0 | The single frontend rendering smoke test passed. |
+| `make test` | 0 | The complete root suite passed: 246 backend tests and one frontend test. |
+| `make build` | 0 | TypeScript checking and the Vite production build passed. |
+| `.venv/bin/python -m pip check` | 0 | No broken requirements; pip printed the existing unwritable user-cache warning. |
+| `npm --prefix frontend ls --depth=0` | 0 | All installed direct frontend versions matched the unchanged manifest. |
+| Installed distribution metadata check | 0 | `openai==2.46.0` declared Apache-2.0 and `python-dotenv==1.2.2` declared BSD-3-Clause. |
+| Snapshot and manifest `shasum -a 256` | 0 | The unchanged hashes remained `c958b7ba10b133132d9f1c8b98d84cd1b53644d27cbbd225b5b46bb98d89202b` and `d0ce55c3dd8cd730307324a12e214fdc54ad6783b8ce97a5bb3f14ac1c783c9f`. |
+| `git diff --check` | 0 | No diff whitespace errors were found before the live smoke. |
+| Initial redacted credential scan | 1, superseded | One filename-level false positive came from treating README's inline empty placeholder as a nonempty assignment; no candidate value was printed. |
+| Corrected redacted credential scan | 0 | No key-shaped credential or nonempty key assignment was found in tracked or intended untracked project files; no candidate value was printed. |
+| Ignored `.env.local` metadata boundary check | 0 | The file remained a non-symlinked regular file with no group/other permission bits, was ignored, and was untracked; its value was not printed or measured. |
+| Frontend `VITE_` OpenAI-variable check | 0 | No OpenAI-prefixed frontend variable existed, including in local environment variable names; no environment value was printed. |
+| Project-wide trailing-whitespace scan | 0 | No trailing whitespace was found across tracked and intended untracked files. |
+
+### One bounded live GPT-5.6 smoke
+
+After the offline suite and production build passed, a silent presence check
+confirmed the existing ignored credential without printing or measuring it.
+The documented `make dev` path loaded it only into the backend child. A
+temporary local smoke harness initially exited 1 with `ModuleNotFoundError`
+before it sent any HTTP request, so that preflight failure made zero OpenAI
+network attempts. The corrected harness then sent one short, obviously
+synthetic multilingual JSON-body request to the local extraction endpoint.
+
+- OpenAI network attempts: **1**. SDK retries were disabled; no second
+  high-level attempt was made.
+- Local HTTP result: **200**.
+- Strict public-schema validation: **passed**.
+- Expected explicitly stated synthetic facts and no prohibited housing
+  inference: **passed**.
+- Returned provider model name and input/output/total token counts: **not
+  available** through the public HeatRelay response, and the development log
+  did not emit that optional safe telemetry. No response ID or provider body
+  was recorded.
+- Coarse configured cost bound: **under approximately USD 0.15** for this
+  request shape at the documented standard GPT-5.6 Sol rates, using the
+  2,000-code-point input ceiling, fixed instruction/schema, and 1,024-token
+  output cap. This is a conservative configuration estimate, not measured
+  billing for the smoke.
+
+Intentional `Ctrl-C` made the PTY wrapper report exit 1 after the supervisor's
+normal shutdown path. Uvicorn completed application shutdown, and read-only
+`lsof` checks for ports 8000 and 5173 plus a matching `pgrep` each exited 1 as
+expected because no service remained. Raw request text, the full extracted
+profile, credential material, provider response IDs, and complete provider
+responses were not added to this log.
+
+Final post-documentation checks also passed: `git diff --check`, the corrected
+redacted credential scan, the ignored/untracked local-environment boundary,
+the no-`VITE_` OpenAI-variable check, project-wide trailing whitespace, and
+the unchanged snapshot hashes all exited 0. Final
+`git status --short --branch --untracked-files=all` exited 0 and listed only
+the intended uncommitted Milestone 2 source, test, documentation, dependency,
+environment-example, supervisor, and minimal frontend-copy changes. It did
+not list `.env.local` or generated dependency/build output.
+
+At the time this verification was recorded, Milestone 2 was intentionally
+uncommitted and unpublished in this task.
+
+## Milestone 2 security-boundary correction — 2026-07-17
+
+A focused follow-up audit found four boundary defects in the otherwise
+verified Milestone 2 work: ambient `OPENAI_BASE_URL` could redirect the SDK
+client, root Makefile npm commands inherited an exported backend key,
+`.env.local` loading did not reject group or other permission bits, and SDK
+client cleanup could wait without a bound. The correction:
+
+- pins the production extraction client to `https://api.openai.com/v1` and
+  adds a no-network effective-configuration regression using only a synthetic
+  credential; that regression constructs the real SDK client but sends no
+  request, while extraction-traffic tests continue to use injected fakes;
+- removes `OPENAI_API_KEY` at the shared frontend/npm execution boundary used
+  for setup, frontend tests, and production builds;
+- checks the already-open `.env.local` descriptor and refuses any group or
+  other permission bit while retaining the symlink, regular-file,
+  `O_NOFOLLOW`, exported-value precedence, and backend-only forwarding rules;
+- retains the 30-second SDK request timeout and separate 30-second
+  `responses.parse` wait, and applies a separate one-second best-effort bound
+  to client cleanup with generic warnings; and
+- records that, at the time of that correction, `main` and `origin/main`
+  pointed to published Milestone 1 commit
+  `6b3b3bc5c04cd6dbe31a603fe2b44e388ea98586`, without changing the historical
+  author-performed Milestone 0 publication.
+
+No OpenAI request or `make dev` run belongs to this correction pass. It does
+not change extraction schemas, API paths, dependency versions, weather,
+places, snapshots, schedules, ranking, frontend design, or later-milestone
+scope.
+
+### Correction verification record
+
+Commands were run from the repository root. No command read the real local
+credential, started the development services, or sent an OpenAI request.
+
+| Command or check | Exit status | Result |
+| --- | ---: | --- |
+| `.venv/bin/python -m pytest backend/tests/test_situation.py backend/tests/test_situation_api.py backend/tests/test_dev_supervisor.py backend/tests/test_makefile.py -q` | 0 | All 93 focused adapter, endpoint, supervisor, permission, frontend-isolation, and cleanup tests passed. |
+| `make test-backend` | 0 | All 251 backend tests passed. |
+| `make test-frontend` | 0 | The single frontend rendering smoke test passed; npm ran through the key-removal boundary. |
+| `make test` | 0 | The complete root suite passed: 251 backend tests and one frontend test. |
+| `make build` | 0 | TypeScript checking and the Vite production build passed through the same key-removal boundary. |
+| `.venv/bin/python -m pip check` | 0 | No broken requirements; pip printed the existing unwritable user-cache warning. |
+| `npm --prefix frontend ls --depth=0` | 0 | Installed direct frontend dependency versions matched the unchanged manifest. |
+| Snapshot and manifest `shasum -a 256` | 0 | Both committed data hashes remained unchanged. |
+| Filename-only key-shaped credential scan and empty-placeholder check | 0 | No key-shaped value was found in tracked or intended untracked files, and `.env.example` retained only the empty placeholder; no candidate value was printed. |
+| OpenAI-prefixed `VITE_` variable scan | 0 | No matching frontend variable was found in tracked or intended untracked files. |
+| Project-wide trailing-whitespace scan | 0 | No trailing whitespace was found in tracked or intended untracked files; ignored dependencies, builds, caches, and `.env.local` were not read. |
+| Ignored `.env.local` metadata check | 0 | The file remained a non-symlinked regular file with mode `0600`, was ignored, and was untracked; its contents and value were not read or measured. |
+| `git diff --check` | 0 | The final check, including this verification record, found no diff whitespace errors. |
+| `git status --short --branch --untracked-files=all` plus cached-diff check | 0 | Only the intended uncommitted Milestone 2 and correction files were listed, and the index remained empty. |
+
+## Milestone 2 cancellation-resistant cleanup correction — 2026-07-17
+
+A second focused review established that the first cleanup correction used
+`asyncio.wait_for(client.close(), timeout=...)`, which was insufficient as a
+hard request-path waiting boundary. After its timeout, `wait_for` requests
+cancellation and then waits for the inner coroutine to finish cancelling; a
+client close that catches `CancelledError` can therefore continue past the
+configured interval or never return.
+
+The follow-up correction starts cleanup as an explicit managed task and waits
+only for the configured cleanup interval. If cleanup is still pending,
+HeatRelay emits the same fixed generic timeout warning, requests cancellation
+best effort, and lets the response path continue without awaiting cancellation
+completion. A retained task reference and fixed done callback consume any
+eventual cancellation or exception without exposing exception text or private
+request/provider data. This bounds only how long the request path waits; it
+does not prove that the underlying client finished closing.
+
+### Follow-up verification record
+
+All commands ran from the repository root without reading the real local
+credential, starting `make dev`, or making an OpenAI or other network request.
+
+| Command or check | Exit status | Result |
+| --- | ---: | --- |
+| Initial focused cleanup selection | 1, superseded | Eight tests passed and two new adversarial cases failed because the test expected the fake to observe scheduled cancellation before the event loop received another turn. The request-time assertion had already passed. The test was corrected to observe cancellation only after measuring the returned request path. |
+| `.venv/bin/python -m pytest backend/tests/test_situation.py -q -k 'cleanup or overall_deadline or provider_failures or semantic'` | 0 | All 10 selected cleanup, timeout, provider-failure, and semantic-validation tests passed; 54 were deselected. |
+| `.venv/bin/python -m pytest backend/tests/test_situation.py backend/tests/test_situation_api.py backend/tests/test_dev_supervisor.py backend/tests/test_makefile.py -q` | 0 | All 94 focused cleanup, adapter, endpoint, supervisor, permission, and frontend-isolation tests passed. |
+| `make test-backend` | 0 | All 252 backend tests passed. |
+| `make test-frontend` | 0 | The single frontend rendering smoke test passed. |
+| `make test` | 0 | The complete root suite passed: 252 backend tests and one frontend test. |
+| `make build` | 0 | TypeScript checking and the Vite production build passed. |
+| `.venv/bin/python -m pip check` | 0 | No broken requirements; pip printed the existing unwritable user-cache warning. |
+| `npm --prefix frontend ls --depth=0` | 0 | Installed direct frontend dependency versions matched the unchanged manifest. |
+| Offline cancellation-resistant timing probe | 0 | With a `0.01`-second cleanup budget and a fake that continued for `0.30` seconds after cancellation, success returned in `0.011192` seconds and sanitized provider failure returned in `0.011390` seconds. |
+| Snapshot and manifest `shasum -a 256` | 0 | Both committed data hashes remained unchanged. |
+| Pre-record `git diff --check`, redacted key-shaped and OpenAI-prefixed `VITE_` scans, empty-placeholder check, and project whitespace scan | 0 | No diff error, key-shaped value, OpenAI frontend variable, nonempty example key, or trailing whitespace was found; scans printed no candidate secret value. |
+| Ignored `.env.local` metadata and Git-state checks | 0 | The file remained a non-symlinked regular file with mode `0600`, ignored and untracked; the index was empty and only the same 16 intended working-tree paths were listed. Its contents were not read or measured. |

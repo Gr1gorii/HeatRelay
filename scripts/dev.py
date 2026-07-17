@@ -6,14 +6,99 @@ from __future__ import annotations
 import os
 import shutil
 import signal
+import stat
 import subprocess
 import sys
 import time
+from collections.abc import Mapping
 from pathlib import Path
+
+from dotenv import dotenv_values
 
 ROOT = Path(__file__).resolve().parents[1]
 VENV_PYTHON = ROOT / ".venv" / "bin" / "python"
 FRONTEND = ROOT / "frontend"
+LOCAL_ENV_FILE = ROOT / ".env.local"
+OPENAI_API_KEY_ENV = "OPENAI_API_KEY"
+
+
+def _warn_local_env_ignored(reason: str) -> None:
+    print(
+        f"Warning: ignored .env.local because {reason}.",
+        file=sys.stderr,
+        flush=True,
+    )
+
+
+def read_local_openai_api_key(path: Path = LOCAL_ENV_FILE) -> str | None:
+    """Read only the backend OpenAI key from an explicit regular env file."""
+
+    try:
+        path_mode = path.lstat().st_mode
+    except FileNotFoundError:
+        return None
+    except OSError:
+        _warn_local_env_ignored("it could not be inspected safely")
+        return None
+
+    if stat.S_ISLNK(path_mode):
+        _warn_local_env_ignored("symlinks are not accepted")
+        return None
+    if not stat.S_ISREG(path_mode):
+        _warn_local_env_ignored("it is not a regular file")
+        return None
+
+    no_follow = getattr(os, "O_NOFOLLOW", None)
+    if no_follow is None:
+        _warn_local_env_ignored("this platform cannot prevent symlink traversal")
+        return None
+
+    try:
+        descriptor = os.open(path, os.O_RDONLY | no_follow)
+    except OSError:
+        _warn_local_env_ignored("it could not be opened safely")
+        return None
+
+    try:
+        with os.fdopen(descriptor, encoding="utf-8") as stream:
+            opened_mode = os.fstat(stream.fileno()).st_mode
+            if not stat.S_ISREG(opened_mode):
+                _warn_local_env_ignored("it is not a regular file")
+                return None
+            if opened_mode & (stat.S_IRWXG | stat.S_IRWXO):
+                _warn_local_env_ignored(
+                    "its permissions allow group or other access"
+                )
+                return None
+            values = dotenv_values(
+                stream=stream,
+                interpolate=False,
+                verbose=False,
+            )
+    except (OSError, UnicodeError):
+        _warn_local_env_ignored("it could not be read safely")
+        return None
+
+    value = values.get(OPENAI_API_KEY_ENV)
+    return value if isinstance(value, str) and value else None
+
+
+def build_service_environments(
+    parent_environment: Mapping[str, str] | None = None,
+    local_env_path: Path = LOCAL_ENV_FILE,
+) -> tuple[dict[str, str], dict[str, str]]:
+    """Build isolated backend and frontend child environments."""
+
+    inherited = dict(os.environ if parent_environment is None else parent_environment)
+    backend_environment = inherited.copy()
+    if OPENAI_API_KEY_ENV not in backend_environment:
+        local_key = read_local_openai_api_key(local_env_path)
+        if local_key is not None:
+            backend_environment[OPENAI_API_KEY_ENV] = local_key
+
+    frontend_environment = inherited.copy()
+    frontend_environment.pop(OPENAI_API_KEY_ENV, None)
+    return backend_environment, frontend_environment
 
 
 def process_group_exists(process_group_id: int) -> bool:
@@ -95,6 +180,7 @@ def main() -> int:
         print("npm is required. Install Node.js and run `make setup`.", file=sys.stderr)
         return 1
 
+    backend_environment, frontend_environment = build_service_environments()
     commands = [
         (
             "backend",
@@ -108,6 +194,7 @@ def main() -> int:
                 "--port",
                 "8000",
             ],
+            backend_environment,
         ),
         (
             "frontend",
@@ -118,6 +205,7 @@ def main() -> int:
                 "run",
                 "dev",
             ],
+            frontend_environment,
         ),
     ]
 
@@ -132,11 +220,12 @@ def main() -> int:
     signal.signal(signal.SIGTERM, request_shutdown)
 
     try:
-        for name, command in commands:
+        for name, command, environment in commands:
             print(f"Starting {name}: {' '.join(command)}", flush=True)
             process = subprocess.Popen(
                 command,
                 cwd=ROOT,
+                env=environment,
                 start_new_session=True,
             )
             services.append((name, process))

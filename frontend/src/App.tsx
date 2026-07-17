@@ -20,7 +20,7 @@ const deferredCapabilities = [
   "User-facing live context and the complete action flow",
   "Official heat-warning retrieval and action-priority logic",
   "Maps, routing, and location access",
-  "GPT-5.6 extraction and plan generation",
+  "GPT-5.6 plan generation and extraction UI integration",
   "Authentication, deployment, and additional cities",
 ];
 
@@ -52,13 +52,13 @@ export default function App() {
       <main id="main-content">
         <section className="hero page-width" aria-labelledby="hero-title">
           <div className="hero-copy">
-            <p className="eyebrow">Barcelona pilot · Milestone 1</p>
+            <p className="eyebrow">Barcelona pilot · Milestone 2</p>
             <h1 id="hero-title">From heat warning to a safe next step.</h1>
             <p className="hero-intro">
               HeatRelay is being built to turn trusted heat information into
-              clear, practical actions. This release adds backend weather
-              context and candidate-place services; the interface still does
-              not provide live conditions or recommendations.
+              clear, practical actions. This release adds bounded backend
+              context and situation-extraction services; the interface still
+              does not collect a situation or provide live guidance.
             </p>
             <div className="hero-links" aria-label="Page links">
               <a className="primary-link" href="#scope">
@@ -113,8 +113,8 @@ export default function App() {
             <p>
               The planned experience separates trusted facts, safety
               priorities, and generated language. Only the bounded backend
-              fact services exist in Milestone 1; the user-facing journey is
-              not live.
+              fact and extraction services exist server-side; the user-facing
+              journey is not live.
             </p>
           </div>
 
@@ -224,7 +224,7 @@ export default function App() {
             </span>
             <span>HeatRelay</span>
           </a>
-          <p>Milestone 1 · English shell · Barcelona pilot boundary</p>
+          <p>Milestone 2 · English shell · Barcelona pilot boundary</p>
         </div>
       </footer>
     </div>

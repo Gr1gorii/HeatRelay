@@ -5,10 +5,12 @@
 HeatRelay is being designed to turn trusted heat information into clear,
 practical next steps. Barcelona is the boundary for the first MVP's verified
 place catalog; weather context accepts valid global coordinates. Milestone 1
-adds bounded backend fact services and a reviewed municipal-data snapshot;
-the existing English interface is not connected to them yet.
+added bounded backend fact services and a reviewed municipal-data snapshot.
+Milestone 2 adds extraction-only, server-side GPT-5.6 processing for a bounded
+multilingual situation profile. The existing English interface is not
+connected to these APIs.
 
-## Milestone 1 scope
+## Implemented scope through Milestone 2
 
 Included in this milestone:
 
@@ -17,16 +19,20 @@ Included in this milestone:
 - Server-side `POST /api/v1/weather/context` using Open-Meteo.
 - A versioned, normalized snapshot of 15 official Barcelona climate shelters.
 - Deterministic `POST /api/v1/places/candidates` filtering and ranking.
+- Server-side `POST /api/v1/situation/extract` using GPT-5.6 through the
+  OpenAI Responses API and Pydantic Structured Outputs.
+- Deterministic validation, canonical ordering, and missing-information
+  reconciliation for the extracted situation profile.
 - Strict request, upstream, snapshot, manifest, and response validation.
 - Offline backend tests, a frontend rendering smoke test, production build,
   and coordinated local development command.
 
-The browser does not call the new APIs, request location, display live
-weather, or recommend a place. GPT-5.6, situation extraction, generated plans,
-official heat-warning retrieval, heat action priority, medical thresholds or
-diagnosis, emergency guidance, maps, routes, travel times, authentication,
-analytics, deployment, additional cities, and the full user-facing golden
-path remain **unimplemented**.
+The browser does not call the backend APIs, request location, display live
+weather, submit situation text, or recommend a place. Grounded action-plan
+generation, official heat-warning retrieval, heat action priority, medical or
+emergency decision logic, maps, routes, travel times, authentication,
+analytics, deployment, additional cities, frontend integration, and the full
+user-facing golden path remain **unimplemented**.
 
 ## Intended audience
 
@@ -36,19 +42,19 @@ conditioning, people with limited mobility or language barriers, outdoor
 workers, families with young children, and relatives, neighbors, or care
 workers helping someone take a safer next step.
 
-## Planned server-side GPT-5.6 role
+## Server-side GPT-5.6 boundary
 
-The following tasks are planned and remain unimplemented:
+Milestone 2 implements only the first of two planned GPT-5.6 tasks:
 
-1. **Multilingual structured situation extraction** into a bounded backend
-   schema.
-2. **Grounded action-plan generation** restricted to candidate places already
-   approved by the backend.
+1. **Implemented:** multilingual extraction of explicitly reported facts into
+   a bounded backend schema.
+2. **Unimplemented:** grounded action-plan generation restricted to candidate
+   places already approved by the backend.
 
 Deterministic backend code—not GPT-5.6—owns weather facts, opening-hours and
-feature eligibility, distance ranking, and factual validation. Deterministic
-heat action priority is also planned for backend code but is not implemented
-in Milestone 1.
+feature eligibility, distance ranking, schema enforcement, canonical ordering,
+missing-information reconciliation, and factual validation. Deterministic
+heat action priority is planned for backend code but remains unimplemented.
 
 ## Prerequisites
 
@@ -56,8 +62,8 @@ in Milestone 1.
 - Python `>=3.10`.
 - GNU Make.
 - macOS or Linux; the development supervisor uses POSIX process groups.
-- Network access for initial dependency installation and live weather or data
-  refresh checks.
+- Network access for initial dependency installation and any explicit live
+  weather, data-refresh, or GPT-5.6 smoke check.
 
 ## Setup
 
@@ -68,7 +74,31 @@ make setup
 ```
 
 This creates `.venv`, installs the pinned Python dependencies, and installs
-the exact npm dependency tree from `frontend/package-lock.json`.
+the exact npm dependency tree from `frontend/package-lock.json`. Every npm
+process launched by the root Make targets runs with `OPENAI_API_KEY` removed
+from its child environment.
+
+### Local backend credential
+
+OpenAI requires a separate API key and billing for live extraction. Create the
+ignored repository-root file from the tracked placeholder:
+
+```sh
+cp .env.example .env.local
+chmod 600 .env.local
+```
+
+Then set the empty `OPENAI_API_KEY=` entry in `.env.local` locally. Never
+commit this file or use a `VITE_` OpenAI variable. `make dev` reads only this
+exact root file, refuses a symlinked or non-regular file, and does not search
+parent directories. After opening the file safely, it rejects any group or
+other permission bit; keep it owner-only (for example, mode `0600`). An
+already exported `OPENAI_API_KEY` takes precedence over the local file. The
+key is passed only to the backend child process and is explicitly removed
+from the frontend child environment, even when it was exported by the parent
+shell. Root Make targets also remove it before npm dependency installation,
+frontend tests, and the production build. Application import and ordinary
+tests do not load `.env.local`.
 
 ## Development
 
@@ -93,8 +123,17 @@ make test-frontend
 make test
 ```
 
-The backend tests mock outbound weather traffic; the normal test suite does
-not require live network access.
+The backend tests mock outbound weather and OpenAI traffic; the normal test
+suite does not read the real `.env.local` or require live network access. A
+configuration-only regression constructs the official SDK client with a
+synthetic credential to verify its effective base URL, then closes it without
+sending an API request; tests of extraction traffic use injected fakes.
+
+One tightly bounded paid GPT-5.6 smoke was performed only after the offline
+suite and build passed, through the documented local development path. It is
+not part of `make test`; its safe, redacted evidence is recorded in
+`docs/BUILD_LOG.md`. The mocked suite remains distinct from that single live
+verification.
 
 ## Build
 
@@ -192,6 +231,119 @@ schema mismatches all return the same non-sensitive response, HTTP 503:
 ```
 
 The error never exposes an upstream body or a URL containing coordinates.
+
+### `POST /api/v1/situation/extract`
+
+Request body:
+
+```json
+{
+  "situation_text": "Synthetic case: I am helping an older relative who says they have no home cooling."
+}
+```
+
+The request must be a strict JSON object containing only `situation_text`.
+The value must be a real string; the backend trims it, rejects blank content,
+rejects unsupported control or surrogate characters, and limits the retained
+text to 2,000 Unicode code points. The text stays in the JSON body and is
+never placed in a URL, echoed in a response, or included in an API error.
+
+The model-facing Structured Output contains only these required fields:
+
+- `detected_input_language`: `en`, `es`, `ca`, `fr`, `de`, `it`, `pt`, `ru`,
+  `uk`, `ar`, `other`, or `unknown`.
+- `preferred_language`: status `not_stated`, `no_preference`, or `reported`,
+  plus a supported language value, `other`, or `null`. Message language alone
+  never establishes a preference.
+- `vulnerability_factors`, `mobility_constraints`, `time_constraints`, and
+  `reported_symptoms`: status `not_stated`, `unknown`, `explicit_none`, or
+  `reported`, plus a closed list of values. Only `reported` may contain
+  values; duplicates fail validation and accepted values use backend-defined
+  order.
+- `cooling_access` and `housing_situation`: status `not_stated`, `unknown`, or
+  `reported`, plus one closed value or `null`. Only `reported` may contain a
+  value.
+
+Vulnerability values are `older_adult`, `young_child_in_household`,
+`pregnancy_reported`, `chronic_condition_reported`, `disability_reported`,
+`outdoor_worker`, `living_alone`, `housing_insecurity`, and
+`caregiver_responsibility`. Mobility values are `walks_slowly`,
+`limited_walking_distance`, `step_free_access_required`,
+`wheelchair_access_required`, `cannot_travel_alone`, and
+`cannot_leave_current_location`. Cooling values are `air_conditioning`,
+`fan_only`, and `no_home_cooling`; housing values are `stable_housing`,
+`temporary_housing`, and `unsheltered`. Time values are `cannot_leave_now`,
+`must_leave_soon`, `daytime_only`, `evening_only`,
+`must_return_by_deadline`, `work_schedule`, and `caregiving_schedule`.
+Symptom values are `confusion`, `fainting_or_loss_of_consciousness`, `seizure`,
+`difficulty_breathing`, `chest_pain`, and `repeated_vomiting`.
+
+Successful response shape, HTTP 200:
+
+```text
+{
+  "schema_version": "1.0.0",
+  "detected_input_language": supported language code,
+  "preferred_language": {"status": status, "value": code | null},
+  "vulnerability_factors": {"status": status, "values": [...]},
+  "mobility_constraints": {"status": status, "values": [...]},
+  "cooling_access": {"status": status, "value": value | null},
+  "housing_situation": {"status": status, "value": value | null},
+  "time_constraints": {"status": status, "values": [...]},
+  "reported_symptoms": {"status": status, "values": [...]},
+  "missing_information": [
+    "preferred_language" | "vulnerability_factors" |
+    "mobility_constraints" | "cooling_access" | "housing_situation" |
+    "time_constraints" | "reported_symptoms"
+  ],
+  "notice": "This output is a structured summary of explicitly reported information. It is not medical advice, an emergency assessment, or an action plan."
+}
+```
+
+Backend code computes `missing_information` in a fixed order. A field is
+missing only when its status is `not_stated` or `unknown`; `no_preference` and
+`explicit_none` are not missing. The endpoint transcribes bounded categories
+and does not diagnose, assess an emergency, choose an action, or generate a
+plan.
+
+Malformed JSON, wrong types, blank or excessive text, unsupported controls,
+and extra request fields return this route-specific response, HTTP 422:
+
+```json
+{
+  "detail": {
+    "code": "invalid_situation_request",
+    "message": "Situation request is invalid."
+  }
+}
+```
+
+Other failures use the same non-sensitive `detail` envelope:
+
+| HTTP | Code | Message |
+| ---: | --- | --- |
+| 502 | `situation_extraction_refused` | `Situation extraction was refused.` |
+| 502 | `situation_extraction_invalid_response` | `Situation extraction returned an unusable response.` |
+| 503 | `situation_extraction_not_configured` | `Situation extraction is not configured.` |
+| 503 | `situation_extraction_unavailable` | `Situation extraction is temporarily unavailable.` |
+| 504 | `situation_extraction_timeout` | `Situation extraction timed out.` |
+
+The backend uses the OpenAI Responses API with model alias `gpt-5.6`, a fixed
+versioned developer instruction, the user text as a separate untrusted user
+message, Pydantic Structured Outputs, no tools, no streaming, no retries,
+`reasoning.effort="none"`, and a 1,024-token output cap. The client is pinned
+explicitly to `https://api.openai.com/v1`, so an inherited
+`OPENAI_BASE_URL` cannot redirect the credential or situation text. The SDK
+request timeout is 30 seconds and the `responses.parse` await has a separate
+30-second bound. The request path waits at most one second for best-effort
+client cleanup. If cleanup exceeds that interval, HeatRelay emits a fixed
+generic warning, requests task cancellation, and detaches the task while
+safely consuming its eventual outcome; reaching the interval does not prove
+that the underlying client finished closing. These are separate limits, not
+an exact 30-second end-to-end deadline. The adapter rejects refusals,
+incomplete responses, partial or multiple parsed outputs, unexpected content,
+and locally invalid schema or status/value combinations without attempting
+JSON repair or a second model request.
 
 ### `POST /api/v1/places/candidates`
 
@@ -382,7 +534,7 @@ No fallback place is invented.
 Coordinates are accepted in JSON request bodies rather than query parameters,
 so they do not appear in normal access-log URLs. HeatRelay does not
 intentionally log or store exact coordinates or request bodies. The browser
-does not call either endpoint or access geolocation.
+does not call these endpoints or access geolocation.
 
 Weather accepts global coordinates and uses the coordinate-local timezone
 returned by Open-Meteo. Place schedules remain fixed to `Europe/Madrid`, and
@@ -396,18 +548,31 @@ is model-derived and supplied without accuracy or availability guarantees;
 it is not an official heat warning. The free API is subject to its current
 non-commercial terms and request limits.
 
-HeatRelay is informational, not a medical or emergency service. This milestone
-does not issue personalized guidance. If someone is in immediate danger,
-contact local emergency services.
+Situation text is sent from the backend to OpenAI for structured extraction.
+HeatRelay does not intentionally log or persist the raw text, complete model
+response, parsed sensitive fields, API response IDs, or request and response
+bodies. The API response and its sanitized errors do not echo the submitted
+text. The OpenAI request sets `store=False`, which asks the Responses API not
+to store the response for later retrieval; this is not a claim of zero
+provider retention. It also sets explicit prompt-cache mode and supplies no
+cache breakpoint, so the request does not rely on an implicit prompt-cache
+breakpoint. Provider data controls and retention policies remain distinct
+from HeatRelay's application-side handling.
 
-The example environment file contains placeholders only. A future OpenAI API
-key must remain server-side, must never use a `VITE_` prefix, and must never be
-committed. No OpenAI SDK is installed.
+HeatRelay is informational, not a medical or emergency service. Situation
+extraction is a bounded summary of reported facts and does not issue
+personalized guidance. If someone is in immediate danger, contact local
+emergency services.
+
+The example environment file contains an empty backend-only placeholder. A
+real OpenAI API key remains server-side, must never use a `VITE_` prefix, and
+must never be committed or passed to the frontend process.
 
 ## Project layout
 
 ```text
 backend/                    FastAPI services, validation, and pytest coverage
+backend/app/situation.py    Injected OpenAI extraction adapter and schemas
 data/barcelona/             Versioned snapshot, manifest, and data notes
 frontend/                   React, Vite, TypeScript shell and smoke test
 scripts/dev.py              Coordinated local process supervisor
