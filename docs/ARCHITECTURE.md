@@ -1,10 +1,13 @@
 # HeatRelay architecture
 
-## Milestone 3 boundary
+## First Milestone 4 frontend boundary
 
-The React, Vite, and TypeScript frontend remains an informational English
-shell. It does not call the context APIs, request browser geolocation, or send
-personal information. Vite proxies `/api` during local development.
+The React, Vite, and TypeScript frontend implements one English Barcelona demo
+flow for `POST /api/v1/action-plan`. It sends the user's trimmed situation text
+with fixed origin latitude `41.3874`, longitude `2.1686`, and maximum distance
+`3000` metres. It does not request browser geolocation or call the situation,
+weather, or places endpoints separately. Vite proxies `/api` to
+`http://127.0.0.1:8000` during local development.
 
 The FastAPI backend exposes five application contracts:
 
@@ -30,7 +33,30 @@ and rejects origins outside the inclusive Barcelona pilot rectangle. Its
 separately named public-origin constants intentionally match the current
 place-record validation rectangle, but a coarse rectangle does not prove
 municipal membership and is not an administrative-boundary geofence. The
-frontend is not yet connected to any backend endpoint.
+frontend uses the same-origin action-plan path and does not receive an API key.
+
+## Implemented frontend integration
+
+The single-page form keeps situation text only in React memory, validates its
+trimmed value with a 2,000-Unicode-code-point limit, and can populate a
+synthetic Barcelona example without submitting it. A valid submit starts at
+most one `fetch`, disables duplicate submission while it is pending, and makes
+no automatic retry. The request contains exactly `situation_text`, `origin`,
+and `maximum_distance_m`.
+
+Narrow discriminated TypeScript contracts cover only displayed fields, and a
+small top-level runtime check admits usable `normal` or `urgent` responses.
+Unknown or malformed JSON becomes fixed safe copy. The UI renders backend-owned
+normal-plan phases, weather, destination or no-place state, urgent contact
+content, and safety notices without echoing submitted text in an error.
+Frontend tests mock `globalThis.fetch`; they do not establish live end-to-end
+operation. A separately authorized one-submission Chrome smoke on 2026-07-18
+exercised the real local same-origin path: one observed action-plan POST
+returned HTTP 200 and rendered the normal `Prepare now` no-place result with
+zero retries. The downstream extraction, Open-Meteo, and grounded-plan calls
+were inferred from the completed normal workflow rather than independently
+logged. This is one-scenario integration evidence, not exhaustive branch or
+reliability coverage.
 
 ## Implemented backend separation
 
@@ -290,10 +316,10 @@ fresh check of official pricing.
 
 ## Deferred pipeline stages
 
-Milestone 3 implements server-side extraction, deterministic priority, urgent
-contact routing, and grounded closed-code plan selection only. It does not
-implement medical diagnosis or risk scoring, official-warning retrieval,
-routes, ETA, reservations, guaranteed availability or hours, free-form runtime
-translation, frontend API integration, maps, browser geolocation,
-authentication, analytics, deployment, additional cities, or the complete
-user-facing golden path.
+The first Milestone 4 slice adds one complete fixed-coordinate Barcelona demo
+path over the existing server-side extraction, deterministic priority, urgent
+contact routing, and grounded closed-code plan selection. It does not implement
+medical diagnosis or risk scoring, official-warning retrieval, routes, ETA,
+reservations, guaranteed availability or hours, free-form runtime translation,
+maps, browser geolocation, authentication, analytics, deployment, or
+additional cities.

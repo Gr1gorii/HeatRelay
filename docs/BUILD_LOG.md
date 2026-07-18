@@ -1128,3 +1128,52 @@ Log were edited during the final smoke-record synchronization. The index
 remained empty; nothing was staged, committed, pushed, tagged, or otherwise
 published. At the time this verification record was written, Milestone 3 was
 uncommitted and unpublished.
+
+## Milestone 4 Barcelona frontend slice — 2026-07-17
+
+The first Milestone 4 slice replaces the informational shell with one
+accessible single-page flow for the existing `POST /api/v1/action-plan`
+contract. The form keeps text only in React memory, enforces a visible
+2,000-Unicode-code-point limit, provides a non-submitting synthetic Barcelona
+example, and submits the trimmed text with fixed origin `41.3874, 2.1686` and
+maximum distance `3000`. Browser geolocation is explicitly unavailable.
+
+The frontend makes at most one same-origin action-plan request per submission,
+prevents duplicates while loading, and does not retry or call the situation,
+weather, or places endpoints separately. Narrow response contracts and a small
+runtime discriminator support accessible loading, normal, no-place, urgent,
+malformed-response, backend-error, and connection-error states. Normal output
+renders backend-owned phases, weather, place facts when present, and safety
+notices; urgent output stays separate and fixed. Errors never echo submitted
+text.
+
+Focused frontend tests mock `globalThis.fetch`; during this implementation pass
+they were offline evidence, not a live end-to-end check. At the end of the
+implementation pass, a live frontend-to-backend smoke was still pending
+separate authorization. That pass made no OpenAI, weather, download, or other
+live API request, so its API cost was `$0.00`. The OpenAI key remained
+backend-only, raw user text was not intentionally stored or logged, and no
+dependency, backend, Vite-configuration, snapshot, Git-history, or publication
+change belonged to this slice. Maps, routing, translations, browser
+geolocation, deployment, and additional cities remained unavailable.
+
+## Milestone 4 authorized live browser smoke — 2026-07-18
+
+An earlier in-app-browser preflight was blocked before the form opened. It
+produced no form submission, action-plan POST, OpenAI call, Open-Meteo call, or
+other external API call, and its API cost was exactly `$0.00`.
+
+Chrome subsequently loaded the real local frontend. One proxy health GET
+returned HTTP 200. Exactly one form submission produced one observed
+`POST /api/v1/action-plan`, which returned HTTP 200 with zero retries. The UI
+rendered the normal `Prepare now` result, the `Current`, `Feels like`, and
+`Today’s maximum` weather cards, all three plan phases, `Why this plan`, the
+accepted `No verified place selected` state, and safety notices.
+
+Extraction, Open-Meteo, and grounded-plan call counts were inferred from
+successful completion of the normal workflow; they were not independently
+provider-logged. Model metadata and token usage were unavailable, so the exact
+cost is unknown. The `$0.25` figure was only the conservative authorized upper
+bound, not an actual measured charge. Services stopped cleanly. At the time the
+smoke completed, the same eight-path Milestone 4 working tree remained
+uncommitted and unpublished.

@@ -43,35 +43,39 @@ the supplied publication reports, not inferred from Git author metadata.
 | Initial Milestone 0 commit and push | **Confirmed; author performed** | The author published Milestone 0 as commit `709e1b7`; this remains a historical publication fact. |
 | Milestone 1 commit and push | **Confirmed; primary Codex build thread performed** | The primary Codex build thread published Milestone 1 as commit `6b3b3bc5c04cd6dbe31a603fe2b44e388ea98586`; this remains a historical publication fact even as branch refs advance. |
 | Milestone 2 commit and push | **Confirmed; primary Codex build thread performed** | The supplied publication report records commit `9386d1b4ffc6b2aaf0f85a9c7617407ad2b0c337` (`feat: add multilingual situation extraction`) pushed normally to `origin/main`. |
-| Codex access | **Confirmed for this build context** | Milestones 0 through 3 use the designated primary Codex build thread. |
+| Milestone 3 commit and push | **Confirmed; primary Codex build thread performed** | The supplied publication report records commit `b7c5190ca1c07c111b4d9e79587a75255f0bc67d` (`feat: add grounded Barcelona action planning`) pushed normally to `origin/main`. |
+| Codex access | **Confirmed for this build context** | Milestones 0 through the first Milestone 4 slice use the designated primary Codex build thread. |
 | Separate OpenAI API access and billing for GPT-5.6 runtime use | **Author confirmed** | The author confirmed separate API access and billing; no balance amount is published. |
 | Live GPT-5.6 extraction access | **Verified for one bounded Milestone 2 smoke on 2026-07-17** | One synthetic extraction request through the documented local backend returned HTTP 200, passed the strict public schema, and matched its expected explicit facts on the first OpenAI network attempt. No broader accuracy claim is made. |
 | Live GPT-5.6 grounded-plan access | **Historical pass-1 verification on 2026-07-17** | One direct internal plan-service request with synthetic prevalidated backend facts succeeded on the first and only Responses API attempt; strict pass-1 model-schema and exact request-candidate whitelist checks passed. The public workflow, M2 extraction, and later corrected model-facing/public-validation contract were not exercised, and no broader accuracy claim is made. |
 | Corrected-contract grounded-plan access | **Verified by one separately authorized final smoke on 2026-07-17** | Exactly one direct `GroundedPlanService` request with zero retries passed strict Pydantic, allowed-code, safe-model-metadata, and exact candidate-whitelist validation. It used 1,326 input and 171 output tokens; this single scenario is not a general accuracy evaluation. |
+| Live Milestone 4 browser workflow | **Verified for one bounded smoke on 2026-07-18** | One Chrome submission produced one observed action-plan POST and HTTP 200, rendering the normal `Prepare now` no-place result with zero retries. Extraction, Open-Meteo, and grounded-plan calls were inferred rather than independently provider-logged. Model metadata and token usage were unavailable; `$0.25` was a conservative authorized upper bound, not the actual measured charge. |
 
 The Milestone 3 adversarial correction implementations and ordinary
 verification were deliberately offline. The later final smoke was a separate,
 explicitly authorized one-attempt direct adapter check; it did not invoke the
 public workflow, extraction, weather, downloads, or another network service.
-At the time this verification is recorded, the corrected Milestone 3 working
-tree remains intentionally uncommitted and unpublished. Any future live call
-requires separate author authorization and a fresh official price check.
+That implementation was later published in the Milestone 3 commit recorded
+above. Any future live call requires separate author authorization and a fresh
+official price check.
 
 ## Scope, submitted text, and coordinate handling
 
-Milestone 3 preserves the M1 context services and M2 bounded extraction, then
-adds a bounded Barcelona-pilot deterministic action policy, fixed urgent
-routing, and a second GPT-5.6 task that selects only backend-owned plan codes
-and exact request-scoped candidate IDs. It does not add medical diagnosis or
-risk scoring, official-warning retrieval, routes, ETA, reservations, guaranteed
-hours, frontend API integration, maps, browser geolocation, accounts,
-analytics, deployment, additional cities, or the complete user-facing golden
-path. The action-plan origin rectangle is bounded pilot coverage, not evidence
-of Barcelona municipal membership and not an administrative-boundary geofence.
+The first Milestone 4 slice preserves the M1 context services, M2 bounded
+extraction, and M3 Barcelona action workflow, then adds one browser flow for
+the action-plan endpoint. It fixes the demo origin at latitude `41.3874` and
+longitude `2.1686`, with a `3000` metre maximum distance; browser geolocation
+is not available. It does not add medical diagnosis or risk scoring,
+official-warning retrieval, routes, ETA, reservations, guaranteed hours, maps,
+translations, accounts, analytics, deployment, or additional cities. The
+action-plan origin rectangle is bounded pilot coverage, not evidence of
+Barcelona municipal membership and not an administrative-boundary geofence.
 
-Situation text is accepted only in the JSON body and sent server-side to
-OpenAI. HeatRelay does not intentionally log, persist, or echo it, parsed
-sensitive fields, complete provider responses, or OpenAI response IDs. The
+Situation text is kept only in React memory, accepted only in the JSON body,
+and sent server-side to OpenAI. The frontend does not use browser storage,
+cookies, analytics, logging, or URL parameters for it. HeatRelay does not
+intentionally log, persist, or echo the raw text, parsed sensitive fields,
+complete provider responses, or OpenAI response IDs. The
 public extraction output is a strict structured summary and explicitly is not
 medical advice, an emergency assessment, or an action plan. Refusals, incomplete or
 unusable model output, provider failures, and timeouts return fixed sanitized
@@ -99,6 +103,15 @@ The action-plan HTTP boundary also captures strict endpoint-owned UTC instants
 immediately before and after the workflow call. Both response branches must
 place their evaluation time inside that interval before any final trusted
 place-repository query.
+
+Milestone 4 frontend tests use mocked `fetch` responses and make no live
+frontend-to-backend request. They remain offline contract evidence and do not
+by themselves prove live operation. The separately authorized one-submission
+Chrome smoke recorded above provides one-scenario integration evidence only;
+it does not cover urgent, selected-place, error, or deployment behavior. The
+OpenAI credential remains backend-only and no OpenAI-prefixed frontend
+variable is used. Any future live call requires separate author authorization
+and a fresh cost review.
 
 The second model cannot omit the backend-owned minimum safety matrix. All
 three normal priorities require the immediate `move_to_cooler_space`,

@@ -7,13 +7,14 @@ practical next steps. Barcelona is the boundary for the first MVP's verified
 place catalog; weather context accepts valid global coordinates. Milestone 1
 added bounded backend fact services and a reviewed municipal-data snapshot.
 Milestone 2 added extraction-only, server-side GPT-5.6 processing for a bounded
-multilingual situation profile. Milestone 3 adds a Barcelona-pilot,
+multilingual situation profile. Milestone 3 added a Barcelona-pilot,
 server-owned action workflow with deterministic priority and a second grounded
-GPT-5.6 code-selection step. The pilot accepts origins only inside a documented
-rectangle; that coarse bound is not a municipal-boundary geofence. The existing
-English interface is not connected to these APIs.
+GPT-5.6 code-selection step. Milestone 4's first slice connects one accessible
+English Barcelona demo flow to that action workflow. The backend pilot accepts
+origins only inside a documented rectangle; that coarse bound is not a
+municipal-boundary geofence.
 
-## Implemented scope through Milestone 3
+## Implemented scope through the first Milestone 4 slice
 
 Included in this milestone:
 
@@ -35,15 +36,19 @@ Included in this milestone:
 - Backend-owned required action and explanation codes that the second model
   cannot omit, plus exact no-travel/travel consistency checks.
 - Strict request, upstream, snapshot, manifest, and response validation.
-- Offline backend tests, a frontend rendering smoke test, production build,
-  and coordinated local development command.
+- An accessible single-page Barcelona demo that sends one same-origin
+  `POST /api/v1/action-plan` request with fixed coordinates and renders
+  loading, normal, no-place, urgent, and sanitized error states.
+- Offline backend tests, mocked frontend workflow tests, production build, and
+  a coordinated local development command.
 
-The browser does not call the backend APIs, request location, display live
-weather, submit situation text, or recommend a place. Official heat-warning
+The browser calls only the action-plan endpoint for this flow. It uses fixed
+Barcelona demo coordinates rather than browser location and does not call the
+situation, weather, or places endpoints separately. Official heat-warning
 retrieval, medical diagnosis or risk scoring, free-form medical or emergency
-decision logic, maps, routes, travel times, authentication, analytics,
-deployment, additional cities, frontend integration, and the full user-facing
-golden path remain **unimplemented**.
+decision logic, maps, routes, travel times, browser geolocation, runtime
+translations, authentication, analytics, deployment, and additional cities
+remain **unimplemented**.
 
 ## Intended audience
 
@@ -143,7 +148,11 @@ suite does not read the real `.env.local` or require live network access. A
 configuration-only regression constructs the official SDK client with a
 synthetic credential to verify its effective base URL, then closes it without
 sending an API request; tests of extraction and plan traffic use injected
-fakes.
+fakes. Frontend workflow tests mock `globalThis.fetch`; they do not exercise or
+prove a live frontend-to-backend workflow. Separately, one authorized Chrome
+smoke on 2026-07-18 exercised the real local same-origin action-plan path: one
+observed POST returned HTTP 200 and rendered the normal `Prepare now` no-place
+result with zero retries.
 
 The ordinary suite never makes a paid call. Milestone 2's extraction smoke,
 Milestone 3's initial grounded-plan pass-1 smoke, and one separately authorized
@@ -160,6 +169,14 @@ public-validation corrections; the separately authorized final smoke exercised
 the corrected direct grounded-plan schema, allowed-code, and exact candidate-
 whitelist path. Any future live call requires separate author authorization and
 a fresh official price check.
+
+The historical live-smoke inventory also includes that single Milestone 4
+browser smoke. Its downstream extraction, Open-Meteo, and grounded-plan calls
+were inferred from successful completion of the normal workflow rather than
+independently provider-logged. Model metadata and token usage were unavailable,
+so the exact cost is unknown; `$0.25` was only the conservative authorized
+upper bound, not a measured charge. This one scenario is not exhaustive
+frontend or workflow coverage.
 
 The Milestone 3 focused offline matrices exercise policy, workflow, adapter,
 grounding, and HTTP contracts. The request-scoped-ID matrix accepted the one
@@ -848,8 +865,10 @@ No fallback place is invented.
 
 Coordinates are accepted in JSON request bodies rather than query parameters,
 so they do not appear in normal access-log URLs. HeatRelay does not
-intentionally log or store exact coordinates or request bodies. The browser
-does not call these endpoints or access geolocation.
+intentionally log or store exact coordinates or request bodies. The Barcelona
+demo browser flow sends only the trimmed situation text, fixed origin
+`41.3874, 2.1686`, and a `3000` metre maximum distance to the action-plan
+endpoint. Browser geolocation is not available yet.
 
 Weather accepts global coordinates and uses the coordinate-local timezone
 returned by Open-Meteo. Place schedules remain fixed to `Europe/Madrid`, and
@@ -866,7 +885,9 @@ is model-derived and supplied without accuracy or availability guarantees;
 it is not an official heat warning. The free API is subject to its current
 non-commercial terms and request limits.
 
-Situation text is sent from the backend to OpenAI for structured extraction.
+Situation text is kept only in React memory, then sent in the action-plan JSON
+body and from the backend to OpenAI for structured extraction. The frontend
+does not put it in browser storage, cookies, analytics, logs, or URLs.
 HeatRelay does not intentionally log or persist the raw text, complete model
 response, parsed sensitive fields, API response IDs, or request and response
 bodies. The API response and its sanitized errors do not echo the submitted
@@ -907,7 +928,7 @@ backend/app/grounded_plan.py
                             Closed second-call adapter and dynamic validation
 backend/app/action_plan.py  Barcelona policy, orchestration, and hydration
 data/barcelona/             Versioned snapshot, manifest, and data notes
-frontend/                   React, Vite, TypeScript shell and smoke test
+frontend/                   React, Vite, TypeScript Barcelona action-plan flow
 scripts/dev.py              Coordinated local process supervisor
 scripts/normalize_barcelona_places.py
                             Deterministic official-source normalizer
