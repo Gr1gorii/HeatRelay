@@ -12,11 +12,14 @@ server-owned action workflow with deterministic priority and a second grounded
 GPT-5.6 code-selection step. Milestone 4's first slice connects one accessible
 English Barcelona demo flow to that action workflow. The backend pilot accepts
 origins only inside a documented rectangle; that coarse bound is not a
-municipal-boundary geofence.
+municipal-boundary geofence. Milestone 5 adds one shared Standard and Enhanced
+Visibility application, a defensively persisted presentation preference,
+stronger semantic interaction, and verified low-vision and accessibility
+foundations without changing the backend or API contract.
 
-## Implemented scope through the first Milestone 4 slice
+## Implemented scope through Milestone 5
 
-Included in this milestone:
+Included in the implemented scope:
 
 - Responsive React, Vite, and TypeScript product shell from Milestone 0.
 - Stable FastAPI `GET /api/health` endpoint.
@@ -39,6 +42,22 @@ Included in this milestone:
 - An accessible single-page Barcelona demo that sends one same-origin
   `POST /api/v1/action-plan` request with fixed coordinates and renders
   loading, normal, no-place, urgent, and sanitized error states.
+- One shared application and component flow with `Standard` and `Enhanced
+  Visibility`, selected through a labeled native visual-mode control that
+  remains available throughout the single-page flow.
+- Defensive local persistence under `heatrelay.visual-mode.v1`: a valid stored
+  preference takes precedence, while first load uses `prefers-contrast: more`
+  when no valid value is stored and otherwise falls back to Standard. No
+  account is required, and no visual-mode field enters the action-plan request.
+- A CSS-token-based Enhanced Visibility layer rather than duplicated
+  components or browser zoom, with larger text and controls, increased spacing
+  and line height, stronger contrast, borders and focus, clearer selected and
+  disabled states, reduced decoration, and reduced motion.
+- Semantic form, description, error, focus, status, skip-link, native weather
+  description-list, urgent-alert, and page-error improvements.
+- Verified 320px reflow and text spacing, actual Chrome 200% zoom, runtime
+  macOS Reduce Motion, and one real VoiceOver session manually confirmed by
+  the project author.
 - Offline backend tests, mocked frontend workflow tests, production build, and
   a coordinated local development command.
 
@@ -49,6 +68,25 @@ retrieval, medical diagnosis or risk scoring, free-form medical or emergency
 decision logic, maps, routes, travel times, browser geolocation, runtime
 translations, authentication, analytics, deployment, and additional cities
 remain **unimplemented**.
+
+## Accessibility and visual modes
+
+Standard and Enhanced Visibility use the same data, workflow, components, API,
+and safety contracts. Enhanced Visibility is intended for people with low
+vision or anyone who prefers larger, clearer content. It is a presentation
+preference, not a medical classification or a mode exclusively for completely
+blind users, and it does not require an account.
+
+The implementation targets WCAG 2.2 AA where reasonably testable, but this
+work is not formal WCAG certification or a claim of complete conformance. The
+runtime audit is Chrome/macOS-specific and does not establish compatibility
+with every browser, platform, or assistive technology. The actual VoiceOver
+evidence was one real session manually confirmed by the project author; speech
+was not independently logged for every checkpoint. Standard mode contains
+some smaller links evaluated using target-spacing exceptions; this is not a
+claim that every Standard target is 48×48.
+
+Runtime translation remains unimplemented and belongs to Milestone 6.
 
 ## Intended audience
 
@@ -885,9 +923,13 @@ is model-derived and supplied without accuracy or availability guarantees;
 it is not an official heat warning. The free API is subject to its current
 non-commercial terms and request limits.
 
-Situation text is kept only in React memory, then sent in the action-plan JSON
-body and from the backend to OpenAI for structured extraction. The frontend
-does not put it in browser storage, cookies, analytics, logs, or URLs.
+Before submission, situation text remains only in React memory and is not
+stored in browser storage. It is then sent in the action-plan JSON body and
+from the backend to OpenAI for structured extraction. The frontend does not
+put it in browser storage, cookies, analytics, logs, or URLs. Only the
+visual-mode presentation preference is stored locally, under
+`heatrelay.visual-mode.v1`; it is not included in the action-plan request, and
+no analytics or account is used for the preference.
 HeatRelay does not intentionally log or persist the raw text, complete model
 response, parsed sensitive fields, API response IDs, or request and response
 bodies. The API response and its sanitized errors do not echo the submitted
@@ -929,6 +971,7 @@ backend/app/grounded_plan.py
 backend/app/action_plan.py  Barcelona policy, orchestration, and hydration
 data/barcelona/             Versioned snapshot, manifest, and data notes
 frontend/                   React, Vite, TypeScript Barcelona action-plan flow
+frontend/src/visual-mode.ts Defensive local presentation-preference resolution
 scripts/dev.py              Coordinated local process supervisor
 scripts/normalize_barcelona_places.py
                             Deterministic official-source normalizer
@@ -940,6 +983,7 @@ docs/COMPLIANCE.md          Competition, source, privacy, and license record
 ## Documentation and license
 
 - [Architecture](docs/ARCHITECTURE.md)
+- [Development roadmap](docs/ROADMAP.md)
 - [Build log](docs/BUILD_LOG.md)
 - [Compliance, data sources, and direct dependency licenses](docs/COMPLIANCE.md)
 - [Barcelona snapshot notes](data/barcelona/README.md)

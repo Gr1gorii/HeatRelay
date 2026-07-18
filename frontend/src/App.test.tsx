@@ -9,6 +9,10 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "./App";
+import {
+  VISUAL_MODE_STORAGE_KEY,
+  type VisualMode,
+} from "./visual-mode";
 
 const DEMO_TEXT =
   "I am 69, I live alone, I have no air conditioning, I walk slowly, and I do not speak Spanish.";
@@ -173,6 +177,67 @@ function situationField(): HTMLTextAreaElement {
   }) as HTMLTextAreaElement;
 }
 
+function visualModeSelect(): HTMLSelectElement {
+  return screen.getByRole("combobox", {
+    name: "Visual mode",
+  }) as HTMLSelectElement;
+}
+
+function appShell(): HTMLDivElement {
+  const shell = document.querySelector<HTMLDivElement>(".app-shell");
+  if (!shell) {
+    throw new Error("Synthetic test setup expected the app shell.");
+  }
+  return shell;
+}
+
+function expectVisualMode(mode: VisualMode): void {
+  expect(visualModeSelect().value).toBe(mode);
+  expect(appShell().getAttribute("data-visual-mode")).toBe(mode);
+  expect(document.querySelectorAll("[data-visual-mode]")).toHaveLength(1);
+}
+
+function stubMatchMedia(matches: boolean) {
+  const matchMedia = vi.fn((query: string) =>
+    ({
+      matches,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(() => false),
+    }) satisfies MediaQueryList,
+  );
+  vi.stubGlobal("matchMedia", matchMedia);
+  return matchMedia;
+}
+
+function createMemoryStorage(): Storage {
+  const values = new Map<string, string>();
+  return {
+    get length() {
+      return values.size;
+    },
+    clear() {
+      values.clear();
+    },
+    getItem(key: string) {
+      return values.get(key) ?? null;
+    },
+    key(index: number) {
+      return Array.from(values.keys())[index] ?? null;
+    },
+    removeItem(key: string) {
+      values.delete(key);
+    },
+    setItem(key: string, value: string) {
+      values.set(key, value);
+    },
+  } satisfies Storage;
+}
+
 function submitSituation(value = SYNTHETIC_SITUATION): void {
   fireEvent.change(situationField(), { target: { value } });
   fireEvent.click(
@@ -194,13 +259,205 @@ async function expectMalformedSuccess(payload: unknown): Promise<void> {
 }
 
 beforeEach(() => {
+  vi.stubGlobal("localStorage", createMemoryStorage());
+  stubMatchMedia(false);
   fetchMock.mockReset();
   vi.stubGlobal("fetch", fetchMock);
 });
 
 afterEach(() => {
   cleanup();
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
+});
+
+describe("Visual mode preference foundation", () => {
+  it.each([
+    ["uses Standard without storage or a contrast match", null, false, "standard", true],
+    ["uses Enhanced Visibility for a first-load contrast match", null, true, "enhanced", true],
+    ["lets stored Standard override matching system contrast", "standard", true, "standard", false],
+    ["restores stored Enhanced Visibility", "enhanced", false, "enhanced", false],
+    ["falls through an invalid stored value", "invalid-mode", true, "enhanced", true],
+  ] as const)(
+    "%s",
+    (_label, storedValue, contrastMatches, expectedMode, checksSystem) => {
+      if (storedValue !== null) {
+        window.localStorage.setItem(VISUAL_MODE_STORAGE_KEY, storedValue);
+      }
+      const matchMedia = stubMatchMedia(contrastMatches);
+      const storageWrite = vi.spyOn(window.localStorage, "setItem");
+
+      render(<App />);
+
+      expectVisualMode(expectedMode);
+      expect(storageWrite).not.toHaveBeenCalled();
+      if (checksSystem) {
+        expect(matchMedia).toHaveBeenCalledOnce();
+        expect(matchMedia).toHaveBeenCalledWith("(prefers-contrast: more)");
+      } else {
+        expect(matchMedia).not.toHaveBeenCalled();
+      }
+    },
+  );
+
+  it("continues to system detection when storage reads throw", () => {
+    stubMatchMedia(true);
+    vi.spyOn(window.localStorage, "getItem").mockImplementation(() => {
+      throw new Error("Synthetic blocked storage read");
+    });
+
+    expect(() => render(<App />)).not.toThrow();
+    expectVisualMode("enhanced");
+  });
+
+  it.each(["missing", "throwing"] as const)(
+    "falls back to Standard when matchMedia is %s",
+    (failureMode) => {
+      vi.stubGlobal(
+        "matchMedia",
+        failureMode === "missing"
+          ? undefined
+          : vi.fn(() => {
+              throw new Error("Synthetic matchMedia failure");
+            }),
+      );
+
+      expect(() => render(<App />)).not.toThrow();
+      expectVisualMode("standard");
+    },
+  );
+
+  it("renders one described native select with the exact option contract", () => {
+    render(<App />);
+
+    const select = visualModeSelect();
+    expect(select.tagName).toBe("SELECT");
+    expect(VISUAL_MODE_STORAGE_KEY).toBe("heatrelay.visual-mode.v1");
+    expect(
+      Array.from(select.options, (option) => [option.value, option.textContent]),
+    ).toEqual([
+      ["standard", "Standard"],
+      ["enhanced", "Enhanced Visibility"],
+    ]);
+    const descriptionId = select.getAttribute("aria-describedby");
+    expect(descriptionId).toBe("visual-mode-description");
+    expect(document.getElementById(String(descriptionId))?.textContent).toMatch(
+      /Enhanced Visibility is intended for people with low vision or anyone who prefers larger and clearer content\./,
+    );
+    expectVisualMode("standard");
+  });
+
+  it("switches both directions and writes only the approved key and values", () => {
+    render(<App />);
+    const storageWrite = vi.spyOn(window.localStorage, "setItem");
+
+    fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } });
+    expectVisualMode("enhanced");
+    fireEvent.change(visualModeSelect(), { target: { value: "standard" } });
+    expectVisualMode("standard");
+
+    expect(storageWrite.mock.calls).toEqual([
+      [VISUAL_MODE_STORAGE_KEY, "enhanced"],
+      [VISUAL_MODE_STORAGE_KEY, "standard"],
+    ]);
+  });
+
+  it("keeps the selected session mode when storage writes throw", () => {
+    render(<App />);
+    vi.spyOn(window.localStorage, "setItem").mockImplementation(() => {
+      throw new Error("Synthetic blocked storage write");
+    });
+
+    expect(() =>
+      fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } }),
+    ).not.toThrow();
+    expectVisualMode("enhanced");
+  });
+
+  it("restores an explicit preference after unmount and a fresh render", () => {
+    render(<App />);
+    fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } });
+    expectVisualMode("enhanced");
+
+    cleanup();
+    render(<App />);
+
+    expectVisualMode("enhanced");
+  });
+
+  it("preserves entered situation text and makes no request while switching", () => {
+    render(<App />);
+    fireEvent.change(situationField(), { target: { value: SYNTHETIC_SITUATION } });
+
+    fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } });
+    fireEvent.change(visualModeSelect(), { target: { value: "standard" } });
+
+    expect(situationField().value).toBe(SYNTHETIC_SITUATION);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("stays enabled during loading without creating a duplicate request", async () => {
+    let resolveFetch!: (response: Response) => void;
+    fetchMock.mockReturnValue(
+      new Promise<Response>((resolve) => {
+        resolveFetch = resolve;
+      }),
+    );
+    render(<App />);
+    submitSituation();
+
+    expect(visualModeSelect().disabled).toBe(false);
+    fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } });
+    expectVisualMode("enhanced");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveFetch(jsonResponse(normalResponse));
+    });
+    await screen.findByRole("heading", { name: "Act now" });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["normal", "urgent", "error"] as const)(
+    "remains available after a %s terminal state",
+    async (terminalState) => {
+      fetchMock.mockResolvedValue(
+        terminalState === "normal"
+          ? jsonResponse(normalResponse)
+          : terminalState === "urgent"
+            ? jsonResponse(urgentResponse)
+            : jsonResponse({ detail: { message: "Synthetic hidden detail" } }, 503),
+      );
+      render(<App />);
+      submitSituation();
+
+      const terminal =
+        terminalState === "normal"
+          ? await screen.findByRole("heading", { name: "Act now" })
+          : terminalState === "urgent"
+            ? await screen.findByRole("heading", { name: "Urgent help" })
+            : await screen.findByRole("alert");
+      const requestCount = fetchMock.mock.calls.length;
+
+      expect(visualModeSelect().disabled).toBe(false);
+      fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } });
+      expectVisualMode("enhanced");
+      expect(terminal.isConnected).toBe(true);
+      expect(situationField().value).toBe(SYNTHETIC_SITUATION);
+      expect(fetchMock).toHaveBeenCalledTimes(requestCount);
+    },
+  );
+
+  it("never writes situation text to local storage", async () => {
+    const storageWrite = vi.spyOn(window.localStorage, "setItem");
+    fetchMock.mockResolvedValue(jsonResponse(normalResponse));
+    render(<App />);
+
+    submitSituation(SYNTHETIC_SITUATION);
+    await screen.findByRole("heading", { name: "Act now" });
+
+    expect(storageWrite).not.toHaveBeenCalled();
+  });
 });
 
 describe("Barcelona action-plan flow", () => {
@@ -216,14 +473,38 @@ describe("Barcelona action-plan flow", () => {
     expect(
       screen.getByRole("heading", { name: /create.*heat action plan/i }),
     ).toBeTruthy();
+    expect(
+      screen.getByRole("form", { name: "Create your heat action plan" }),
+    ).toBeTruthy();
 
     const textarea = situationField();
-    expect(textarea.getAttribute("aria-describedby")).toBeTruthy();
+    expect(textarea.getAttribute("aria-describedby")).toBe(
+      "privacy-description identity-warning situation-hint character-count boundary-note",
+    );
+    expect(textarea.hasAttribute("aria-invalid")).toBe(false);
+    expect(textarea.hasAttribute("aria-errormessage")).toBe(false);
     expect(screen.getByText(/2,000 code points/i)).toBeTruthy();
     expect(
       screen.getByText(/sent server-side.*GPT-5\.6 processing/i),
     ).toBeTruthy();
     expect(screen.getByText(/does not intentionally store/i)).toBeTruthy();
+    expect(
+      screen.getByText(/situation text stays.*not stored in browser storage/i),
+    ).toBeTruthy();
+    const privacyCopy = screen
+      .getByRole("heading", { name: "Keep identifying details out" })
+      .closest("article")
+      ?.textContent?.replace(/\s+/g, " ");
+    expect(privacyCopy).toContain(
+      "Only the visual-mode preference is stored locally; it is never included in the action-plan request.",
+    );
+    expect(privacyCopy).not.toContain("non-sensitive");
+    expect(privacyCopy).toContain(
+      "Situation text stays in React memory in this browser, is sent only in the action-plan request body, and is not stored in browser storage.",
+    );
+    expect(
+      screen.getByText(/never included in the action-plan request/i),
+    ).toBeTruthy();
     expect(
       screen.getByText(
         /do not include names, contact details, addresses, or other identifying information/i,
@@ -245,6 +526,60 @@ describe("Barcelona action-plan flow", () => {
     expect(screen.getByText(/not medical or emergency advice/i)).toBeTruthy();
   });
 
+  it("uses the associated field-error path for an empty submission", async () => {
+    render(<App />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Create my heat action plan" }),
+    );
+
+    const textarea = situationField();
+    const fieldError = document.getElementById("situation-error");
+    expect(fieldError?.textContent).toBe(
+      "Describe the situation before creating a plan.",
+    );
+    expect(textarea.getAttribute("aria-invalid")).toBe("true");
+    expect(textarea.getAttribute("aria-errormessage")).toBe("situation-error");
+    expect(textarea.getAttribute("aria-describedby")).toBe(
+      "privacy-description identity-warning situation-hint character-count boundary-note situation-error",
+    );
+    await waitFor(() => expect(document.activeElement).toBe(textarea));
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("removes the field error and its association when input is corrected", async () => {
+    render(<App />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Create my heat action plan" }),
+    );
+    const textarea = situationField();
+    await waitFor(() => expect(document.activeElement).toBe(textarea));
+
+    fireEvent.change(textarea, { target: { value: SYNTHETIC_SITUATION } });
+
+    expect(document.getElementById("situation-error")).toBeNull();
+    expect(textarea.hasAttribute("aria-invalid")).toBe(false);
+    expect(textarea.hasAttribute("aria-errormessage")).toBe(false);
+    expect(textarea.getAttribute("aria-describedby")).toBe(
+      "privacy-description identity-warning situation-hint character-count boundary-note",
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("keeps one programmatically focusable main target for the skip link", () => {
+    render(<App />);
+
+    const skipLink = screen.getByRole("link", { name: "Skip to main content" });
+    const mainLandmarks = screen.getAllByRole("main");
+
+    expect(skipLink.getAttribute("href")).toBe("#main-content");
+    expect(mainLandmarks).toHaveLength(1);
+    expect(mainLandmarks[0].id).toBe("main-content");
+    expect(mainLandmarks[0].tabIndex).toBe(-1);
+  });
+
   it("loads the synthetic Barcelona demo without submitting", () => {
     render(<App />);
 
@@ -259,6 +594,9 @@ describe("Barcelona action-plan flow", () => {
   it("sends only the trimmed situation and fixed Barcelona request facts", async () => {
     fetchMock.mockResolvedValue(jsonResponse(normalResponse));
     render(<App />);
+    const storageWrite = vi.spyOn(window.localStorage, "setItem");
+
+    fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } });
 
     submitSituation(`  ${SYNTHETIC_SITUATION}  `);
 
@@ -279,6 +617,11 @@ describe("Barcelona action-plan flow", () => {
       "origin",
       "situation_text",
     ]);
+    expect(storageWrite.mock.calls).toEqual([
+      [VISUAL_MODE_STORAGE_KEY, "enhanced"],
+    ]);
+    expect(JSON.stringify(body)).not.toContain("visual-mode");
+    expect(JSON.stringify(body)).not.toContain("storage");
   });
 
   it("shows an accessible loading state and prevents duplicate requests", async () => {
@@ -299,6 +642,10 @@ describe("Barcelona action-plan flow", () => {
     expect(screen.getByText(/creating.*action plan/i)).toBeTruthy();
     const form = submit.closest("form");
     expect(form?.getAttribute("aria-busy")).toBe("true");
+    const status = screen.getByRole("status");
+    expect(status.getAttribute("aria-live")).toBe("polite");
+    expect(status.getAttribute("aria-atomic")).toBe("true");
+    expect(status.textContent).toBe("Creating your action plan.");
 
     fireEvent.submit(form as HTMLFormElement);
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -307,6 +654,7 @@ describe("Barcelona action-plan flow", () => {
       resolveFetch(jsonResponse(normalResponse));
     });
     await screen.findByRole("heading", { name: "Act now" });
+    expect(status.textContent).toBe("Your action plan is ready.");
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -375,6 +723,38 @@ describe("Barcelona action-plan flow", () => {
     const sourceLink = screen.getByRole("link", { name: "Official source" });
     expect(sourceLink.getAttribute("target")).toBe("_blank");
     expect(sourceLink.getAttribute("rel")).toBe("noopener noreferrer");
+  });
+
+  it("exposes the weather summary as one native description list", async () => {
+    fetchMock.mockResolvedValue(jsonResponse(normalResponse));
+    render(<App />);
+
+    submitSituation();
+    await screen.findByRole("heading", { name: "Act now" });
+
+    const summaries = document.querySelectorAll(
+      'dl.summary-grid[aria-label="Weather summary"]',
+    );
+    expect(summaries).toHaveLength(1);
+    const cards = Array.from(summaries[0].children);
+    expect(cards).toHaveLength(3);
+    expect(cards.map((card) => card.tagName)).toEqual(["DIV", "DIV", "DIV"]);
+    expect(
+      cards.map((card) => card.firstElementChild?.textContent),
+    ).toEqual(["Current temperature", "Feels like", "Today’s maximum"]);
+    expect(cards.map((card) => card.firstElementChild?.tagName)).toEqual([
+      "DT",
+      "DT",
+      "DT",
+    ]);
+    expect(cards.map((card) => card.lastElementChild?.tagName)).toEqual([
+      "DD",
+      "DD",
+      "DD",
+    ]);
+    expect(
+      cards.map((card) => card.lastElementChild?.querySelector("strong")?.textContent),
+    ).toEqual(["33.0°C", "34.5°C", "36.0°C"]);
   });
 
   it.each([
@@ -468,6 +848,66 @@ describe("Barcelona action-plan flow", () => {
       screen.queryByText("Barcelona Synthetic Cooling Centre"),
     ).toBeNull();
   });
+
+  it.each(["normal", "urgent", "error"] as const)(
+    "clears a stale %s terminal state when the situation text changes",
+    async (terminalState) => {
+      fetchMock.mockResolvedValue(
+        terminalState === "normal"
+          ? jsonResponse(normalResponse)
+          : terminalState === "urgent"
+            ? jsonResponse(urgentResponse)
+            : jsonResponse({ detail: { message: "Synthetic hidden detail" } }, 503),
+      );
+      render(<App />);
+      submitSituation();
+
+      const terminal =
+        terminalState === "normal"
+          ? await screen.findByRole("heading", { name: "Act now" })
+          : terminalState === "urgent"
+            ? await screen.findByRole("heading", { name: "Urgent help" })
+            : await screen.findByRole("alert");
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+
+      fireEvent.change(situationField(), {
+        target: { value: "A changed synthetic situation." },
+      });
+
+      expect(terminal.isConnected).toBe(false);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it.each(["normal", "urgent", "error"] as const)(
+    "clears a stale %s terminal state when the Barcelona demo is loaded",
+    async (terminalState) => {
+      fetchMock.mockResolvedValue(
+        terminalState === "normal"
+          ? jsonResponse(normalResponse)
+          : terminalState === "urgent"
+            ? jsonResponse(urgentResponse)
+            : jsonResponse({ detail: { message: "Synthetic hidden detail" } }, 503),
+      );
+      render(<App />);
+      submitSituation();
+
+      const terminal =
+        terminalState === "normal"
+          ? await screen.findByRole("heading", { name: "Act now" })
+          : terminalState === "urgent"
+            ? await screen.findByRole("heading", { name: "Urgent help" })
+            : await screen.findByRole("alert");
+
+      fireEvent.click(
+        screen.getByRole("button", { name: "Load Barcelona demo" }),
+      );
+
+      expect(situationField().value).toBe(DEMO_TEXT);
+      expect(terminal.isConnected).toBe(false);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it.each([
     [
@@ -661,29 +1101,44 @@ describe("Barcelona action-plan flow", () => {
     },
   );
 
-  it("maps invalid input to a fixed safe message", async () => {
-    fetchMock.mockResolvedValue(
-      jsonResponse(
+  it.each([400, 422])(
+    "maps HTTP %i invalid input to the safe associated field error",
+    async (status) => {
+      const response = jsonResponse(
         {
           detail: {
             code: "invalid_action_plan_request",
             message: "Synthetic raw backend detail that must stay hidden.",
           },
         },
-        422,
-      ),
-    );
-    render(<App />);
+        status,
+      );
+      fetchMock.mockResolvedValue(response);
+      render(<App />);
 
-    submitSituation();
+      submitSituation();
 
-    const alert = await screen.findByRole("alert");
-    expect(alert.textContent).toMatch(/review the description.*try again/i);
-    expect(alert.textContent).not.toContain("Synthetic raw backend detail");
-    expect(document.activeElement).toBe(
-      screen.getByRole("heading", { name: "Check your description" }),
-    );
-  });
+      const fieldError = await screen.findByText(
+        "Review the description and try again.",
+      );
+      const textarea = situationField();
+      expect(fieldError.id).toBe("situation-error");
+      expect(textarea.getAttribute("aria-invalid")).toBe("true");
+      expect(textarea.getAttribute("aria-errormessage")).toBe(
+        "situation-error",
+      );
+      expect(textarea.getAttribute("aria-describedby")).toBe(
+        "privacy-description identity-warning situation-hint character-count boundary-note situation-error",
+      );
+      await waitFor(() => expect(document.activeElement).toBe(textarea));
+      expect(screen.queryByRole("alert")).toBeNull();
+      expect(document.body.textContent).not.toContain(
+        "Synthetic raw backend detail",
+      );
+      expect(response.json).not.toHaveBeenCalled();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it.each([502, 503, 504])(
     "maps backend status %i to the temporary-unavailable message",
@@ -798,14 +1253,32 @@ describe("Barcelona action-plan flow", () => {
     cleanup();
     fetchMock.mockClear();
     render(<App />);
-    submitSituation("🧚".repeat(2001));
+    const textarea = situationField();
+    fireEvent.change(textarea, { target: { value: "🧚".repeat(2001) } });
 
-    await waitFor(() => {
-      expect(
-        screen.getAllByText(/2,000 (?:Unicode characters|code points)/i)
-          .length,
-      ).toBeGreaterThan(0);
-    });
+    expect(
+      screen.getByText("2,001 / 2,000 code points — 1 over limit"),
+    ).toBeTruthy();
+    expect(textarea.getAttribute("aria-invalid")).toBe("true");
+    expect(textarea.hasAttribute("aria-errormessage")).toBe(false);
+    expect(document.getElementById("character-count")?.hasAttribute("aria-live")).toBe(
+      false,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Create my heat action plan" }),
+    );
+
+    const fieldError = screen.getByText(
+      "Keep the description within 2,000 Unicode characters.",
+    );
+    expect(fieldError.id).toBe("situation-error");
+    expect(textarea.getAttribute("aria-errormessage")).toBe("situation-error");
+    expect(textarea.getAttribute("aria-describedby")).toBe(
+      "privacy-description identity-warning situation-hint character-count boundary-note situation-error",
+    );
+    await waitFor(() => expect(document.activeElement).toBe(textarea));
+    expect(screen.queryByRole("alert")).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

@@ -11,6 +11,11 @@ import {
   countCodePoints,
   createActionPlan,
 } from "./action-plan";
+import {
+  persistVisualMode,
+  resolveInitialVisualMode,
+  type VisualMode,
+} from "./visual-mode";
 
 const PRIORITY_LABELS = {
   act_now: "Act now",
@@ -216,22 +221,28 @@ function NormalResult({
         </time>
       </p>
 
-      <div className="summary-grid" aria-label="Weather summary">
+      <dl className="summary-grid" aria-label="Weather summary">
         <div className="summary-card">
-          <span>Current</span>
-          <strong>{formatTemperature(response.weather.current.temperature_c)}</strong>
+          <dt>Current temperature</dt>
+          <dd>
+            <strong>{formatTemperature(response.weather.current.temperature_c)}</strong>
+          </dd>
         </div>
         <div className="summary-card">
-          <span>Feels like</span>
-          <strong>
-            {formatTemperature(response.weather.current.apparent_temperature_c)}
-          </strong>
+          <dt>Feels like</dt>
+          <dd>
+            <strong>
+              {formatTemperature(response.weather.current.apparent_temperature_c)}
+            </strong>
+          </dd>
         </div>
         <div className="summary-card">
-          <span>Today’s maximum</span>
-          <strong>{formatTemperature(response.weather.today.temperature_max_c)}</strong>
+          <dt>Today’s maximum</dt>
+          <dd>
+            <strong>{formatTemperature(response.weather.today.temperature_max_c)}</strong>
+          </dd>
         </div>
-      </div>
+      </dl>
       <p className="weather-boundary">{response.weather.notice}</p>
 
       <div className="phase-grid">
@@ -344,12 +355,16 @@ function UrgentResult({
 }
 
 export default function App() {
+  const [visualMode, setVisualMode] = useState<VisualMode>(
+    resolveInitialVisualMode,
+  );
   const [situationText, setSituationText] = useState("");
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<ActionPlanResponse | null>(null);
   const [error, setError] = useState<UiError | null>(null);
   const submissionInFlight = useRef(false);
+  const situationTextareaRef = useRef<HTMLTextAreaElement>(null);
   const resultHeadingRef = useRef<HTMLHeadingElement>(null);
   const errorHeadingRef = useRef<HTMLHeadingElement>(null);
 
@@ -361,6 +376,27 @@ export default function App() {
     }
   }, [error, result]);
 
+  useEffect(() => {
+    if (fieldError) {
+      situationTextareaRef.current?.focus();
+    }
+  }, [fieldError]);
+
+  function showSituationError(message: string) {
+    setFieldError(message);
+    situationTextareaRef.current?.focus();
+  }
+
+  function changeSituationText(value: string) {
+    if (value === situationText) {
+      return;
+    }
+    setSituationText(value);
+    setFieldError(null);
+    setError(null);
+    setResult(null);
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submissionInFlight.current) {
@@ -369,16 +405,13 @@ export default function App() {
     const trimmedText = situationText.trim();
     const length = countCodePoints(trimmedText);
     if (length === 0 || length > SITUATION_TEXT_LIMIT) {
-      setFieldError(
+      showSituationError(
         length === 0
           ? "Describe the situation before creating a plan."
           : "Keep the description within 2,000 Unicode characters.",
       );
       setResult(null);
-      setError({
-        title: "Check your description",
-        message: "Review the description and try again.",
-      });
+      setError(null);
       return;
     }
 
@@ -392,10 +425,9 @@ export default function App() {
     } catch (caught) {
       if (caught instanceof ActionPlanClientError) {
         if (caught.kind === "invalid_input") {
-          setError({
-            title: "Check your description",
-            message: "Review the description and try again.",
-          });
+          showSituationError("Review the description and try again.");
+          setResult(null);
+          setError(null);
         } else if (caught.kind === "malformed_response") {
           setError({
             title: "Response unavailable",
@@ -420,9 +452,11 @@ export default function App() {
   }
 
   const characterCount = countCodePoints(situationText);
+  const overLimitBy = Math.max(0, characterCount - SITUATION_TEXT_LIMIT);
+  const isOverLimit = overLimitBy > 0;
 
   return (
-    <div id="top" className="app-shell">
+    <div id="top" className="app-shell" data-visual-mode={visualMode}>
       <a className="skip-link" href="#main-content">
         Skip to main content
       </a>
@@ -436,17 +470,45 @@ export default function App() {
             </span>
             <span>HeatRelay</span>
           </a>
-          <nav aria-label="Primary">
-            <a href="#plan">Create a plan</a>
-            <a href="#trust">Safety and privacy</a>
-          </nav>
+          <div className="header-actions">
+            <nav aria-label="Primary">
+              <a href="#plan">Create a plan</a>
+              <a href="#trust">Safety and privacy</a>
+            </nav>
+            <div className="visual-mode-control">
+              <label htmlFor="visual-mode-select">Visual mode</label>
+              <select
+                id="visual-mode-select"
+                value={visualMode}
+                aria-describedby="visual-mode-description"
+                onChange={(event) => {
+                  const selectedMode = event.currentTarget.value;
+                  if (
+                    selectedMode !== "standard" &&
+                    selectedMode !== "enhanced"
+                  ) {
+                    return;
+                  }
+                  setVisualMode(selectedMode);
+                  persistVisualMode(selectedMode);
+                }}
+              >
+                <option value="standard">Standard</option>
+                <option value="enhanced">Enhanced Visibility</option>
+              </select>
+              <p id="visual-mode-description">
+                Enhanced Visibility is intended for people with low vision or
+                anyone who prefers larger and clearer content.
+              </p>
+            </div>
+          </div>
         </div>
       </header>
 
-      <main id="main-content">
+      <main id="main-content" tabIndex={-1}>
         <section className="hero page-width" aria-labelledby="hero-title">
           <div className="hero-copy">
-            <p className="eyebrow">Barcelona pilot · Milestone 4</p>
+            <p className="eyebrow">Barcelona pilot · Milestone 5</p>
             <h1 id="hero-title">From heat warning to a safe next step.</h1>
             <p className="hero-intro">
               Describe a heat situation and HeatRelay will ask the existing
@@ -511,6 +573,7 @@ export default function App() {
 
             <form
               className="plan-form"
+              aria-labelledby="plan-title"
               aria-busy={isLoading}
               aria-describedby="privacy-description identity-warning boundary-note"
               onSubmit={handleSubmit}
@@ -521,24 +584,26 @@ export default function App() {
                   <span
                     id="character-count"
                     className="character-count"
-                    data-over-limit={characterCount > SITUATION_TEXT_LIMIT}
+                    data-over-limit={isOverLimit}
                   >
                     {characterCount.toLocaleString()} / 2,000 code points
+                    {isOverLimit
+                      ? ` — ${overLimitBy.toLocaleString()} over limit`
+                      : null}
                   </span>
                 </div>
                 <textarea
+                  ref={situationTextareaRef}
                   id="situation-text"
                   name="situation_text"
                   rows={7}
                   value={situationText}
                   disabled={isLoading}
-                  aria-describedby={`situation-hint character-count${fieldError ? " situation-error" : ""}`}
-                  aria-invalid={fieldError ? "true" : undefined}
+                  aria-describedby={`privacy-description identity-warning situation-hint character-count boundary-note${fieldError ? " situation-error" : ""}`}
+                  aria-invalid={fieldError || isOverLimit ? "true" : undefined}
+                  aria-errormessage={fieldError ? "situation-error" : undefined}
                   onChange={(event) => {
-                    setSituationText(event.target.value);
-                    if (fieldError) {
-                      setFieldError(null);
-                    }
+                    changeSituationText(event.target.value);
                   }}
                 />
                 <p id="situation-hint" className="field-hint">
@@ -558,8 +623,7 @@ export default function App() {
                   className="secondary-button"
                   disabled={isLoading}
                   onClick={() => {
-                    setSituationText(BARCELONA_DEMO_TEXT);
-                    setFieldError(null);
+                    changeSituationText(BARCELONA_DEMO_TEXT);
                   }}
                 >
                   Load Barcelona demo
@@ -577,7 +641,12 @@ export default function App() {
             </form>
           </div>
 
-          <p className="status-region" role="status" aria-live="polite">
+          <p
+            className="status-region"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             {isLoading
               ? "Creating your action plan."
               : result
@@ -627,10 +696,12 @@ export default function App() {
               <p className="card-label">Privacy</p>
               <h3>Keep identifying details out</h3>
               <p>
-                Text stays in React memory in this browser and is sent only in
-                the action-plan request body. HeatRelay does not use browser
-                storage, analytics, cookies, URL parameters, or geolocation in
-                this demo.
+                Situation text stays in React memory in this browser, is sent
+                only in the action-plan request body, and is not stored in
+                browser storage. Only the visual-mode preference is stored
+                locally; it is never included in the action-plan
+                request. HeatRelay does not use analytics, cookies, URL
+                parameters, or geolocation in this demo.
               </p>
             </article>
           </div>
@@ -646,7 +717,7 @@ export default function App() {
             </span>
             <span>HeatRelay</span>
           </a>
-          <p>Milestone 4 · English Barcelona demo · Fixed coordinates</p>
+          <p>Milestone 5 · English Barcelona demo · Fixed coordinates</p>
         </div>
       </footer>
     </div>

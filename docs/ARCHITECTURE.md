@@ -58,6 +58,51 @@ were inferred from the completed normal workflow rather than independently
 logged. This is one-scenario integration evidence, not exhaustive branch or
 reliability coverage.
 
+## Milestone 5 frontend accessibility and visual-mode boundary
+
+Milestone 5 keeps one React application and one component tree for every
+state. The existing `.app-shell` owns exactly one `data-visual-mode` value:
+`standard` or `enhanced`. A native, visibly labelled `Visual mode` select
+offers `Standard` and `Enhanced Visibility`; it remains available during the
+initial, loading, normal, urgent, and error states. Standard and Enhanced
+therefore share the same normal, no-place, urgent, loading, validation, and
+error components and the same data and safety contracts.
+
+The visual-mode preference uses the single local-storage key
+`heatrelay.visual-mode.v1` and accepts only `standard` or `enhanced`. Its
+first-load resolution order is:
+
+1. A valid stored value.
+2. `prefers-contrast: more` when no valid value is stored and that media query
+   is supported and matches.
+3. Standard as the safe fallback.
+
+The contrast query is an initial-load fallback, not a live preference
+listener. Storage and `matchMedia` read failures fall back safely, and a
+storage write failure does not prevent the current in-memory selection from
+remaining usable. Only an explicit user change is persisted locally. The
+visual mode is never included in an API payload, switching it creates no
+request, and situation text is never written to local storage.
+
+Enhanced Visibility is a CSS-token presentation layer over the same DOM, not
+a duplicated route or component tree and not a browser-zoom simulation. It
+uses stronger typography, spacing, contrast, borders, focus and state tokens,
+larger controls, reduced decoration, and reduced motion. Enhanced itself sets
+automatic viewport scrolling. Independently, system
+`prefers-reduced-motion: reduce` changes root scrolling to `auto`, reduces
+transitions to the existing near-zero duration, and introduces no animation.
+
+The semantic interaction work provides one skip link and programmatically
+focusable main target, one named form, permanent textarea descriptions,
+programmatically associated field errors, logical focus movement, polite
+atomic status updates, native weather `dl`/`dt`/`dd` semantics, and urgent and
+page-error alerts. Text and structure continue to identify validation,
+loading, priority, phases, warnings, urgent output, disabled controls, and
+availability without relying on color alone.
+
+Milestone 5 changes no backend behavior, API contract, GPT workflow,
+place/weather data, dependency, or Vite proxy configuration.
+
 ## Implemented backend separation
 
 1. **Weather retrieval and normalization** uses a bounded HTTPX request for

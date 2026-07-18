@@ -1177,3 +1177,136 @@ cost is unknown. The `$0.25` figure was only the conservative authorized upper
 bound, not an actual measured charge. Services stopped cleanly. At the time the
 smoke completed, the same eight-path Milestone 4 working tree remained
 uncommitted and unpublished.
+
+## Milestones 5–8 roadmap gate — 2026-07-18
+
+The author approved the revised sequence: Milestone 5 accessibility and
+low-vision foundations, Milestone 6 internationalization and multilingual
+processing, Milestone 7 a separately gated complete redesign, and Milestone 8
+release verification and submission preparation. This pass changed
+documentation only. It changed no product behavior, application source, tests,
+dependency, API contract, model workflow, deployment state, or Git history. No
+API or network request was made, so API cost was `$0.00`. At the time of this
+record, Milestones 5–8 remained planned and unimplemented.
+
+## Milestone 5 accessibility and low-vision foundation — 2026-07-18
+
+### Preference foundation
+
+Milestone 5 adds a native labeled `Visual mode` selector with `Standard` and
+`Enhanced Visibility` options. The only persistence key is
+`heatrelay.visual-mode.v1`, and only `standard` or `enhanced` are accepted. A
+valid stored value takes precedence; otherwise first-load
+`prefers-contrast: more` detection may select Enhanced Visibility, with
+Standard as the safe fallback. Storage and `matchMedia` failures do not crash
+the application, and an explicit in-memory selection remains usable if a write
+fails.
+
+An automatic system-derived choice is not persisted. Explicit selections are
+stored locally, require no account, and never add a visual-mode field or cause
+a request. Situation text is never written to local storage and remains only
+in React memory before submission.
+
+### Enhanced token layer
+
+Standard and Enhanced Visibility use the same application and component tree.
+A shared semantic CSS-token layer preserves Standard visual fidelity while
+Enhanced Visibility supplies larger typography and controls, increased spacing
+and line height, stronger contrast, borders and focus, clearer selected and
+disabled states, larger practical targets, reduced decoration, and reduced
+motion. The implementation adds no dependency, duplicated component tree,
+browser-zoom simulation, or alternate route.
+
+### Semantic interaction work
+
+The form is a named landmark, and the situation textarea directly references
+the permanent privacy, identity, input, count, and product-boundary
+descriptions. Field errors are programmatically associated and focus returns to
+the textarea for client-side and sanitized HTTP 400/422 input failures without
+a duplicate page alert. Changing the actual situation text clears stale output;
+changing visual mode preserves the input and terminal output.
+
+The same pass retains one skip link and focusable main target, logical terminal
+focus, one polite atomic status region, a native weather `dl`/`dt`/`dd`
+summary, and distinct urgent and page-error alert semantics. Visible labels and
+structure preserve meaning without relying on color alone.
+
+### Browser audit and CSS correction
+
+The initial isolated browser audit used 85 synthetic mock action-plan POSTs and
+found two product defects:
+
+1. `body { min-width: 320px; }` caused 15 pixels of root overflow at the
+   audited narrow viewport.
+2. Enhanced Visibility left smooth scrolling on the actual root viewport.
+
+The bounded correction removed the root `min-width: 320px` declaration and
+added Enhanced root `scroll-behavior: auto`. It added no overflow clipping,
+CSS zoom, scale transform, or JavaScript viewport logic.
+
+The focused correction recheck measured Standard and Enhanced initial,
+empty-error, normal, urgent, and HTTP 503 states with
+`clientWidth = scrollWidth = 305px`. Enhanced text-spacing normal, urgent, and
+HTTP 503 states also measured `305px = 305px`. Dynamic root behavior changed
+Standard `smooth` → Enhanced `auto` → Standard `smooth` without a reload or
+state loss. Mock counts were normal 3, urgent 3, HTTP 503 3, total 9, with zero
+retries and zero unexpected mock requests.
+
+### Actual browser, system, and assistive-technology verification
+
+Chrome visibly showed an actual page zoom of 200%. Its layout viewport changed
+from 1710 to 855 pixels. Standard and Enhanced initial, normal, urgent, and HTTP
+503 states each measured `clientWidth = scrollWidth = 847px`, and Chrome was
+restored to 100% afterward.
+
+macOS Reduce Motion was originally off. Enabling it through the visible system
+control made the Chrome runtime media query match, changed root scrolling to
+`auto`, reduced representative transitions to `0.01ms`, and left no running
+animation. Reduce Motion was restored to off and the runtime media query
+returned to false.
+
+VoiceOver is classified as **PASS — manually confirmed by the project author
+during the actual VoiceOver session**. This evidence is limited to one real
+session with manual author confirmation: speech was not independently logged
+for every checkpoint, and no other screen reader was tested. M5.4C mock counts
+were normal 2, urgent 2, HTTP 503 2, total 6, with zero retries and zero
+unexpected mock requests.
+
+### Audit deviation
+
+During a VoiceOver repeat, Chrome dropped the initial `h` from a typed loopback
+URL and issued exactly one unintended Google search. The audit stopped
+immediately. The navigation did not reach HeatRelay, its mock API, OpenAI, or
+Open-Meteo, and it caused no retry, provider usage, repository change, or API
+charge. The session is therefore not described as having zero external
+navigation. This was an audit-procedure deviation, not a HeatRelay product
+defect.
+
+### Final verification
+
+This final documentation and publication-readiness pass was offline. It did
+not start the application or an audit harness and made no API, provider,
+weather, download, browser, or Git-remote request.
+
+| Command or check | Exit status | Result |
+| --- | ---: | --- |
+| `make test` | 0 | All 757 backend tests and all 72 frontend tests passed. |
+| `make build` | 0 | `tsc --noEmit` type checking and the Vite production build passed. |
+| `.venv/bin/python -m pip check` | 0 | No broken Python requirements were found; pip printed only its existing unwritable-cache warning. |
+| `env -u OPENAI_API_KEY npm --prefix frontend ls --depth=0` | 0 | Installed direct frontend dependencies matched the unchanged manifest. |
+| Snapshot and manifest `shasum -a 256` | 0 | The accepted snapshot and manifest hashes remained unchanged. |
+| `git diff --check` | 0 | No diff whitespace errors were found. |
+| `git diff --cached --quiet` | 0 | The index remained empty. |
+| Relative Markdown-link existence check | 0 on the corrected command | Eight relative documentation links were checked and none was missing. The first read-only inline expression exited 1 with a Python f-string `SyntaxError`; the corrected multiline check passed without a repository change. |
+| Project-wide trailing-whitespace check | 0 on the corrected wrapper | No trailing whitespace was found outside excluded dependency, build, cache, and Git paths. The first wrapper exited 1 because `status` is read-only in zsh; renaming the local variable fixed the check without a repository change. |
+| Exact working-tree scope comparison | 0 | Exactly the nine authorized Milestone 5 paths were modified or untracked. |
+| Filename-only key-shaped, empty-placeholder, nonempty-assignment, and frontend `VITE_` scans | 0 | Only the two unchanged approved synthetic-fixture filenames matched the key shape; the single OpenAI placeholder remained empty, and no nonempty key or OpenAI-prefixed frontend assignment was found. No candidate value was printed. |
+| `.env.local` metadata-only check | 0 | The file remained ignored, untracked, regular, non-symlinked, and mode `0600`; its contents, hash, and size were not inspected. |
+| Protected frontend and dependency-manifest hashes | 0 | The test file, stylesheet, visual-mode helper, and all four dependency manifests remained byte-identical to the accepted baseline. |
+
+The repository has no dedicated frontend lint script and no repository-wide
+verification script, so neither command was claimed or run. `make build`
+performs the configured TypeScript check with `tsc --noEmit` before the Vite
+build. Milestone 5 implementation and verification incurred `$0.00` in API or
+provider cost. At the time this verification record was written, Milestone 5
+was uncommitted and unpublished.

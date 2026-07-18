@@ -30,9 +30,9 @@ HeatRelay already satisfies every submission requirement.
 These are organizational confirmations, not inferred personal facts. The
 author performed the local Git identity, authentication, remote configuration,
 and initial Milestone 0 commit and push listed below; Codex did not perform or
-claim that initial publication work. Milestone 1 and Milestone 2 publication
-are recorded separately and attributed to the primary Codex build thread from
-the supplied publication reports, not inferred from Git author metadata.
+claim that initial publication work. Later milestone publication facts are
+recorded separately and attributed to the primary Codex build thread from the
+supplied publication reports, not inferred from Git author metadata.
 
 | Confirmation | Status | Basis |
 | --- | --- | --- |
@@ -44,12 +44,14 @@ the supplied publication reports, not inferred from Git author metadata.
 | Milestone 1 commit and push | **Confirmed; primary Codex build thread performed** | The primary Codex build thread published Milestone 1 as commit `6b3b3bc5c04cd6dbe31a603fe2b44e388ea98586`; this remains a historical publication fact even as branch refs advance. |
 | Milestone 2 commit and push | **Confirmed; primary Codex build thread performed** | The supplied publication report records commit `9386d1b4ffc6b2aaf0f85a9c7617407ad2b0c337` (`feat: add multilingual situation extraction`) pushed normally to `origin/main`. |
 | Milestone 3 commit and push | **Confirmed; primary Codex build thread performed** | The supplied publication report records commit `b7c5190ca1c07c111b4d9e79587a75255f0bc67d` (`feat: add grounded Barcelona action planning`) pushed normally to `origin/main`. |
-| Codex access | **Confirmed for this build context** | Milestones 0 through the first Milestone 4 slice use the designated primary Codex build thread. |
+| Milestone 4 commit and push | **Confirmed; primary Codex build thread performed** | The supplied publication report records commit `88f56a25f1f9dd372809010721ce5733701e0033` (`feat: add Barcelona action-plan frontend`) pushed normally to `origin/main`. |
+| Codex access | **Confirmed for this build context** | Milestones 0 through the Milestone 5 implementation use the designated primary Codex build thread. |
 | Separate OpenAI API access and billing for GPT-5.6 runtime use | **Author confirmed** | The author confirmed separate API access and billing; no balance amount is published. |
 | Live GPT-5.6 extraction access | **Verified for one bounded Milestone 2 smoke on 2026-07-17** | One synthetic extraction request through the documented local backend returned HTTP 200, passed the strict public schema, and matched its expected explicit facts on the first OpenAI network attempt. No broader accuracy claim is made. |
 | Live GPT-5.6 grounded-plan access | **Historical pass-1 verification on 2026-07-17** | One direct internal plan-service request with synthetic prevalidated backend facts succeeded on the first and only Responses API attempt; strict pass-1 model-schema and exact request-candidate whitelist checks passed. The public workflow, M2 extraction, and later corrected model-facing/public-validation contract were not exercised, and no broader accuracy claim is made. |
 | Corrected-contract grounded-plan access | **Verified by one separately authorized final smoke on 2026-07-17** | Exactly one direct `GroundedPlanService` request with zero retries passed strict Pydantic, allowed-code, safe-model-metadata, and exact candidate-whitelist validation. It used 1,326 input and 171 output tokens; this single scenario is not a general accuracy evaluation. |
 | Live Milestone 4 browser workflow | **Verified for one bounded smoke on 2026-07-18** | One Chrome submission produced one observed action-plan POST and HTTP 200, rendering the normal `Prepare now` no-place result with zero retries. Extraction, Open-Meteo, and grounded-plan calls were inferred rather than independently provider-logged. Model metadata and token usage were unavailable; `$0.25` was a conservative authorized upper bound, not the actual measured charge. |
+| Milestone 5 accessibility and low-vision foundation | **Verified within the explicitly tested scope on 2026-07-18** | Offline automated tests and the production build passed. An isolated loopback harness verified corrected 320px reflow; actual Chrome verified 200% page zoom; runtime macOS Reduce Motion was exercised and restored; and one actual VoiceOver session was manually confirmed by the author. This is platform- and scenario-bounded evidence, not formal accessibility certification or a claim of complete conformance. |
 
 The Milestone 3 adversarial correction implementations and ordinary
 verification were deliberately offline. The later final smoke was a separate,
@@ -73,7 +75,8 @@ Barcelona municipal membership and not an administrative-boundary geofence.
 
 Situation text is kept only in React memory, accepted only in the JSON body,
 and sent server-side to OpenAI. The frontend does not use browser storage,
-cookies, analytics, logging, or URL parameters for it. HeatRelay does not
+cookies, analytics, logging, or URL parameters for that text; only the
+visual-mode presentation preference is stored locally. HeatRelay does not
 intentionally log, persist, or echo the raw text, parsed sensitive fields,
 complete provider responses, or OpenAI response IDs. The
 public extraction output is a strict structured summary and explicitly is not
@@ -112,6 +115,32 @@ it does not cover urgent, selected-place, error, or deployment behavior. The
 OpenAI credential remains backend-only and no OpenAI-prefixed frontend
 variable is used. Any future live call requires separate author authorization
 and a fresh cost review.
+
+## Milestone 5 local preference and accessibility boundary
+
+Milestone 5 adds a presentation preference without an account. The exact
+local-storage key is `heatrelay.visual-mode.v1`, and its only accepted values
+are `standard` and `enhanced`. Only that presentation value is stored: the
+situation text is not written there, the preference is not included in the
+action-plan request, and no analytics receives it. Enhanced Visibility is a
+presentation preference intended for low vision or clearer content; it is not
+sensitive-profile processing, a medical classification, or a distinct data
+or model workflow.
+
+Offline automated tests and the production build cover preference resolution,
+storage failures, API noninterference, shared UI behavior, and semantic
+interaction contracts. The HeatRelay mock-state checks used an isolated
+loopback harness and reached no backend or provider. Browser verification
+exercised corrected 320px reflow and text spacing, actual Chrome 200% zoom,
+and runtime macOS Reduce Motion. One actual VoiceOver session was manually
+confirmed by the project author; individual spoken utterances were not
+independently logged, and no other screen reader was tested. These checks do
+not establish formal WCAG certification, complete conformance, or
+compatibility with every browser, platform, or assistive technology.
+
+Milestone 5 added or removed no dependency, so the direct-dependency license
+inventory below remains unchanged. Publication of the Milestone 5 working tree
+is tracked separately; no not-yet-created commit identifier is asserted here.
 
 The second model cannot omit the backend-owned minimum safety matrix. All
 three normal priorities require the immediate `move_to_cooler_space`,
@@ -325,8 +354,9 @@ use an applicable plan and re-check the then-current terms.
 ## Direct dependency license inventory
 
 Versions are pinned in `frontend/package.json` and the backend requirements
-files. Licenses are the packages' declared upstream licenses. The HeatRelay
-MIT license does not relicense third-party code.
+files. Licenses are the packages' declared upstream licenses. Milestone 5
+added or removed no dependency, so this inventory remains unchanged. The
+HeatRelay MIT license does not relicense third-party code.
 
 ### Frontend runtime
 
