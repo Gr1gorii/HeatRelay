@@ -1,9 +1,10 @@
 # HeatRelay Roadmap
 
 This is HeatRelay's authoritative forward-looking development sequence as of
-2026-07-18. Completed milestones below are historical facts. Milestone 5 is
-implemented and verified within the explicitly tested scope, with publication
-tracked separately. Milestone 6 remains planned and unimplemented, Milestone 7
+2026-07-19. Completed milestones below are historical facts. Milestone 5 is
+published at `5f5d23c4ba3af9c318e8427ed717f7b5b7656a00`. Milestone 6 is
+implemented, verified within the explicitly tested scope, and published
+through the repository commit containing this roadmap revision. Milestone 7
 remains blocked, and Milestone 8 remains deferred. This roadmap does not claim
 accessibility certification, complete standards conformance, deployment
 readiness, or release status.
@@ -15,13 +16,15 @@ readiness, or release status.
 - **Milestone 2 — multilingual situation extraction** — `9386d1b`
 - **Milestone 3 — grounded Barcelona action planning** — `b7c5190`
 - **Milestone 4 — Barcelona action-plan frontend** — `88f56a2`
+- **Milestone 5 — accessibility and low-vision foundation** —
+  `5f5d23c4ba3af9c318e8427ed717f7b5b7656a00`
 
 The completed milestones retain their existing repository history and scope;
 the requirements below are not retroactively attributed to them.
 
 ## Milestone 5 — Accessibility and Low-Vision Foundation
 
-**Status:** Implemented and verified within the explicitly tested scope. Publication is tracked separately.
+**Status:** Published at `5f5d23c4ba3af9c318e8427ed717f7b5b7656a00`.
 
 1. **Visual-mode preference architecture** — Implemented `Standard` and
    `Enhanced Visibility` in one application through an accessible native
@@ -42,9 +45,9 @@ the requirements below are not retroactively attributed to them.
    Motion, and in one actual VoiceOver session manually confirmed by the project
    author. The verified CSS corrections removed root minimum-width overflow and
    made Enhanced viewport scrolling automatic.
-5. **Documentation and publication gate** — Final Milestone 5 documentation
-   and offline publication-readiness verification are tracked separately from
-   the later one-commit publication step.
+5. **Documentation and publication gate** — Completed the final Milestone 5
+   documentation, offline verification, one intentional commit, and
+   publication.
 
 Both modes target [WCAG 2.2](https://www.w3.org/TR/WCAG22/) AA where reasonably
 testable, with stronger internal targets for Enhanced Visibility. This is a
@@ -61,36 +64,46 @@ assistive technology.
 
 ## Milestone 6 — Internationalization and Multilingual Processing
 
-**Status:** Planned and unimplemented.
+**Status:** Implemented, verified within the explicitly tested scope, and
+published through the repository commit containing this roadmap revision.
 
 Language and visual mode remain independent preferences: every completed
 locale must work in both Standard and Enhanced Visibility.
 
-1. Establish one typed locale registry, a canonical English catalog,
-   deterministic fallback, a formatter boundary, and a local persistence
-   contract.
-2. Add version-controlled catalog batches covering all 25 required locales.
-3. Add an accessible language selector using native language names and no
-   flags.
-4. Apply `lang`, `dir`, RTL support, logical CSS, and deterministic `Intl`
-   formatting.
-5. Keep separate typed concepts for interface locale, detected input language,
-   input-language source, requested output locale, and text direction.
-6. Migrate backend and GPT schemas with explicit output-locale enforcement.
-7. Hydrate localized output deterministically so localization cannot alter
-   verified facts, IDs, addresses, phone numbers, schedules, timestamps,
-   coordinates, or weather values.
-8. Add catalog-completeness, interpolation, fallback, RTL, long-text, and
+1. **Implemented:** one typed locale registry, canonical English interface
+   catalog, deterministic frontend fallback, formatter boundary, and defensive
+   local persistence contracts.
+2. **Implemented:** 25 bundled interface catalogs and 25 independent immutable
+   backend action-plan output catalogs.
+3. **Implemented:** accessible native interface- and action-plan-language
+   selectors using native names and no flags.
+4. **Implemented and boundedly verified:** `lang`, `dir`, four RTL locales,
+   logical CSS, and deterministic `Intl` formatting.
+5. **Implemented:** separate typed interface locale, detected input language,
+   input-language source, requested output locale, and direction concepts.
+6. **Implemented:** action-plan schema `1.16.0`, nested situation schema
+   `1.1.0`, and exact strict output-locale request/response enforcement.
+7. **Implemented and verified:** deterministic single-catalog hydration while
+   facts, IDs, names, addresses, phone numbers, URLs, schedules, timestamps,
+   coordinates, distances, weather values, and provenance remain backend-owned.
+8. **Implemented:** catalog completeness, key/interpolation parity, exact
+   fallback, immutability, token, RTL, long-text, parser, workflow, and
    cross-mode tests.
-9. Complete a translation-safety and browser-matrix audit.
-10. Run a separately authorized multilingual live smoke only if the author
-    approves it after a fresh cost review.
-11. Complete Milestone 6 documentation and final verification before its one
-    intentional commit and publication step.
+9. **Verified within the audited scope:** multilingual/bidirectional Chrome,
+   320px reflow, actual 200% zoom, one author-confirmed VoiceOver session, and
+   translation-safety checks; corrected selector, German heading, and Russian
+   status overflow defects.
+10. **Verified within four authorized live scenarios:** Spanish and Arabic
+    matching normal results, Russian input with Hebrew output, and Traditional
+    Chinese urgent bypass, with seven OpenAI calls, three Open-Meteo calls,
+    zero retries, and conservative cost bound `$0.1628075`.
+11. **Implemented and verified offline:** synchronized Milestone 6
+    documentation and final verification, followed by publication through the
+    repository commit containing this roadmap revision.
 
 ### Required locale set
 
-The 25 required locale catalogs are planned as:
+The 25 supported interface and backend output locale catalogs are implemented:
 
 - `en`
 - `es`
@@ -118,18 +131,22 @@ The 25 required locale catalogs are planned as:
 - `he`
 - `nl`
 
-Documentation may use the wording **Supported launch languages** only after
-every catalog is complete. Translation documentation must state human-review
-limitations honestly.
+All 24 non-English catalogs remain AI-assisted drafts without independent
+native-speaker, linguistic, cultural, medical, emergency, accessibility, or
+safety-critical approval. This does not block a bounded implementation commit,
+but it prohibits human-reviewed or release-ready claims. The live smoke covered
+four scenarios, not all 25 locales; browser evidence is Chrome/macOS-specific,
+and the VoiceOver evidence is one author-confirmed session without independent
+speech logging.
 
-Locale identifiers and validation will follow
+Locale identifiers and validation follow
 [BCP 47 / RFC 5646](https://www.rfc-editor.org/info/rfc5646/). Direction handling
 will follow [W3C HTML direction guidance](https://www.w3.org/International/questions/qa-html-dir.en),
-and deterministic locale-aware formatting will use the
+and deterministic locale-aware formatting uses the
 [ECMA-402](https://tc39.es/ecma402/) boundary.
 
 Milestone 6 preserves HeatRelay's closed-code GPT safety architecture. It does
-not plan unconstrained model-generated emergency, medical, place, address,
+not use unconstrained model-generated emergency, medical, place, address,
 schedule, source, or factual prose. The current extracted
 `preferred_language` must not be overloaded: interface-locale and requested
 output-locale fields remain separate concepts.
@@ -140,9 +157,10 @@ output-locale fields remain separate concepts.
 
 Implementation requires all of the following:
 
-- Milestones 5 and 6 are both completed, verified, and published.
 - The author supplies a separate, explicitly approved redesign prompt.
 - An attached or otherwise accessible authoritative design file is available.
+- Any conflict with the established accessibility, localization, privacy, or
+  safety contracts is resolved before implementation.
 
 The design source must cover, or explicitly define handling for, the initial
 screen, form, loading, normal result, no-place result, urgent result, error

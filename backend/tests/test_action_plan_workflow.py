@@ -7,6 +7,7 @@ synthetic contract fixtures. No test loads local credentials or uses a network.
 from __future__ import annotations
 
 import asyncio
+import json
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable
@@ -29,12 +30,18 @@ from backend.app.action_plan import (
     NOW_ACTION_TEXT,
     TONIGHT_ACTION_TEXT,
     ActionPlanRequest,
+    ActionPlanSituationProjection,
+    ActionPlanWeatherProjection,
     ActionPlanWorkflow,
     ActionPlanWorkflowUnavailable,
     PriorityDecision,
     build_grounded_plan_context,
+    hydrate_grounded_plan,
+    project_action_plan_situation,
+    project_action_plan_weather,
     project_selected_candidate,
 )
+from backend.app.action_plan_catalog import ActionPlanCatalog, get_action_plan_catalog
 from backend.app.grounded_plan import (
     EXPLANATION_REASON_ORDER,
     GroundedPlanContext,
@@ -44,6 +51,12 @@ from backend.app.grounded_plan import (
     GroundedPlanUsage,
     ModelGroundedPlan,
     canonical_required_plan_codes,
+    grounded_model_visible_request,
+)
+from backend.app.localization import (
+    OutputLocale,
+    SUPPORTED_INPUT_LANGUAGES,
+    SUPPORTED_OUTPUT_LOCALES,
 )
 from backend.app.places import (
     OFFICIAL_DATASET_URL,
@@ -58,6 +71,7 @@ from backend.app.places import (
 from backend.app.situation import (
     ModelSituationExtraction,
     MOBILITY_ORDER,
+    SITUATION_NOTICE,
     SituationExtractionRequest,
     SituationExtractionResponse,
     SYMPTOM_ORDER,
@@ -490,6 +504,52 @@ def _priority_decision(priority: str) -> PriorityDecision:
     )
 
 
+def _catalog_prose(catalog: ActionPlanCatalog) -> set[str]:
+    prose = {
+        catalog.situation_notice,
+        catalog.weather_notice,
+        catalog.policy_notice,
+        *catalog.policy_rules,
+        catalog.urgent_contact_instruction,
+        *catalog.urgent_actions.values(),
+        *catalog.urgent_notices,
+        *catalog.bring_items.values(),
+        *catalog.explanations.values(),
+        catalog.normal_notice,
+        *catalog.candidate_explanations.values(),
+        *catalog.candidate_warnings.values(),
+        catalog.unresolved_travel_notice,
+    }
+    for action_catalog in (
+        catalog.now_actions,
+        catalog.next_few_hours_actions,
+        catalog.tonight_actions,
+    ):
+        for text, explanation in action_catalog.values():
+            prose.update((text, explanation))
+    return prose
+
+
+def _normalize_catalog_projection(
+    value: Any,
+    catalog: ActionPlanCatalog,
+) -> Any:
+    if isinstance(value, dict):
+        return {
+            key: (
+                "<output-locale>"
+                if key == "output_locale"
+                else _normalize_catalog_projection(item, catalog)
+            )
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [_normalize_catalog_projection(item, catalog) for item in value]
+    if isinstance(value, str) and value in _catalog_prose(catalog):
+        return "<catalog-prose>"
+    return value
+
+
 @pytest.mark.parametrize(
     "priority",
     ["act_now", "prepare_now", "monitor_and_prepare"],
@@ -761,9 +821,14 @@ def test_ordinary_workflow_uses_one_clock_and_hydrates_trusted_facts_exactly() -
     )
 
     response = asyncio.run(workflow.create(_request()))
+    catalog = get_action_plan_catalog("en")
 
     assert response.branch == "normal"
-    assert response.schema_version == "1.0.0"
+    assert response.schema_version == "1.16.0"
+    assert response.output_locale == "en"
+    assert response.situation.schema_version == "1.1.0"
+    assert response.situation.detected_input_language == "en"
+    assert response.situation.input_language_source == "automatically_detected"
     assert response.evaluation_time == FIXED_UTC
     assert clock_calls == 1
     assert situation_service.requests[0].situation_text == SYNTHETIC_TEXT
@@ -788,6 +853,27 @@ def test_ordinary_workflow_uses_one_clock_and_hydrates_trusted_facts_exactly() -
     )
     assert "latitude" not in response.selected_place.model_dump()
     assert "longitude" not in response.selected_place.model_dump()
+    assert response.candidate_context.explanation == (
+        catalog.candidate_explanations["matched_candidate"]
+    )
+    assert [
+        response.candidate_context.hours_warning,
+        response.candidate_context.candidate_notice,
+        response.candidate_context.distance_warning,
+        response.candidate_context.reachability_warning,
+    ] == [
+        catalog.candidate_warnings["hours"],
+        catalog.candidate_warnings["candidate_notice"],
+        catalog.candidate_warnings["distance"],
+        catalog.candidate_warnings["reachability"],
+    ]
+    assert response.notices == [
+        catalog.policy_notice,
+        catalog.candidate_warnings["hours"],
+        catalog.candidate_warnings["distance"],
+        catalog.candidate_warnings["reachability"],
+        catalog.normal_notice,
+    ]
     assert response.plan.notice == NORMAL_PLAN_NOTICE
 
     generated = _valid_plan(plan.contexts[0])
@@ -826,6 +912,419 @@ def test_ordinary_workflow_uses_one_clock_and_hydrates_trusted_facts_exactly() -
     ][1]
 
 
+@pytest.mark.parametrize("output_locale", SUPPORTED_OUTPUT_LOCALES)
+def test_normal_workflow_hydrates_requested_output_catalog_completely(
+    output_locale: OutputLocale,
+) -> None:
+    workflow, situation_service, weather, repository, plan = _workflow()
+
+    response = asyncio.run(
+        workflow.create(_request(output_locale=output_locale))
+    )
+    catalog = get_action_plan_catalog(output_locale)
+
+    assert response.branch == "normal"
+    assert response.schema_version == "1.16.0"
+    assert response.output_locale == output_locale
+    assert response.situation.notice == catalog.situation_notice
+    assert response.weather.notice == catalog.weather_notice
+    assert response.priority.notice == catalog.policy_notice
+    assert [source.heatrelay_rule for source in response.priority.sources] == list(
+        catalog.policy_rules
+    )
+    for phase, action_catalog in (
+        (response.plan.now, catalog.now_actions),
+        (response.plan.next_few_hours, catalog.next_few_hours_actions),
+        (response.plan.tonight, catalog.tonight_actions),
+    ):
+        assert [
+            (action.code, action.text, action.explanation)
+            for action in phase.actions
+        ] == [
+            (action.code, *action_catalog[action.code])
+            for action in phase.actions
+        ]
+    assert [(item.code, item.text) for item in response.plan.bring_items] == [
+        (item.code, catalog.bring_items[item.code])
+        for item in response.plan.bring_items
+    ]
+    assert [
+        (item.code, item.text) for item in response.plan.explanations
+    ] == [
+        (item.code, catalog.explanations[item.code])
+        for item in response.plan.explanations
+    ]
+    assert response.plan.notice == catalog.normal_notice
+    assert response.candidate_context.explanation == (
+        catalog.candidate_explanations["matched_candidate"]
+    )
+    assert (
+        response.candidate_context.hours_warning,
+        response.candidate_context.candidate_notice,
+        response.candidate_context.distance_warning,
+        response.candidate_context.reachability_warning,
+    ) == (
+        catalog.candidate_warnings["hours"],
+        catalog.candidate_warnings["candidate_notice"],
+        catalog.candidate_warnings["distance"],
+        catalog.candidate_warnings["reachability"],
+    )
+    assert response.notices == [
+        catalog.policy_notice,
+        catalog.candidate_warnings["hours"],
+        catalog.candidate_warnings["distance"],
+        catalog.candidate_warnings["reachability"],
+        catalog.normal_notice,
+    ]
+    assert len(situation_service.requests) == 1
+    assert len(weather.requests) == 1
+    assert len(repository.calls) == 1
+    assert len(plan.contexts) == 1
+
+
+@pytest.mark.parametrize("output_locale", SUPPORTED_OUTPUT_LOCALES)
+def test_urgent_workflow_hydrates_requested_catalog_and_preserves_bypass(
+    output_locale: OutputLocale,
+) -> None:
+    situation = _situation(
+        reported_symptoms={"status": "reported", "values": ["confusion"]}
+    )
+    workflow, situation_service, weather, repository, plan = _workflow(
+        situation=situation
+    )
+
+    response = asyncio.run(
+        workflow.create(_request(output_locale=output_locale))
+    )
+    catalog = get_action_plan_catalog(output_locale)
+
+    assert response.branch == "urgent"
+    assert response.schema_version == "1.16.0"
+    assert response.output_locale == output_locale
+    assert response.situation.notice == catalog.situation_notice
+    assert response.priority.notice == catalog.policy_notice
+    assert [source.heatrelay_rule for source in response.priority.sources] == list(
+        catalog.policy_rules
+    )
+    assert response.urgent_contact.instruction == (
+        catalog.urgent_contact_instruction
+    )
+    assert [(action.code, action.text) for action in response.actions] == list(
+        catalog.urgent_actions.items()
+    )
+    assert response.notices == list(catalog.urgent_notices)
+    assert len(situation_service.requests) == 1
+    assert weather.requests == []
+    assert repository.calls == []
+    assert plan.contexts == []
+
+
+@pytest.mark.parametrize("branch", ["normal", "urgent"])
+def test_all_output_locales_preserve_identical_deterministic_facts(
+    branch: str,
+) -> None:
+    situation = (
+        _situation(
+            reported_symptoms={
+                "status": "reported",
+                "values": ["confusion"],
+            }
+        )
+        if branch == "urgent"
+        else _situation()
+    )
+    runs = {}
+    for output_locale in SUPPORTED_OUTPUT_LOCALES:
+        workflow, situation_service, weather, repository, plan = _workflow(
+            situation=situation
+        )
+        response = asyncio.run(
+            workflow.create(_request(output_locale=output_locale))
+        )
+        runs[output_locale] = (
+            response,
+            situation_service,
+            weather,
+            repository,
+            plan,
+        )
+
+    english, english_situation, english_weather, english_repository, english_plan = (
+        runs["en"]
+    )
+    normalized_english = _normalize_catalog_projection(
+        english.model_dump(mode="json"),
+        get_action_plan_catalog("en"),
+    )
+    for output_locale, (
+        response,
+        situation_service,
+        weather,
+        repository,
+        plan,
+    ) in runs.items():
+        assert response.output_locale == output_locale
+        assert _normalize_catalog_projection(
+            response.model_dump(mode="json"),
+            get_action_plan_catalog(output_locale),
+        ) == normalized_english
+        assert situation_service.requests == english_situation.requests
+        assert weather.requests == english_weather.requests
+        assert repository.calls == english_repository.calls
+        assert plan.contexts == english_plan.contexts
+        if branch == "normal":
+            assert response.plan.local_phrase == english.plan.local_phrase
+
+
+def test_normal_workflow_projects_validated_facts_without_mutation() -> None:
+    source_situation = _situation()
+    source_weather = _weather()
+    situation_before = source_situation.model_dump(mode="json")
+    weather_before = source_weather.model_dump(mode="json")
+    workflow, _, _, _, _ = _workflow(
+        situation=source_situation,
+        weather_service=FakeWeatherService(source_weather),
+    )
+
+    response = asyncio.run(workflow.create(_request(output_locale="en")))
+    catalog = get_action_plan_catalog("en")
+
+    assert isinstance(response.situation, ActionPlanSituationProjection)
+    assert isinstance(response.weather, ActionPlanWeatherProjection)
+    assert response.situation.model_dump(mode="json") == situation_before
+    assert response.weather.model_dump(mode="json") == weather_before
+    assert list(response.situation.model_dump()) == list(situation_before)
+    assert list(response.weather.model_dump()) == list(weather_before)
+    assert response.situation.notice == catalog.situation_notice == SITUATION_NOTICE
+    assert response.weather.notice == catalog.weather_notice == MODEL_DERIVED_NOTICE
+    assert source_situation.model_dump(mode="json") == situation_before
+    assert source_weather.model_dump(mode="json") == weather_before
+    assert response.situation is not source_situation
+    assert response.weather is not source_weather
+
+
+def test_projection_helpers_revalidate_standalone_responses_without_mutation() -> None:
+    source_situation = _situation()
+    source_weather = _weather()
+    situation_before = source_situation.model_dump(mode="json")
+    weather_before = source_weather.model_dump(mode="json")
+
+    situation_projection = project_action_plan_situation(
+        source_situation,
+        output_locale="en",
+    )
+    weather_projection = project_action_plan_weather(
+        source_weather,
+        output_locale="en",
+    )
+
+    assert situation_projection.model_dump(mode="json") == situation_before
+    assert weather_projection.model_dump(mode="json") == weather_before
+    assert source_situation.model_dump(mode="json") == situation_before
+    assert source_weather.model_dump(mode="json") == weather_before
+
+
+def test_projection_helpers_reject_forged_standalone_notices() -> None:
+    forged_situation = _situation().model_copy(
+        update={"notice": "Forged situation notice"}
+    )
+    forged_weather = _weather().model_copy(
+        update={"notice": "Forged weather notice"}
+    )
+
+    with pytest.raises(ValueError):
+        project_action_plan_situation(forged_situation, output_locale="en")
+    with pytest.raises(ValueError):
+        project_action_plan_weather(forged_weather, output_locale="en")
+
+
+def test_forged_raw_weather_notice_fails_before_projection() -> None:
+    forged_weather = _weather().model_copy(
+        update={"notice": "Forged weather notice"}
+    )
+    workflow, _, weather_service, repository, plan = _workflow(
+        weather_service=FakeWeatherService(forged_weather),
+    )
+
+    with pytest.raises(ActionPlanWorkflowUnavailable):
+        asyncio.run(workflow.create(_request()))
+
+    assert len(weather_service.requests) == 1
+    assert repository.calls == []
+    assert plan.contexts == []
+
+
+def test_hydration_uses_english_catalog_for_every_closed_prose_code() -> None:
+    catalog = get_action_plan_catalog("en")
+    nontravel_now = [
+        code
+        for code in catalog.now_actions
+        if code != "travel_to_selected_place"
+    ]
+    nontravel = ModelGroundedPlan.model_validate(
+        {
+            "now": {"action_codes": nontravel_now},
+            "next_few_hours": {
+                "action_codes": list(catalog.next_few_hours_actions)
+            },
+            "tonight": {"action_codes": list(catalog.tonight_actions)},
+            "bring_items": [],
+            "explanation_reasons": list(catalog.explanations),
+            "local_phrase_code": None,
+            "selected_place_id": None,
+        }
+    )
+    hydrated_nontravel = hydrate_grounded_plan(nontravel, "en")
+
+    assert [
+        (action.code, action.text, action.explanation)
+        for action in hydrated_nontravel.now.actions
+    ] == [
+        (code, *catalog.now_actions[code]) for code in nontravel_now
+    ]
+    assert [
+        (action.code, action.text, action.explanation)
+        for action in hydrated_nontravel.next_few_hours.actions
+    ] == [
+        (code, *text) for code, text in catalog.next_few_hours_actions.items()
+    ]
+    assert [
+        (action.code, action.text, action.explanation)
+        for action in hydrated_nontravel.tonight.actions
+    ] == [
+        (code, *text) for code, text in catalog.tonight_actions.items()
+    ]
+    assert [
+        (explanation.code, explanation.text)
+        for explanation in hydrated_nontravel.explanations
+    ] == list(catalog.explanations.items())
+    assert hydrated_nontravel.notice == catalog.normal_notice
+
+    travel = ModelGroundedPlan.model_validate(
+        {
+            "now": {"action_codes": ["travel_to_selected_place"]},
+            "next_few_hours": {
+                "action_codes": [next(iter(catalog.next_few_hours_actions))]
+            },
+            "tonight": {
+                "action_codes": [next(iter(catalog.tonight_actions))]
+            },
+            "bring_items": list(catalog.bring_items),
+            "explanation_reasons": [next(iter(catalog.explanations))],
+            "local_phrase_code": "spanish_request_cool_space",
+            "selected_place_id": "bcn-101",
+        }
+    )
+    hydrated_travel = hydrate_grounded_plan(travel, "en")
+
+    travel_text = catalog.now_actions["travel_to_selected_place"]
+    assert [
+        (action.code, action.text, action.explanation)
+        for action in hydrated_travel.now.actions
+    ] == [("travel_to_selected_place", *travel_text)]
+    assert [
+        (item.code, item.text) for item in hydrated_travel.bring_items
+    ] == list(catalog.bring_items.items())
+
+
+@pytest.mark.parametrize(
+    "detected_language",
+    [*SUPPORTED_INPUT_LANGUAGES, "other", "unknown"],
+)
+def test_every_detected_input_language_keeps_normal_output_english_only(
+    detected_language: str,
+) -> None:
+    situation = _situation(detected_input_language=detected_language)
+    workflow, situation_service, weather, repository, plan = _workflow(
+        situation=situation
+    )
+
+    response = asyncio.run(workflow.create(_request(output_locale="en")))
+
+    expected_source = (
+        "fallback"
+        if detected_language == "unknown"
+        else "automatically_detected"
+    )
+    assert response.branch == "normal"
+    assert response.schema_version == "1.16.0"
+    assert response.output_locale == "en"
+    assert response.situation.detected_input_language == detected_language
+    assert response.situation.input_language_source == expected_source
+    assert response.situation.preferred_language.status == "not_stated"
+    assert response.situation.preferred_language.value is None
+    assert len(situation_service.requests) == 1
+    assert len(weather.requests) == 1
+    assert len(repository.calls) == 1
+    assert len(plan.contexts) == 1
+    assert plan.contexts[0].situation.detected_input_language == detected_language
+    assert not hasattr(plan.contexts[0].situation, "input_language_source")
+
+
+@pytest.mark.parametrize(
+    ("detected_language", "expected_source"),
+    [
+        pytest.param("ar", "automatically_detected", id="supported"),
+        pytest.param("other", "automatically_detected", id="other"),
+        pytest.param("unknown", "fallback", id="unknown"),
+    ],
+)
+def test_urgent_response_preserves_detected_language_and_backend_source(
+    detected_language: str,
+    expected_source: str,
+) -> None:
+    situation = _situation(
+        detected_input_language=detected_language,
+        reported_symptoms={"status": "reported", "values": ["confusion"]},
+    )
+    workflow, situation_service, weather, repository, plan = _workflow(
+        situation=situation
+    )
+
+    response = asyncio.run(workflow.create(_request(output_locale="en")))
+
+    assert response.branch == "urgent"
+    assert response.schema_version == "1.16.0"
+    assert response.output_locale == "en"
+    assert isinstance(response.situation, ActionPlanSituationProjection)
+    assert response.situation.notice == get_action_plan_catalog(
+        "en"
+    ).situation_notice
+    assert response.situation.detected_input_language == detected_language
+    assert response.situation.input_language_source == expected_source
+    assert len(situation_service.requests) == 1
+    assert weather.requests == []
+    assert repository.calls == []
+    assert plan.contexts == []
+
+
+@pytest.mark.parametrize("output_locale", SUPPORTED_OUTPUT_LOCALES)
+@pytest.mark.parametrize("preferred_language", ["ar", "ru", "es", "ca"])
+def test_reported_preferred_language_never_changes_requested_output_locale(
+    preferred_language: str,
+    output_locale: OutputLocale,
+) -> None:
+    situation = _situation(
+        detected_input_language="en",
+        preferred_language={
+            "status": "reported",
+            "value": preferred_language,
+        },
+    )
+    workflow, _, _, _, plan = _workflow(situation=situation)
+
+    response = asyncio.run(
+        workflow.create(_request(output_locale=output_locale))
+    )
+
+    assert response.output_locale == output_locale
+    assert response.situation.detected_input_language == "en"
+    assert response.situation.input_language_source == "automatically_detected"
+    assert response.situation.preferred_language.status == "reported"
+    assert response.situation.preferred_language.value == preferred_language
+    assert plan.contexts[0].situation.preferred_language.value == preferred_language
+
+
 @pytest.mark.parametrize("symptom", SYMPTOM_ORDER)
 def test_every_bounded_reported_symptom_takes_urgent_bypass(
     symptom: str,
@@ -838,6 +1337,11 @@ def test_every_bounded_reported_symptom_takes_urgent_bypass(
     response = asyncio.run(workflow.create(_request()))
 
     assert response.branch == "urgent"
+    assert response.schema_version == "1.16.0"
+    assert response.output_locale == "en"
+    assert response.situation.schema_version == "1.1.0"
+    assert response.situation.detected_input_language == "en"
+    assert response.situation.input_language_source == "automatically_detected"
     assert response.priority.priority == "urgent_help"
     assert response.priority.reason_codes == ["reported_warning_symptom"]
     assert response.urgent_contact.code == "112"
@@ -880,6 +1384,7 @@ def test_nonreported_symptom_statuses_do_not_take_urgent_branch(status: str) -> 
     assert len(plan.contexts) == 1
 
 
+@pytest.mark.parametrize("output_locale", SUPPORTED_OUTPUT_LOCALES)
 @pytest.mark.parametrize(
     ("situation", "expected_phrase_code"),
     [
@@ -901,20 +1406,55 @@ def test_nonreported_symptom_statuses_do_not_take_urgent_branch(status: str) -> 
             "spanish_request_cool_space",
             id="deterministic-spanish-fallback",
         ),
+        pytest.param(
+            _situation(detected_input_language="ar"),
+            "spanish_request_cool_space",
+            id="arabic-input-english-output",
+        ),
+        pytest.param(
+            _situation(detected_input_language="other"),
+            "spanish_request_cool_space",
+            id="unsupported-language-spanish-fallback",
+        ),
+        pytest.param(
+            _situation(detected_input_language="unknown"),
+            "spanish_request_cool_space",
+            id="unknown-language-spanish-fallback",
+        ),
+        pytest.param(
+            _situation(
+                detected_input_language="ru",
+                preferred_language={"status": "reported", "value": "es"},
+            ),
+            "spanish_request_cool_space",
+            id="reported-spanish-preference",
+        ),
     ],
 )
 def test_local_phrase_selection_uses_fixed_catalog_fallback(
     situation: SituationExtractionResponse,
     expected_phrase_code: str,
+    output_locale: OutputLocale,
 ) -> None:
     workflow, _, _, _, plan = _workflow(situation=situation)
 
-    response = asyncio.run(workflow.create(_request()))
+    response = asyncio.run(
+        workflow.create(_request(output_locale=output_locale))
+    )
+    catalog = get_action_plan_catalog(output_locale)
 
     assert plan.contexts[0].allowed_codes.local_phrases == [
         expected_phrase_code
     ]
+    assert response.output_locale == output_locale
     assert response.plan.local_phrase.code == expected_phrase_code
+    assert response.plan.local_phrase.language == (
+        "ca" if expected_phrase_code.startswith("catalan_") else "es"
+    )
+    assert response.plan.now.actions[0].text == catalog.now_actions[
+        response.plan.now.actions[0].code
+    ][0]
+    assert response.plan.notice == catalog.normal_notice
 
 
 @pytest.mark.parametrize(
@@ -1139,12 +1679,14 @@ def test_movement_prohibition_removes_all_place_and_travel_output(
     workflow, _, _, _, plan = _workflow(situation=situation)
 
     response = asyncio.run(workflow.create(_request()))
+    catalog = get_action_plan_catalog("en")
 
     assert response.branch == "normal"
     assert response.selected_place is None
     assert response.candidate_context.eligible_candidate_count == 0
     assert (
         response.candidate_context.explanation
+        == catalog.candidate_explanations["movement_prohibited"]
         == MOVEMENT_PROHIBITED_EXPLANATION
     )
     context = plan.contexts[0]
@@ -1157,7 +1699,11 @@ def test_movement_prohibition_removes_all_place_and_travel_output(
     assert "unresolved_travel_constraint" in [
         reason.code for reason in response.plan.explanations
     ]
-    assert TRAVEL_COMPATIBILITY_UNPROVEN_NOTICE in response.notices
+    assert (
+        response.notices[-1]
+        == catalog.unresolved_travel_notice
+        == TRAVEL_COMPATIBILITY_UNPROVEN_NOTICE
+    )
 
 
 @pytest.mark.parametrize("constraint", TIME_CONSTRAINT_ORDER)
@@ -1237,18 +1783,26 @@ def test_explicitly_unknown_travel_facts_suppress_all_travel_output(
     workflow, _, _, _, plan_service = _workflow(situation=situation)
 
     response = asyncio.run(workflow.create(_request()))
+    catalog = get_action_plan_catalog("en")
 
     context = plan_service.contexts[0]
     assert context.travel_compatibility_unproven is True
     assert context.movement_prohibited is False
     assert context.candidates == []
     assert response.selected_place is None
+    assert response.candidate_context.explanation == (
+        catalog.candidate_explanations["unresolved_travel_compatibility"]
+    )
     assert response.plan.bring_items == []
     assert response.plan.local_phrase is None
     assert "unresolved_travel_constraint" in [
         reason.code for reason in response.plan.explanations
     ]
-    assert TRAVEL_COMPATIBILITY_UNPROVEN_NOTICE in response.notices
+    assert (
+        response.notices[-1]
+        == catalog.unresolved_travel_notice
+        == TRAVEL_COMPATIBILITY_UNPROVEN_NOTICE
+    )
 
 
 @pytest.mark.parametrize(
@@ -1393,10 +1947,14 @@ def test_empty_candidate_result_is_valid_and_never_invents_a_place() -> None:
     workflow, _, _, _, plan = _workflow(repository=FakeRepository([]))
 
     response = asyncio.run(workflow.create(_request()))
+    catalog = get_action_plan_catalog("en")
 
     assert response.branch == "normal"
     assert response.selected_place is None
     assert response.candidate_context.eligible_candidate_count == 0
+    assert response.candidate_context.explanation == (
+        catalog.candidate_explanations["no_candidate"]
+    )
     assert plan.contexts[0].candidates == []
     assert "travel_to_selected_place" not in [
         action.code for action in response.plan.now.actions
@@ -1997,6 +2555,273 @@ def test_second_call_context_excludes_raw_text_origin_and_candidate_identity() -
     assert "address" not in serialized
     assert "source_url" not in serialized
     assert candidate.place_id in serialized
+
+
+def test_output_locale_does_not_change_downstream_or_model_visible_context() -> None:
+    default_workflow, default_situation, default_weather, default_repository, default_plan = (
+        _workflow()
+    )
+    default_response = asyncio.run(default_workflow.create(_request()))
+    runs = {}
+    for output_locale in SUPPORTED_OUTPUT_LOCALES:
+        workflow, situation_service, weather, repository, plan = _workflow()
+        response = asyncio.run(
+            workflow.create(_request(output_locale=output_locale))
+        )
+        runs[output_locale] = (
+            response,
+            situation_service,
+            weather,
+            repository,
+            plan,
+        )
+
+    assert default_response.output_locale == "en"
+    english_response, english_situation, english_weather, english_repository, english_plan = (
+        runs["en"]
+    )
+    assert english_response.output_locale == "en"
+    for output_locale, (
+        response,
+        situation_service,
+        weather,
+        repository,
+        plan,
+    ) in runs.items():
+        assert response.output_locale == output_locale
+        assert situation_service.requests == english_situation.requests
+        assert weather.requests == english_weather.requests
+        assert repository.calls == english_repository.calls
+        assert plan.contexts == english_plan.contexts
+    assert default_situation.requests == english_situation.requests
+    assert default_weather.requests == english_weather.requests
+    assert default_repository.calls == english_repository.calls
+    assert default_plan.contexts == english_plan.contexts
+
+    context = english_plan.contexts[0]
+    visible_request = grounded_model_visible_request(context)
+    catalog_prose = {
+        prose
+        for locale in SUPPORTED_OUTPUT_LOCALES
+        for prose in _catalog_prose(get_action_plan_catalog(locale))
+    }
+    serialized_visible_request = json.dumps(
+        visible_request,
+        ensure_ascii=False,
+        sort_keys=True,
+    )
+    assert visible_request == grounded_model_visible_request(default_plan.contexts[0])
+    visible_request_bytes = json.dumps(
+        visible_request,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    for _, _, _, _, plan in runs.values():
+        locale_visible_request = grounded_model_visible_request(
+            plan.contexts[0]
+        )
+        assert locale_visible_request == visible_request
+        assert json.dumps(
+            locale_visible_request,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8") == visible_request_bytes
+    assert "output_locale" not in serialized_visible_request
+    assert all(prose not in serialized_visible_request for prose in catalog_prose)
+    assert "output_locale" not in context.model_dump()
+    assert "input_language_source" not in json.dumps(
+        visible_request,
+        sort_keys=True,
+    )
+    assert "input_language_source" not in context.model_dump()
+    assert "interface_locale" not in json.dumps(visible_request, sort_keys=True)
+    assert "text_direction" not in json.dumps(visible_request, sort_keys=True)
+    assert context.situation.detected_input_language == "en"
+    assert context.situation.preferred_language.status == "not_stated"
+    assert not hasattr(english_situation.requests[0], "output_locale")
+    assert not hasattr(english_weather.requests[0], "output_locale")
+    assert not hasattr(english_repository.calls[0][0], "output_locale")
+    english_downstream_payloads = [
+        english_situation.requests[0].model_dump_json(),
+        english_weather.requests[0].model_dump_json(),
+        english_repository.calls[0][0].model_dump_json(),
+    ]
+    for _, situation_service, weather, repository, _ in runs.values():
+        assert not hasattr(situation_service.requests[0], "output_locale")
+        assert not hasattr(weather.requests[0], "output_locale")
+        assert not hasattr(repository.calls[0][0], "output_locale")
+        assert [
+            situation_service.requests[0].model_dump_json(),
+            weather.requests[0].model_dump_json(),
+            repository.calls[0][0].model_dump_json(),
+        ] == english_downstream_payloads
+    assert all(
+        "output_locale" not in payload
+        and all(prose not in payload for prose in catalog_prose)
+        for payload in english_downstream_payloads
+    )
+
+
+@pytest.mark.parametrize(
+    "output_locale",
+    [
+        "AR",
+        "Ar",
+        "ar-SA",
+        "ar-EG",
+        "ar-001",
+        "ara",
+        "UR",
+        "Ur",
+        "ur-PK",
+        "ur-IN",
+        "urd",
+        " ur",
+        "ur ",
+        "FA",
+        "Fa",
+        "fa-IR",
+        "fa-AF",
+        "fas",
+        "per",
+        " fa",
+        "fa ",
+        "HE",
+        "He",
+        "he-IL",
+        "heb",
+        " he",
+        "he ",
+        "pt",
+        "pt-br",
+        "PT-BR",
+        "Pt-BR",
+        "pt-PT",
+        "pt-AO",
+        "pt-MZ",
+        "pt-Latn-BR",
+        "pt-BR-x-private",
+        " pt-BR",
+        "pt-BR ",
+        "FR",
+        "Fr",
+        "fr-FR",
+        "fr-CA",
+        "fr-BE",
+        "fr-CH",
+        "fra",
+        "IT",
+        "It",
+        "it-IT",
+        "it-CH",
+        "ita",
+        " fr",
+        "fr ",
+        " it",
+        "it ",
+        "DE",
+        "De",
+        "de-DE",
+        "de-AT",
+        "de-CH",
+        "deu",
+        "ger",
+        " de",
+        "de ",
+        "NL",
+        "Nl",
+        "nl-NL",
+        "nl-BE",
+        "nld",
+        "dut",
+        " nl",
+        "nl ",
+        "RU",
+        "Ru",
+        "ru-RU",
+        "ru-BY",
+        "rus",
+        " ru",
+        "ru ",
+        "UK",
+        "Uk",
+        "uk-UA",
+        "uk-UK",
+        "ukr",
+        " uk",
+        "uk ",
+        "PL",
+        "Pl",
+        "pl-PL",
+        "pol",
+        " pl",
+        "pl ",
+        "JA",
+        "Ja",
+        "ja-JP",
+        "jpn",
+        " ja",
+        "ja ",
+        "KO",
+        "Ko",
+        "ko-KR",
+        "kor",
+        " ko",
+        "ko ",
+        "ID",
+        "Id",
+        "id-ID",
+        "ind",
+        " id",
+        "id ",
+        "VI",
+        "Vi",
+        "vi-VN",
+        "vie",
+        " vi",
+        "vi ",
+        "TH",
+        "Th",
+        "th-TH",
+        "tha",
+        " th",
+        "th ",
+        "TR",
+        "Tr",
+        "tr-TR",
+        "tur",
+        " tr",
+        "tr ",
+        "SW",
+        "Sw",
+        "sw-KE",
+        "sw-TZ",
+        "swa",
+        " sw",
+        "sw ",
+    ],
+)
+def test_bypassed_unsupported_output_locale_fails_before_downstream_work(
+    output_locale: str,
+) -> None:
+    workflow, situation, weather, repository, plan = _workflow()
+    valid = _request()
+    forged = ActionPlanRequest.model_construct(
+        situation_text=valid.situation_text,
+        origin=valid.origin,
+        maximum_distance_m=valid.maximum_distance_m,
+        output_locale=output_locale,
+    )
+
+    with pytest.raises(ActionPlanWorkflowUnavailable):
+        asyncio.run(workflow.create(forged))
+
+    assert situation.requests == []
+    assert weather.requests == []
+    assert repository.calls == []
+    assert plan.contexts == []
 
 
 def _first_matching_date(

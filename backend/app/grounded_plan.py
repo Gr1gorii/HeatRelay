@@ -900,6 +900,7 @@ def validate_grounded_plan(
 
 
 logger = logging.getLogger(__name__)
+usage_logger = logging.getLogger("uvicorn.error.heatrelay.usage")
 
 
 def _consume_provider_call_result(task: asyncio.Task[Any]) -> None:
@@ -1192,7 +1193,7 @@ class GroundedPlanService:
 
         plan = validate_grounded_plan(_validated_parsed_output(response), context)
         usage = _safe_usage(response)
-        logger.info(
+        usage_logger.info(
             "Grounded plan completed model=%s input_tokens=%s "
             "output_tokens=%s total_tokens=%s payload_bytes=%s",
             usage.model,

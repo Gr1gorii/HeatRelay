@@ -67,6 +67,9 @@ from backend.app.situation import (
 )
 
 
+USAGE_LOGGER_NAME = "uvicorn.error.heatrelay.usage"
+
+
 def _profile() -> ModelSituationExtraction:
     return ModelSituationExtraction.model_validate(
         {
@@ -891,6 +894,57 @@ def test_adapter_uses_exact_bounded_private_arguments_and_payload() -> None:
     assert client.closed is True
 
 
+def test_second_model_language_boundary_retains_only_existing_situation_facts() -> None:
+    situation_payload = _profile().model_dump(mode="json")
+    situation_payload["detected_input_language"] = "fa"
+    situation_payload["preferred_language"] = {
+        "status": "reported",
+        "value": "ar",
+    }
+    situation = ModelSituationExtraction.model_validate(situation_payload)
+    context = _context().model_copy(update={"situation": situation})
+
+    serialized_context = json.loads(serialize_grounded_context(context))
+    visible_situation = serialized_context["situation"]
+    assert visible_situation["detected_input_language"] == "fa"
+    assert visible_situation["preferred_language"] == {
+        "status": "reported",
+        "value": "ar",
+    }
+    assert {
+        field_name
+        for field_name in visible_situation
+        if "language" in field_name or field_name == "text_direction"
+    } == {"detected_input_language", "preferred_language"}
+
+    model_visible_json = json.dumps(
+        grounded_model_visible_request(context),
+        ensure_ascii=False,
+        sort_keys=True,
+    )
+    for forbidden in (
+        "input_language_source",
+        "output_locale",
+        "interface_locale",
+        "text_direction",
+    ):
+        assert forbidden not in model_visible_json
+
+    second_output_schema = json.dumps(
+        ModelGroundedPlan.model_json_schema(),
+        sort_keys=True,
+    )
+    for forbidden in (
+        "detected_input_language",
+        "preferred_language",
+        "input_language_source",
+        "output_locale",
+        "interface_locale",
+        "text_direction",
+    ):
+        assert forbidden not in second_output_schema
+
+
 def test_adapter_closes_client_before_semantic_whitelist_rejection() -> None:
     noncandidate_plan = _plan(selected_place_id="bcn-filtered-out")
     service, _, client = _service_for_response(
@@ -1222,7 +1276,9 @@ def test_failed_response_status_is_provider_unavailability() -> None:
         asyncio.run(service.generate(_context()))
 
 
-def test_sdk_and_overall_timeouts_are_sanitized() -> None:
+def test_sdk_and_overall_timeouts_are_sanitized(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     timeout_responses = FakeResponses(
         error=APITimeoutError(
             request=httpx.Request(
@@ -1236,8 +1292,9 @@ def test_sdk_and_overall_timeouts_are_sanitized() -> None:
         api_key="synthetic-test-key",
         client_factory=lambda **_kwargs: timeout_client,
     )
-    with pytest.raises(GroundedPlanTimeout):
-        asyncio.run(timeout_service.generate(_context()))
+    with caplog.at_level("INFO", logger=USAGE_LOGGER_NAME):
+        with pytest.raises(GroundedPlanTimeout):
+            asyncio.run(timeout_service.generate(_context()))
     assert timeout_client.closed is True
 
     class SlowResponses:
@@ -1251,9 +1308,17 @@ def test_sdk_and_overall_timeouts_are_sanitized() -> None:
         client_factory=lambda **_kwargs: slow_client,
         overall_timeout_seconds=0.01,
     )
-    with pytest.raises(GroundedPlanTimeout):
-        asyncio.run(slow_service.generate(_context()))
+    with caplog.at_level("INFO", logger=USAGE_LOGGER_NAME):
+        with pytest.raises(GroundedPlanTimeout):
+            asyncio.run(slow_service.generate(_context()))
     assert slow_client.closed is True
+    assert not [
+        record
+        for record in caplog.records
+        if record.name == USAGE_LOGGER_NAME
+        and record.getMessage().startswith("Grounded plan completed ")
+    ]
+    assert "synthetic private" not in caplog.text
 
 
 def test_cancellation_resistant_provider_call_cannot_overrun_deadline(
@@ -1422,11 +1487,18 @@ def test_grounded_provider_caller_cancellation_propagates_and_retains_capacity(
         finally:
             loop.set_exception_handler(previous_handler)
 
+    caplog.set_level("INFO", logger=USAGE_LOGGER_NAME)
     with caplog.at_level("WARNING", logger="backend.app.grounded_plan"):
         asyncio.run(exercise())
 
     assert "Grounded plan request timed out" not in caplog.messages
     assert private_detail not in caplog.text
+    assert not [
+        record
+        for record in caplog.records
+        if record.name == USAGE_LOGGER_NAME
+        and record.getMessage().startswith("Grounded plan completed ")
+    ]
 
 
 def test_both_openai_adapters_share_default_provider_and_cleanup_capacity() -> None:
@@ -1523,7 +1595,7 @@ def test_detached_situation_cleanup_saturates_grounded_client_capacity() -> None
         response = await situation_service.extract(
             SituationExtractionRequest(situation_text="Synthetic offline text")
         )
-        assert response.schema_version == "1.0.0"
+        assert response.schema_version == "1.1.0"
         await asyncio.wait_for(close_started.wait(), timeout=0.1)
         assert cleanup_capacity.in_use == 1
 
@@ -1704,13 +1776,23 @@ def test_safe_usage_log_contains_aggregates_but_no_context(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     service, _, _ = _service_for_response(_response(parsed=_plan()))
-    with caplog.at_level("INFO", logger="backend.app.grounded_plan"):
+    with caplog.at_level("INFO", logger=USAGE_LOGGER_NAME):
         asyncio.run(service.generate(_context()))
 
-    assert "model=gpt-5.6-sol" in caplog.text
-    assert "input_tokens=900" in caplog.text
-    assert "output_tokens=120" in caplog.text
-    assert "total_tokens=1020" in caplog.text
+    records = [
+        record
+        for record in caplog.records
+        if record.name == USAGE_LOGGER_NAME
+        and record.getMessage().startswith("Grounded plan completed ")
+    ]
+    assert len(records) == 1
+    assert records[0].levelname == "INFO"
+    log_text = records[0].getMessage()
+    assert "model=gpt-5.6-sol" in log_text
+    assert "input_tokens=900" in log_text
+    assert "output_tokens=120" in log_text
+    assert "total_tokens=1020" in log_text
+    assert "payload_bytes=" in log_text
     assert "bcn-101" not in caplog.text
     assert "older_adult" not in caplog.text
 
@@ -1723,8 +1805,150 @@ def test_provider_model_metadata_is_allowlisted_before_logging(
         _response(parsed=_plan(), model=private_model)
     )
 
-    with caplog.at_level("INFO", logger="backend.app.grounded_plan"):
+    with caplog.at_level("INFO", logger=USAGE_LOGGER_NAME):
         generated = asyncio.run(service.generate(_context()))
 
     assert generated.usage.model == "unavailable"
+    records = [
+        record
+        for record in caplog.records
+        if record.name == USAGE_LOGGER_NAME
+        and record.getMessage().startswith("Grounded plan completed ")
+    ]
+    assert len(records) == 1
+    assert "model=unavailable" in records[0].getMessage()
     assert private_model not in caplog.text
+
+
+@pytest.mark.parametrize(
+    "invalid_value",
+    [
+        pytest.param(None, id="missing-value"),
+        pytest.param(-1, id="negative"),
+        pytest.param(10_000_001, id="oversized"),
+        pytest.param(True, id="boolean"),
+        pytest.param(1.5, id="float"),
+        pytest.param("900", id="string"),
+    ],
+)
+def test_success_usage_log_sanitizes_invalid_token_counts(
+    caplog: pytest.LogCaptureFixture,
+    invalid_value: object,
+) -> None:
+    response = _response(parsed=_plan())
+    response.usage = SimpleNamespace(
+        input_tokens=invalid_value,
+        output_tokens=invalid_value,
+        total_tokens=invalid_value,
+    )
+    service, _, _ = _service_for_response(response)
+
+    with caplog.at_level("INFO", logger=USAGE_LOGGER_NAME):
+        generated = asyncio.run(service.generate(_context()))
+
+    assert generated.usage.input_tokens is None
+    assert generated.usage.output_tokens is None
+    assert generated.usage.total_tokens is None
+    records = [
+        record
+        for record in caplog.records
+        if record.name == USAGE_LOGGER_NAME
+        and record.getMessage().startswith("Grounded plan completed ")
+    ]
+    assert len(records) == 1
+    assert "input_tokens=None" in records[0].getMessage()
+    assert "output_tokens=None" in records[0].getMessage()
+    assert "total_tokens=None" in records[0].getMessage()
+    assert "payload_bytes=" in records[0].getMessage()
+
+
+def test_success_usage_log_sanitizes_missing_usage_metadata(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    response = _response(parsed=_plan())
+    del response.usage
+    service, _, _ = _service_for_response(response)
+
+    with caplog.at_level("INFO", logger=USAGE_LOGGER_NAME):
+        generated = asyncio.run(service.generate(_context()))
+
+    assert generated.usage.input_tokens is None
+    assert generated.usage.output_tokens is None
+    assert generated.usage.total_tokens is None
+    records = [
+        record
+        for record in caplog.records
+        if record.name == USAGE_LOGGER_NAME
+        and record.getMessage().startswith("Grounded plan completed ")
+    ]
+    assert len(records) == 1
+    assert "input_tokens=None" in records[0].getMessage()
+    assert "output_tokens=None" in records[0].getMessage()
+    assert "total_tokens=None" in records[0].getMessage()
+    assert "payload_bytes=" in records[0].getMessage()
+
+
+@pytest.mark.parametrize(
+    ("response", "expected_error"),
+    [
+        pytest.param(
+            _response(
+                parsed=None,
+                status="incomplete",
+                incomplete_details=SimpleNamespace(reason="max_output_tokens"),
+            ),
+            GroundedPlanInvalidResponse,
+            id="incomplete",
+        ),
+        pytest.param(
+            _response(parsed=None),
+            GroundedPlanInvalidResponse,
+            id="invalid",
+        ),
+        pytest.param(
+            _response(
+                output=[
+                    SimpleNamespace(
+                        type="message",
+                        content=[
+                            SimpleNamespace(
+                                type="refusal",
+                                refusal="synthetic private refusal",
+                            )
+                        ],
+                    )
+                ]
+            ),
+            GroundedPlanRefused,
+            id="refused",
+        ),
+        pytest.param(
+            _response(
+                parsed=None,
+                status="failed",
+                error=SimpleNamespace(message="synthetic private failure"),
+                output=[],
+            ),
+            GroundedPlanUnavailable,
+            id="failed",
+        ),
+    ],
+)
+def test_unsuccessful_responses_emit_no_success_usage_record(
+    caplog: pytest.LogCaptureFixture,
+    response: object,
+    expected_error: type[Exception],
+) -> None:
+    service, _, _ = _service_for_response(response)
+
+    with caplog.at_level("INFO", logger=USAGE_LOGGER_NAME):
+        with pytest.raises(expected_error):
+            asyncio.run(service.generate(_context()))
+
+    assert not [
+        record
+        for record in caplog.records
+        if record.name == USAGE_LOGGER_NAME
+        and record.getMessage().startswith("Grounded plan completed ")
+    ]
+    assert "synthetic private" not in caplog.text

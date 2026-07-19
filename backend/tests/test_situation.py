@@ -27,12 +27,21 @@ from openai import (
     AsyncOpenAI,
 )
 from openai._base_client import AsyncHttpxClientWrapper
-from pydantic import ValidationError
+from pydantic import TypeAdapter, ValidationError
 
+from backend.app.localization import (
+    SUPPORTED_INPUT_LANGUAGES,
+    DetectedInputLanguage,
+    InputLanguageSource,
+    PreferredLanguageValue,
+    SupportedInputLanguage,
+    derive_input_language_source,
+)
 from backend.app.openai_runtime import BoundedTaskCapacity
 from backend.app.situation import (
     CoolingAccess,
     DEVELOPER_INSTRUCTION,
+    DEVELOPER_INSTRUCTION_VERSION,
     MISSING_INFORMATION_ORDER,
     ModelSituationExtraction,
     OPENAI_API_BASE_URL,
@@ -45,6 +54,48 @@ from backend.app.situation import (
     SituationExtractionTimeout,
     SituationExtractionUnavailable,
     build_public_response,
+)
+
+
+USAGE_LOGGER_NAME = "uvicorn.error.heatrelay.usage"
+
+
+EXPECTED_SUPPORTED_INPUT_LANGUAGES = (
+    "en",
+    "es",
+    "zh-CN",
+    "zh-TW",
+    "hi",
+    "ar",
+    "pt-BR",
+    "bn",
+    "ru",
+    "ja",
+    "fr",
+    "de",
+    "ur",
+    "id",
+    "tr",
+    "ko",
+    "it",
+    "uk",
+    "pl",
+    "vi",
+    "th",
+    "fa",
+    "sw",
+    "he",
+    "nl",
+    "ca",
+)
+EXPECTED_DETECTED_INPUT_LANGUAGES = (
+    *EXPECTED_SUPPORTED_INPUT_LANGUAGES,
+    "other",
+    "unknown",
+)
+EXPECTED_PREFERRED_LANGUAGE_VALUES = (
+    *EXPECTED_SUPPORTED_INPUT_LANGUAGES,
+    "other",
 )
 
 
@@ -110,6 +161,119 @@ def _profile_with(
     return payload
 
 
+def _schema_string_literals(
+    root: dict[str, Any],
+    node: object,
+) -> list[str]:
+    if not isinstance(node, dict):
+        return []
+    if "$ref" in node:
+        reference = node["$ref"]
+        assert isinstance(reference, str)
+        definition = root["$defs"][reference.rsplit("/", 1)[1]]
+        return _schema_string_literals(root, definition)
+
+    values = [
+        value for value in node.get("enum", []) if isinstance(value, str)
+    ]
+    if isinstance(node.get("const"), str):
+        values.append(node["const"])
+    for branch_name in ("anyOf", "oneOf"):
+        for branch in node.get(branch_name, []):
+            values.extend(_schema_string_literals(root, branch))
+    return values
+
+
+def test_input_language_domains_are_exact_strict_and_separate() -> None:
+    assert SUPPORTED_INPUT_LANGUAGES == EXPECTED_SUPPORTED_INPUT_LANGUAGES
+    assert isinstance(SUPPORTED_INPUT_LANGUAGES, tuple)
+
+    supported_adapter = TypeAdapter(SupportedInputLanguage)
+    detected_adapter = TypeAdapter(DetectedInputLanguage)
+    preferred_adapter = TypeAdapter(PreferredLanguageValue)
+    for adapter, expected in (
+        (supported_adapter, EXPECTED_SUPPORTED_INPUT_LANGUAGES),
+        (detected_adapter, EXPECTED_DETECTED_INPUT_LANGUAGES),
+        (preferred_adapter, EXPECTED_PREFERRED_LANGUAGE_VALUES),
+    ):
+        schema = adapter.json_schema()
+        assert _schema_string_literals(schema, schema) == list(expected)
+
+    for language in EXPECTED_SUPPORTED_INPUT_LANGUAGES:
+        assert supported_adapter.validate_python(language, strict=True) == language
+        assert detected_adapter.validate_python(language, strict=True) == language
+        assert preferred_adapter.validate_python(language, strict=True) == language
+
+    for language in ("other", "unknown"):
+        assert detected_adapter.validate_python(language, strict=True) == language
+        with pytest.raises(ValidationError):
+            supported_adapter.validate_python(language, strict=True)
+
+    assert preferred_adapter.validate_python("other", strict=True) == "other"
+    with pytest.raises(ValidationError):
+        preferred_adapter.validate_python("unknown", strict=True)
+
+
+@pytest.mark.parametrize(
+    "invalid_language",
+    [
+        pytest.param("EN", id="case-altered-en"),
+        pytest.param("en-US", id="regional-en"),
+        pytest.param("zh-cn", id="case-altered-simplified-chinese"),
+        pytest.param("ZH-TW", id="case-altered-traditional-chinese"),
+        pytest.param("pt", id="generic-portuguese"),
+        pytest.param("pt-PT", id="european-portuguese"),
+        pytest.param("ca-ES", id="regional-catalan"),
+        pytest.param("eo", id="unlisted-language"),
+        pytest.param(" en", id="leading-space"),
+        pytest.param("en ", id="trailing-space"),
+        pytest.param("", id="empty"),
+        pytest.param(None, id="null"),
+        pytest.param(True, id="true"),
+        pytest.param(False, id="false"),
+        pytest.param(1, id="integer"),
+        pytest.param([], id="array"),
+        pytest.param({}, id="object"),
+    ],
+)
+def test_detected_and_preferred_languages_do_not_normalize_or_coerce(
+    invalid_language: object,
+) -> None:
+    for language_type in (DetectedInputLanguage, PreferredLanguageValue):
+        with pytest.raises(ValidationError):
+            TypeAdapter(language_type).validate_python(
+                invalid_language,
+                strict=True,
+            )
+
+
+def test_region_specific_and_catalan_values_remain_exactly_distinct() -> None:
+    assert SUPPORTED_INPUT_LANGUAGES.index("zh-CN") != SUPPORTED_INPUT_LANGUAGES.index(
+        "zh-TW"
+    )
+    assert "pt-BR" in SUPPORTED_INPUT_LANGUAGES
+    assert "pt" not in SUPPORTED_INPUT_LANGUAGES
+    assert SUPPORTED_INPUT_LANGUAGES[-1] == "ca"
+
+
+def test_input_language_source_is_closed_and_deterministically_derived() -> None:
+    source_adapter = TypeAdapter(InputLanguageSource)
+    assert source_adapter.validate_python("automatically_detected", strict=True) == (
+        "automatically_detected"
+    )
+    assert source_adapter.validate_python("fallback", strict=True) == "fallback"
+    for invalid in ("user_selected", "detected", "FALLBACK", "", None, True, 1):
+        with pytest.raises(ValidationError):
+            source_adapter.validate_python(invalid, strict=True)
+
+    for language in (*EXPECTED_SUPPORTED_INPUT_LANGUAGES, "other"):
+        assert derive_input_language_source(language) == "automatically_detected"
+    assert derive_input_language_source("unknown") == "fallback"
+    for invalid in ("EN", "en-US", "other ", "", None, True, 1, [], {}):
+        with pytest.raises(ValueError):
+            derive_input_language_source(invalid)
+
+
 CONTRACT_FIXTURES = [
     pytest.param(_base_profile("en"), id="english-topics-not-stated"),
     pytest.param(
@@ -162,7 +326,7 @@ CONTRACT_FIXTURES = [
     ),
     pytest.param(
         _profile_with(
-            language="pt",
+            language="pt-BR",
             reported_symptoms={"status": "explicit_none", "values": []},
         ),
         id="portuguese-explicit-no-bounded-symptoms",
@@ -202,6 +366,38 @@ CONTRACT_FIXTURES = [
 ]
 
 
+@pytest.mark.parametrize(
+    "language",
+    [
+        pytest.param("ar", id="arabic"),
+        pytest.param("ru", id="russian"),
+        pytest.param("hi", id="hindi"),
+        pytest.param("bn", id="bengali"),
+        pytest.param("zh-CN", id="simplified-chinese"),
+        pytest.param("zh-TW", id="traditional-chinese"),
+        pytest.param("pt-BR", id="brazilian-portuguese"),
+        pytest.param("ur", id="urdu"),
+        pytest.param("fa", id="persian"),
+        pytest.param("he", id="hebrew"),
+        pytest.param("th", id="thai"),
+        pytest.param("ja", id="japanese"),
+        pytest.param("ca", id="catalan"),
+        pytest.param("other", id="other"),
+        pytest.param("unknown", id="unknown"),
+    ],
+)
+def test_representative_multilingual_model_outputs_validate_as_schema_fixtures(
+    language: str,
+) -> None:
+    extraction = ModelSituationExtraction.model_validate(_base_profile(language))
+    response = build_public_response(extraction)
+
+    assert response.detected_input_language == language
+    assert response.input_language_source == derive_input_language_source(language)
+    assert response.preferred_language.status == "not_stated"
+    assert response.preferred_language.value is None
+
+
 @pytest.mark.parametrize("payload", CONTRACT_FIXTURES)
 def test_synthetic_contract_fixtures_validate_without_accuracy_claims(
     payload: dict[str, Any],
@@ -209,7 +405,10 @@ def test_synthetic_contract_fixtures_validate_without_accuracy_claims(
     extraction = ModelSituationExtraction.model_validate(payload)
     response = build_public_response(extraction)
 
-    assert response.schema_version == "1.0.0"
+    assert response.schema_version == "1.1.0"
+    assert response.input_language_source == derive_input_language_source(
+        response.detected_input_language
+    )
     assert response.detected_input_language == payload["detected_input_language"]
     assert "situation_text" not in response.model_dump()
 
@@ -230,6 +429,19 @@ def test_model_schema_requires_every_field_and_forbids_extras_without_sets() -> 
         "reported_symptoms",
     }
     assert "uniqueItems" not in schema_json
+    assert _schema_string_literals(
+        schema,
+        schema["properties"]["detected_input_language"],
+    ) == list(EXPECTED_DETECTED_INPUT_LANGUAGES)
+    for server_owned_field in (
+        "input_language_source",
+        "output_locale",
+        "interface_locale",
+        "text_direction",
+        "confidence",
+        "rationale",
+    ):
+        assert server_owned_field not in schema_json
     for definition in schema["$defs"].values():
         if definition.get("type") == "object":
             assert definition.get("additionalProperties") is False
@@ -238,14 +450,59 @@ def test_model_schema_requires_every_field_and_forbids_extras_without_sets() -> 
             )
 
 
+def test_language_detection_instruction_is_versioned_and_bounded() -> None:
+    assert DEVELOPER_INSTRUCTION_VERSION == (
+        "heatrelay-situation-extraction-v1.1.0"
+    )
+    for required_text in (
+        "canonical spelling and case",
+        "zh-CN",
+        "zh-TW",
+        "pt-BR",
+        "ca",
+        "other",
+        "unknown",
+        "dominant language",
+        "Never infer preference from the detected language",
+        "Never select an output language",
+    ):
+        assert required_text in DEVELOPER_INSTRUCTION
+    assert "confidence score" not in DEVELOPER_INSTRUCTION
+
+
 def test_detected_language_does_not_become_a_preference() -> None:
     extraction = _validated_profile(_base_profile("es"))
     response = build_public_response(extraction)
 
     assert response.detected_input_language == "es"
+    assert response.input_language_source == "automatically_detected"
     assert response.preferred_language.status == "not_stated"
     assert response.preferred_language.value is None
     assert "preferred_language" in response.missing_information
+
+
+def test_reported_preferred_language_remains_a_separate_fact() -> None:
+    extraction = _validated_profile(
+        _profile_with(
+            language="ru",
+            preferred_language={"status": "reported", "value": "ar"},
+        )
+    )
+    response = build_public_response(extraction)
+
+    assert response.detected_input_language == "ru"
+    assert response.input_language_source == "automatically_detected"
+    assert response.preferred_language.status == "reported"
+    assert response.preferred_language.value == "ar"
+
+
+def test_unknown_cannot_be_reported_as_a_preferred_language() -> None:
+    payload = _profile_with(
+        preferred_language={"status": "reported", "value": "unknown"}
+    )
+
+    with pytest.raises(ValidationError):
+        ModelSituationExtraction.model_validate(payload)
 
 
 @pytest.mark.parametrize(
@@ -345,15 +602,65 @@ def test_duplicate_overlong_and_invalid_enum_lists_fail_closed(
 
 
 def test_extra_model_fields_fail_closed() -> None:
-    top_level = _base_profile()
-    top_level["generated_plan"] = "not allowed"
     nested = _base_profile()
     nested["cooling_access"]["explanation"] = "not allowed"
 
-    with pytest.raises(ValidationError):
-        ModelSituationExtraction.model_validate(top_level)
+    for field_name, value in (
+        ("input_language_source", "automatically_detected"),
+        ("output_locale", "en"),
+        ("interface_locale", "ar"),
+        ("text_direction", "rtl"),
+        ("language_confidence", 0.99),
+        ("language_rationale", "not allowed"),
+        ("generated_plan", "not allowed"),
+    ):
+        top_level = _base_profile()
+        top_level[field_name] = value
+        with pytest.raises(ValidationError):
+            ModelSituationExtraction.model_validate(top_level)
     with pytest.raises(ValidationError):
         ModelSituationExtraction.model_validate(nested)
+
+
+def test_public_source_is_required_and_must_match_detected_language() -> None:
+    automatically_detected = build_public_response(_validated_profile())
+    other = build_public_response(_validated_profile(_base_profile("other")))
+    fallback = build_public_response(_validated_profile(_base_profile("unknown")))
+
+    assert automatically_detected.input_language_source == "automatically_detected"
+    assert other.input_language_source == "automatically_detected"
+    assert fallback.input_language_source == "fallback"
+
+    missing_source = automatically_detected.model_dump(mode="json")
+    missing_source.pop("input_language_source")
+    with pytest.raises(ValidationError):
+        SituationExtractionResponse.model_validate(missing_source)
+
+    invalid_pairs = (
+        (automatically_detected, "fallback"),
+        (other, "fallback"),
+        (fallback, "automatically_detected"),
+    )
+    for response, forged_source in invalid_pairs:
+        payload = response.model_dump(mode="json")
+        payload["input_language_source"] = forged_source
+        with pytest.raises(ValidationError):
+            SituationExtractionResponse.model_validate(payload)
+
+    unsupported_source = automatically_detected.model_dump(mode="json")
+    unsupported_source["input_language_source"] = "user_selected"
+    with pytest.raises(ValidationError):
+        SituationExtractionResponse.model_validate(unsupported_source)
+
+
+def test_public_situation_schema_version_is_exact_and_old_version_fails() -> None:
+    response = build_public_response(_validated_profile())
+    assert response.schema_version == "1.1.0"
+
+    old = response.model_dump(mode="json")
+    old["schema_version"] = "1.0.0"
+    with pytest.raises(ValidationError):
+        SituationExtractionResponse.model_validate(old)
 
 
 def test_values_are_canonicalized_in_backend_defined_order() -> None:
@@ -579,6 +886,7 @@ def test_adapter_sends_exact_bounded_arguments_and_separate_untrusted_input() ->
     }
     assert injection not in DEVELOPER_INSTRUCTION
     assert client.closed is True
+    assert public.input_language_source == "automatically_detected"
     serialized = public.model_dump_json()
     for forbidden in ("generated_plan", "places", "tools", "secret"):
         assert forbidden not in serialized
@@ -962,11 +1270,19 @@ def test_caller_cancellation_propagates_while_provider_finishes_later(
             await asyncio.sleep(0.01)
         assert provider_capacity.in_use == 0
 
+    caplog.set_level("INFO", logger=USAGE_LOGGER_NAME)
     with caplog.at_level("WARNING", logger="backend.app.situation"):
         asyncio.run(exercise())
 
     assert "Situation extraction request timed out" not in caplog.messages
     assert private_text not in caplog.text
+    assert not [
+        record
+        for record in caplog.records
+        if record.name == USAGE_LOGGER_NAME
+        and record.getMessage().startswith("Situation extraction completed ")
+    ]
+    assert "synthetic private" not in caplog.text
 
 
 def test_provider_capacity_rejects_before_creating_unbounded_work(
@@ -1077,7 +1393,7 @@ def test_cleanup_capacity_bounds_cancellation_resistant_closes(
             await first_service.extract(
                 SituationExtractionRequest(situation_text="Synthetic first")
             )
-        ).schema_version == "1.0.0"
+        ).schema_version == "1.1.0"
         assert cleanup_capacity.in_use == 1
         assert cleanup_capacity.active_task_count == 1
 
@@ -1131,12 +1447,14 @@ def test_real_sdk_cleanup_is_reserved_before_construction_and_never_escapes_boun
         close_started = asyncio.Event()
         transport_calls = 0
         constructed_clients = 0
+        captured_bodies: list[dict[str, Any]] = []
         provider_capacity = BoundedTaskCapacity(1)
         cleanup_capacity = BoundedTaskCapacity(1)
 
         def offline_handler(request: httpx.Request) -> httpx.Response:
             nonlocal transport_calls
             transport_calls += 1
+            captured_bodies.append(json.loads(request.content))
             return httpx.Response(
                 200,
                 request=request,
@@ -1175,9 +1493,38 @@ def test_real_sdk_cleanup_is_reserved_before_construction_and_never_escapes_boun
             )
 
         request = SituationExtractionRequest(situation_text="Synthetic offline text")
-        assert (await service().extract(request)).schema_version == "1.0.0"
+        assert (await service().extract(request)).schema_version == "1.1.0"
         await asyncio.wait_for(close_started.wait(), timeout=0.1)
         assert constructed_clients == transport_calls == 1
+        assert len(captured_bodies) == 1
+        captured = captured_bodies[0]
+        assert captured["model"] == "gpt-5.6"
+        assert captured["store"] is False
+        assert captured["input"] == [
+            {
+                "role": "developer",
+                "content": [
+                    {"type": "input_text", "text": DEVELOPER_INSTRUCTION}
+                ],
+            },
+            {
+                "role": "user",
+                "content": [
+                    {"type": "input_text", "text": request.situation_text}
+                ],
+            },
+        ]
+        first_model_schema = json.dumps(
+            captured["text"]["format"]["schema"],
+            sort_keys=True,
+        )
+        for forbidden in (
+            "input_language_source",
+            "output_locale",
+            "interface_locale",
+            "text_direction",
+        ):
+            assert forbidden not in first_model_schema
         assert cleanup_capacity.in_use == cleanup_capacity.active_task_count == 1
 
         for _ in range(6):
@@ -1302,7 +1649,7 @@ def test_task_capacity_is_reusable_across_isolated_event_loops() -> None:
         response = await service.extract(
             SituationExtractionRequest(situation_text="Synthetic text")
         )
-        assert response.schema_version == "1.0.0"
+        assert response.schema_version == "1.1.0"
 
     asyncio.run(extract_once())
     asyncio.run(extract_once())
@@ -1392,7 +1739,7 @@ def test_cancellation_resistant_client_cleanup_does_not_delay_request_path(
                 response = await service.extract(
                     SituationExtractionRequest(situation_text=private_text)
                 )
-                assert response.schema_version == "1.0.0"
+                assert response.schema_version == "1.1.0"
             elapsed = loop.time() - started
 
             assert elapsed < 0.12
@@ -1479,7 +1826,9 @@ def test_provider_failures_are_sanitized_as_unavailable(
     assert client.closed is True
 
 
-def test_sdk_timeout_is_sanitized_separately() -> None:
+def test_sdk_timeout_is_sanitized_separately(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
     responses = FakeResponses(
         error=APITimeoutError(
             request=httpx.Request("POST", "https://api.openai.com/v1/responses")
@@ -1491,12 +1840,21 @@ def test_sdk_timeout_is_sanitized_separately() -> None:
         client_factory=lambda **_kwargs: client,
     )
 
-    with pytest.raises(SituationExtractionTimeout) as caught:
-        asyncio.run(
-            service.extract(SituationExtractionRequest(situation_text="Synthetic text"))
-        )
+    with caplog.at_level("INFO", logger=USAGE_LOGGER_NAME):
+        with pytest.raises(SituationExtractionTimeout) as caught:
+            asyncio.run(
+                service.extract(
+                    SituationExtractionRequest(situation_text="Synthetic text")
+                )
+            )
     assert str(caught.value) == "Situation extraction timed out."
     assert client.closed is True
+    assert not [
+        record
+        for record in caplog.records
+        if record.name == USAGE_LOGGER_NAME
+        and record.getMessage().startswith("Situation extraction completed ")
+    ]
 
 
 def test_safe_success_log_contains_only_model_and_counts(caplog: pytest.LogCaptureFixture) -> None:
@@ -1504,10 +1862,18 @@ def test_safe_success_log_contains_only_model_and_counts(caplog: pytest.LogCaptu
     parsed = _validated_profile()
     service, _, _ = _service_for_response(_response(parsed=parsed))
 
-    with caplog.at_level("INFO", logger="backend.app.situation"):
+    with caplog.at_level("INFO", logger=USAGE_LOGGER_NAME):
         asyncio.run(service.extract(SituationExtractionRequest(situation_text=private_text)))
 
-    log_text = caplog.text
+    records = [
+        record
+        for record in caplog.records
+        if record.name == USAGE_LOGGER_NAME
+        and record.getMessage().startswith("Situation extraction completed ")
+    ]
+    assert len(records) == 1
+    assert records[0].levelname == "INFO"
+    log_text = records[0].getMessage()
     assert "gpt-5.6-sol" in log_text
     assert "input_tokens=120" in log_text
     assert "output_tokens=40" in log_text
@@ -1544,16 +1910,161 @@ def test_provider_model_metadata_is_allowlisted_before_logging(
         cleanup_capacity=BoundedTaskCapacity(1),
     )
 
-    with caplog.at_level("INFO", logger="backend.app.situation"):
+    with caplog.at_level("INFO", logger=USAGE_LOGGER_NAME):
         asyncio.run(
             service.extract(
                 SituationExtractionRequest(situation_text="Synthetic text")
             )
         )
 
-    assert f"model={logged_model}" in caplog.text
+    records = [
+        record
+        for record in caplog.records
+        if record.name == USAGE_LOGGER_NAME
+        and record.getMessage().startswith("Situation extraction completed ")
+    ]
+    assert len(records) == 1
+    assert f"model={logged_model}" in records[0].getMessage()
     if logged_model == "unavailable":
         assert provider_model not in caplog.text
+
+
+@pytest.mark.parametrize(
+    "invalid_value",
+    [
+        pytest.param(None, id="missing-value"),
+        pytest.param(-1, id="negative"),
+        pytest.param(10_000_001, id="oversized"),
+        pytest.param(True, id="boolean"),
+        pytest.param(1.5, id="float"),
+        pytest.param("120", id="string"),
+    ],
+)
+def test_success_usage_log_sanitizes_invalid_token_counts(
+    caplog: pytest.LogCaptureFixture,
+    invalid_value: object,
+) -> None:
+    response = _response(parsed=_validated_profile())
+    response.usage = SimpleNamespace(
+        input_tokens=invalid_value,
+        output_tokens=invalid_value,
+        total_tokens=invalid_value,
+    )
+    service, _, _ = _service_for_response(response)
+
+    with caplog.at_level("INFO", logger=USAGE_LOGGER_NAME):
+        asyncio.run(
+            service.extract(
+                SituationExtractionRequest(situation_text="Synthetic text")
+            )
+        )
+
+    records = [
+        record
+        for record in caplog.records
+        if record.name == USAGE_LOGGER_NAME
+        and record.getMessage().startswith("Situation extraction completed ")
+    ]
+    assert len(records) == 1
+    assert "input_tokens=None" in records[0].getMessage()
+    assert "output_tokens=None" in records[0].getMessage()
+    assert "total_tokens=None" in records[0].getMessage()
+
+
+def test_success_usage_log_sanitizes_missing_usage_metadata(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    response = _response(parsed=_validated_profile())
+    del response.usage
+    service, _, _ = _service_for_response(response)
+
+    with caplog.at_level("INFO", logger=USAGE_LOGGER_NAME):
+        asyncio.run(
+            service.extract(
+                SituationExtractionRequest(situation_text="Synthetic text")
+            )
+        )
+
+    records = [
+        record
+        for record in caplog.records
+        if record.name == USAGE_LOGGER_NAME
+        and record.getMessage().startswith("Situation extraction completed ")
+    ]
+    assert len(records) == 1
+    assert "input_tokens=None" in records[0].getMessage()
+    assert "output_tokens=None" in records[0].getMessage()
+    assert "total_tokens=None" in records[0].getMessage()
+
+
+@pytest.mark.parametrize(
+    ("response", "expected_error"),
+    [
+        pytest.param(
+            _response(
+                parsed=None,
+                status="incomplete",
+                incomplete_details=SimpleNamespace(reason="max_output_tokens"),
+            ),
+            SituationExtractionInvalidResponse,
+            id="incomplete",
+        ),
+        pytest.param(
+            _response(parsed=None),
+            SituationExtractionInvalidResponse,
+            id="invalid",
+        ),
+        pytest.param(
+            _response(
+                output=[
+                    SimpleNamespace(
+                        type="message",
+                        content=[
+                            SimpleNamespace(
+                                type="refusal",
+                                refusal="synthetic private refusal",
+                            )
+                        ],
+                    )
+                ]
+            ),
+            SituationExtractionRefused,
+            id="refused",
+        ),
+        pytest.param(
+            _response(
+                parsed=None,
+                status="failed",
+                error=SimpleNamespace(message="synthetic private failure"),
+                output=[],
+            ),
+            SituationExtractionUnavailable,
+            id="failed",
+        ),
+    ],
+)
+def test_unsuccessful_responses_emit_no_success_usage_record(
+    caplog: pytest.LogCaptureFixture,
+    response: object,
+    expected_error: type[Exception],
+) -> None:
+    service, _, _ = _service_for_response(response)
+
+    with caplog.at_level("INFO", logger=USAGE_LOGGER_NAME):
+        with pytest.raises(expected_error):
+            asyncio.run(
+                service.extract(
+                    SituationExtractionRequest(situation_text="Synthetic text")
+                )
+            )
+
+    assert not [
+        record
+        for record in caplog.records
+        if record.name == USAGE_LOGGER_NAME
+        and record.getMessage().startswith("Situation extraction completed ")
+    ]
+    assert "synthetic private" not in caplog.text
 
 
 def test_request_trims_outer_whitespace_counts_code_points_and_rejects_controls() -> None:

@@ -1310,3 +1310,167 @@ performs the configured TypeScript check with `tsc --noEmit` before the Vite
 build. Milestone 5 implementation and verification incurred `$0.00` in API or
 provider cost. At the time this verification record was written, Milestone 5
 was uncommitted and unpublished.
+
+## Milestone 6.30 — output-language preference foundation
+
+M6.30 adds one native, labelled action-plan-language select to the existing
+form. Its ordered options come from the shared 25-locale registry. The exact
+local key is `heatrelay.output-locale.v1`; exact valid stored values are
+restored, all other reads fall back to English without storage repair, and only
+an explicit valid selection writes. Browser-language detection and interface
+locale do not participate in output resolution. A failed storage write leaves
+the valid in-memory selection usable.
+
+Submission snapshots the selected locale and uses the existing exact four-field
+request. Situation text is never stored; visual-mode and interface-locale
+preferences remain local-only. Output selection makes no request, affects only
+the next submission, and does not rewrite existing normal, urgent, validation,
+or error state. Result prose retains its response-owned language and direction.
+
+This bounded pass updates all 25 interface catalogs with the selector copy and
+current privacy boundary. It changes no backend, action-plan schema, GPT
+boundary, provider behavior, dependency, or API field. At the close of the
+slice, language-mismatch UI, live multilingual and RTL browser QA, independent
+human review, final Milestone 6 verification, and publication remained
+pending. The slice was implemented offline and made no browser,
+backend-runtime, network, API, provider, download, or Git-remote call;
+API/provider cost remained `$0.00`. At the time this verification record was
+written, Milestone 6 was uncommitted and unpublished.
+
+## Milestone 6.31 — deterministic language-context information
+
+M6.31 adds one shared passive language-context section after successful normal
+and urgent results. It classifies the validated detected-input language against
+the response-owned output locale in the exact order `unknown`, `other`, Catalan
+input-only, and supported-language mismatch. A matching supported language has
+no input-language notice. The displayed response language remains separate
+from a different saved next-plan preference, and no browser language, interface
+locale, confidence score, or model-internal value is used.
+
+The section uses a semantic definition list without alert, status, live-region,
+or automatic-focus behavior. The normal-result action only focuses the existing
+action-plan-language select. Urgent language information follows all fixed
+`112` content and the official link and has no change-language action. All 25
+interface catalogs received the same twelve keys with no interpolation.
+
+This offline frontend and documentation slice changes no backend, action-plan
+schema, storage key or resolution, API field, four-field request, GPT boundary,
+provider behavior, dependency, weather, places, or action policy. At the close
+of the slice, browser and assistive-technology multilingual and RTL QA,
+independent human linguistic and safety review, final Milestone 6 verification,
+and publication remained pending. At the time this verification record was
+written, Milestone 6 was uncommitted and unpublished.
+
+## Milestone 6.32 — bounded multilingual browser and accessibility verification
+
+M6.32A used an isolated loopback Vite/mock harness to audit 13 representative
+interface/output/state combinations without touching the real backend or a
+provider. It covered LTR, RTL, and CJK content, 320px reflow, keyboard order,
+the accessibility tree, target sizing, text spacing, deterministic language-
+context placement, loading/duplicate protection, and response-owned language
+and direction. The audit identified native selector-option clipping and a
+German hero-heading overflow. The correction rendered native names only in
+both language selectors, allowed the hero copy and heading to wrap, and made
+the two narrow header controls single-column without changing catalogs or
+control semantics.
+
+M6.32B exercised actual Chrome 200% zoom and one real VoiceOver session on
+macOS with manual author confirmation. The evidence is bounded to the tested
+Chrome/macOS cases; speech was not independently logged. A Russian status
+value (`Фиксированная точка Barcelona`) exposed a remaining flex-item overflow
+at 200% zoom. M6.32B-C1 corrected only `.status-list dd` with `min-width: 0`
+and `overflow-wrap: anywhere`; focused real-Chrome rechecking confirmed the
+value wrapped without page-level horizontal overflow. These checks are not
+formal WCAG certification or universal screen-reader/cross-browser evidence.
+
+## Milestone 6.33 — translation-safety hardening and correction
+
+M6.33 strengthened the backend factual-token invariant from presence to exact
+per-leaf occurrence-count parity with English for `HeatRelay`, `Barcelona`,
+`Open-Meteo`, `GPT-5.6`, `112`, `34.0°C`, `36.0°C`, and `40.0°C`. It also
+added an exhaustive explicit allowlist of every intentional English-equal
+interface value across all 24 non-English catalogs, so either an accidental
+fallback or an unexpected allowlisted change fails closed.
+
+The new backend invariant found exactly one extra `Barcelona` token in
+`candidate_warnings.candidate_notice` for 13 locales: `ru`, `uk`, `pl`, `ja`,
+`ko`, `id`, `vi`, `th`, `tr`, `sw`, `ur`, `fa`, and `he`. M6.33-C1 replaced
+only that leaf in each catalog with a direct translation of the canonical
+factual, backend-approved candidate-place notice and updated the corresponding
+catalog characterizations. Full verification passed with 2,546 backend and
+1,323 frontend tests at that stage. Structural automation does not constitute
+native-speaker or safety approval.
+
+## Milestone 6.34 — bounded multilingual live-smoke evidence
+
+An initial Spanish-only M6.34 attempt completed one normal UI result but did
+not expose provider usage under standard Uvicorn logging. Its usage and cost
+were therefore unavailable. It remains incomplete historical evidence and is
+not counted toward C2.
+
+M6.34-C1 routed the two existing sanitized successful-call usage records
+through `uvicorn.error.heatrelay.usage` at `INFO`, without changing provider
+requests, responses, schemas, or logging configuration. The focused adapter
+suite passed 248 tests and the full backend suite passed 2,568 tests. The
+correction was offline and cost `$0.00`.
+
+M6.34-C2 was a fresh separately authorized four-case live smoke through the
+real frontend and backend. Spanish and Arabic matching normal results,
+Russian input with Hebrew output, and a Traditional Chinese matching urgent
+result each completed with one UI submission and no retry. Accounting was:
+
+- UI action-plan submissions: 4.
+- OpenAI situation-extraction calls: 4.
+- OpenAI grounded-plan calls: 3.
+- Total OpenAI calls: 7.
+- Open-Meteo calls: 3.
+- Retries: 0.
+- Aggregate input tokens: 9,223.
+- Aggregate output tokens: 792.
+- Aggregate total tokens: 10,015.
+- Conservative authorized cost bound: `$0.1628075`.
+
+The bound prices every recorded token at the supplied conservative priority
+rates without a caching discount; it is not exact provider billing. The urgent
+case made no weather or grounded-plan call. This smoke covered four scenarios,
+not all 25 locales, and establishes neither model accuracy nor translation,
+medical, accessibility, deployment, or release approval.
+
+## Milestone 6.35 — documentation synchronization and final offline verification
+
+M6.35 synchronizes the README, architecture, build log, compliance record,
+roadmap, and translation record with the implemented Milestone 6 contract. It
+changes no application code, test, catalog, schema, dependency, configuration,
+or data file. The verification was offline: no service or browser was started,
+no `.env.local` content was read, and no network, OpenAI, Open-Meteo, download,
+or Git-remote operation occurred.
+
+| Command or check | Exit status | Result |
+| --- | ---: | --- |
+| `make test` | 0 | All 2,568 backend tests and all 1,323 frontend tests passed. |
+| `make build` | 0 | `tsc --noEmit` and the Vite production build passed; Vite retained its informational large-chunk warning. |
+| `.venv/bin/python -m pip check` | 0 | No broken Python requirements were found. |
+| `env -u OPENAI_API_KEY npm --prefix frontend ls --depth=0` | 0 | The installed direct frontend dependency tree matched the manifest. |
+| Exact localization dependency check | 0 | `i18next` `26.3.6` and `react-i18next` `17.0.10` each declared MIT. |
+| Frontend/backend catalog and registry checks | 0 | Exactly 25 interface catalogs and 25 backend output catalogs were present; output order and registry/catalog parity were exact, and interface/output membership matched. |
+| Barcelona snapshot hashes | 0 | Snapshot `c958b7ba10b133132d9f1c8b98d84cd1b53644d27cbbd225b5b46bb98d89202b` and manifest `d0ce55c3dd8cd730307324a12e214fdc54ad6783b8ce97a5bb3f14ac1c783c9f` remained exact. |
+| Relative Markdown links | 0 | Eight relative links across the six synchronized documents resolved. |
+| Credential and frontend environment scans | 0 | Only three approved secret-shaped synthetic test fixtures in two backend test files were present; no production credential candidate and no OpenAI-prefixed frontend variable was found. No candidate value was printed. |
+| Trailing-whitespace and `git diff --check` checks | 0 | No project trailing whitespace or diff whitespace error was found. |
+| `git diff --cached --quiet` | 0 | The index remained empty. |
+
+The final scope comparison records five baseline-dirty documentation files
+changed, the other 75 baseline paths byte-identical, and the previously clean
+`docs/ROADMAP.md` as the only newly dirty path, for 81 dirty paths total.
+Milestone 6 implementation and M6.35 verification incurred `$0.00` incremental
+API/provider cost.
+
+All 24 non-English catalogs remain AI-assisted drafts without independent
+native-speaker, linguistic, cultural, medical, emergency, accessibility, or
+safety-critical approval. The live smoke covered four scenarios rather than
+all 25 locales; browser evidence is Chrome/macOS-specific; and VoiceOver
+evidence is one author-confirmed session without independent speech logging.
+No formal WCAG certification, universal assistive-technology support, medical
+approval, cross-browser compatibility, deployment readiness, or release
+readiness is established. At the time this verification record was written,
+Milestone 6 was uncommitted and unpublished.

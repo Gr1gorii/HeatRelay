@@ -157,8 +157,9 @@ def test_situation_endpoint_returns_exact_server_owned_contract() -> None:
 
     assert status_code == 200
     assert payload == {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "detected_input_language": "en",
+        "input_language_source": "automatically_detected",
         "preferred_language": {"status": "reported", "value": "es"},
         "vulnerability_factors": {
             "status": "reported",
@@ -206,6 +207,56 @@ def test_situation_endpoint_revalidates_bypassed_public_response() -> None:
     }
     assert service.calls == [SituationExtractionRequest(situation_text=situation_text)]
     assert situation_text not in response_text
+
+
+@pytest.mark.parametrize(
+    ("mutation", "value"),
+    [
+        pytest.param("remove", "input_language_source", id="missing-source"),
+        pytest.param(
+            "replace-source",
+            "automatically_detected",
+            id="unknown-with-automatic-source",
+        ),
+        pytest.param("replace-schema", "1.0.0", id="old-schema"),
+    ],
+)
+def test_situation_endpoint_rejects_missing_forged_or_old_language_metadata(
+    mutation: str,
+    value: str,
+) -> None:
+    situation_text = "Synthetic private forged-language-metadata case"
+    valid = build_public_response(_model_extraction("unknown"))
+    if mutation == "remove":
+        bypassed = SituationExtractionResponse.model_construct(
+            **{
+                field_name: getattr(valid, field_name)
+                for field_name in SituationExtractionResponse.model_fields
+                if field_name != value
+            }
+        )
+    elif mutation == "replace-source":
+        bypassed = valid.model_copy(update={"input_language_source": value})
+    else:
+        assert mutation == "replace-schema"
+        bypassed = valid.model_copy(update={"schema_version": value})
+    service = FakeSituationService(response=bypassed)
+
+    status_code, response_payload, response_text = _run_with_service(
+        service,
+        {"situation_text": situation_text},
+    )
+
+    assert status_code == 502
+    assert response_payload == {
+        "detail": {
+            "code": "situation_extraction_invalid_response",
+            "message": "Situation extraction returned an unusable response.",
+        }
+    }
+    assert service.calls == [SituationExtractionRequest(situation_text=situation_text)]
+    assert situation_text not in response_text
+    assert "input_language_source" not in response_text
 
 
 @pytest.mark.parametrize(
@@ -279,6 +330,11 @@ def test_multilingual_contract_fixtures_are_returned_without_inference(
 
     assert status_code == 200
     assert payload["detected_input_language"] == extraction.detected_input_language
+    assert payload["input_language_source"] == (
+        "fallback"
+        if extraction.detected_input_language == "unknown"
+        else "automatically_detected"
+    )
     assert payload["preferred_language"] == {
         "status": "not_stated",
         "value": None,

@@ -45,7 +45,8 @@ supplied publication reports, not inferred from Git author metadata.
 | Milestone 2 commit and push | **Confirmed; primary Codex build thread performed** | The supplied publication report records commit `9386d1b4ffc6b2aaf0f85a9c7617407ad2b0c337` (`feat: add multilingual situation extraction`) pushed normally to `origin/main`. |
 | Milestone 3 commit and push | **Confirmed; primary Codex build thread performed** | The supplied publication report records commit `b7c5190ca1c07c111b4d9e79587a75255f0bc67d` (`feat: add grounded Barcelona action planning`) pushed normally to `origin/main`. |
 | Milestone 4 commit and push | **Confirmed; primary Codex build thread performed** | The supplied publication report records commit `88f56a25f1f9dd372809010721ce5733701e0033` (`feat: add Barcelona action-plan frontend`) pushed normally to `origin/main`. |
-| Codex access | **Confirmed for this build context** | Milestones 0 through the Milestone 5 implementation use the designated primary Codex build thread. |
+| Milestone 5 commit and push | **Confirmed; primary Codex build thread performed** | The supplied publication report records commit `5f5d23c4ba3af9c318e8427ed717f7b5b7656a00` (`feat: add accessibility and low-vision mode`) pushed normally to `origin/main`. |
+| Codex access | **Confirmed for this build context** | Milestones 0 through the Milestone 6 implementation use the designated primary Codex build thread. |
 | Separate OpenAI API access and billing for GPT-5.6 runtime use | **Author confirmed** | The author confirmed separate API access and billing; no balance amount is published. |
 | Live GPT-5.6 extraction access | **Verified for one bounded Milestone 2 smoke on 2026-07-17** | One synthetic extraction request through the documented local backend returned HTTP 200, passed the strict public schema, and matched its expected explicit facts on the first OpenAI network attempt. No broader accuracy claim is made. |
 | Live GPT-5.6 grounded-plan access | **Historical pass-1 verification on 2026-07-17** | One direct internal plan-service request with synthetic prevalidated backend facts succeeded on the first and only Responses API attempt; strict pass-1 model-schema and exact request-candidate whitelist checks passed. The public workflow, M2 extraction, and later corrected model-facing/public-validation contract were not exercised, and no broader accuracy claim is made. |
@@ -75,8 +76,12 @@ Barcelona municipal membership and not an administrative-boundary geofence.
 
 Situation text is kept only in React memory, accepted only in the JSON body,
 and sent server-side to OpenAI. The frontend does not use browser storage,
-cookies, analytics, logging, or URL parameters for that text; only the
-visual-mode presentation preference is stored locally. HeatRelay does not
+cookies, analytics, logging, or URL parameters for that text. Explicit visual
+mode, interface language, and action-plan language preferences are stored
+locally under `heatrelay.visual-mode.v1`,
+`heatrelay.interface-locale.v1`, and `heatrelay.output-locale.v1`. Only the
+selected action-plan language code enters the four-field action-plan request;
+visual mode and interface locale do not. HeatRelay does not
 intentionally log, persist, or echo the raw text, parsed sensitive fields,
 complete provider responses, or OpenAI response IDs. The
 public extraction output is a strict structured summary and explicitly is not
@@ -138,9 +143,114 @@ independently logged, and no other screen reader was tested. These checks do
 not establish formal WCAG certification, complete conformance, or
 compatibility with every browser, platform, or assistive technology.
 
-Milestone 5 added or removed no dependency, so the direct-dependency license
-inventory below remains unchanged. Publication of the Milestone 5 working tree
-is tracked separately; no not-yet-created commit identifier is asserted here.
+Milestone 5 added or removed no dependency. Its published commit is
+`5f5d23c4ba3af9c318e8427ed717f7b5b7656a00`.
+
+## Milestone 6.30 output-language preference and privacy boundary
+
+Milestone 6 bundles 25 interface catalogs and 25 immutable backend action-plan
+output catalogs: 21 LTR and four RTL (`ar`, `ur`, `fa`, and `he`). Its closed
+detected-input contract contains 26 tags, including input-only Catalan.
+Interface locale, detected input language and source, requested output locale,
+and direction remain separate. Successful action plans use schema `1.16.0` and
+their nested situation uses schema `1.1.0`.
+
+All 25 registered action-plan output locales are selectable through one native,
+labelled form control. English remains the default. An exact valid value stored
+under `heatrelay.output-locale.v1` is restored; every missing, malformed,
+unsupported, wrong-type, inaccessible, or throwing read falls back to English
+without writing or repairing storage. Output resolution does not use browser
+language and is not coupled to interface language. Only explicit valid user
+selection writes the exact code, and a failed write does not invalidate the
+current in-memory choice.
+
+The selected code applies to the next submission and does not translate or
+replace an already displayed response. The request remains exactly four fields:
+`situation_text`, `origin`, `maximum_distance_m`, and `output_locale`. No
+visual-mode value, interface locale, local-storage metadata, or detected-input
+metadata is added. Situation text is never placed in browser storage. The
+frontend uses no analytics, cookies, URL parameters, or geolocation for these
+preferences.
+
+The frontend's English fallback applies only to invalid or unavailable stored
+preferences. Backend locale validation is exact and strict: unsupported values
+are rejected rather than normalized, inferred, translated, or silently
+replaced. Backend catalogs localize registered prose only. Facts, IDs, names,
+addresses, phone numbers, URLs, schedules, timestamps, coordinates, distances,
+weather values, order, and provenance remain backend-owned.
+
+M6.30 was an offline frontend and documentation slice. It changed no backend,
+successful-response schema, GPT prompt or payload, weather, places, or action
+policy. At the close of that slice, language-mismatch UI, live multilingual
+and RTL QA, independent human review, final Milestone 6 verification, and
+publication remained pending.
+
+## Milestone 6.31 language-context accessibility boundary
+
+Successful normal and urgent results may now be followed by a calm, labelled
+language-information section. It is derived only from the validated detected-
+input language and response output locale. The deterministic classification
+handles `unknown`, `other`, Catalan as an input-only language, and supported-
+language mismatch in that order; matching supported languages produce no input-
+language notice. No browser language, interface locale, model confidence, or
+other model-internal value participates in the classification.
+
+Displayed-plan language and next-plan preference remain distinct. Changing the
+selector after a response updates only the next-plan fact and never rewrites
+the existing response. The section has no alert, status, live-region, or
+automatic-focus semantics. A normal-result button only focuses the existing
+labelled selector. Urgent language information follows the complete fixed
+`112` instruction, actions, notices, and official link and deliberately has no
+change-language action.
+
+This offline automated accessibility slice changed no backend, schema,
+`heatrelay.output-locale.v1` storage contract, request shape, API behavior, GPT
+boundary, dependency, safety policy, weather, or place behavior. It is not
+browser, screen-reader, multilingual, RTL, or WCAG certification evidence by
+itself. At the close of M6.31, independent review, runtime QA, final
+verification, and publication remained pending.
+
+## Milestone 6 bounded verification and provider-usage evidence
+
+M6.32 exercised multilingual, bidirectional, accessibility-tree, keyboard,
+320px reflow, WCAG text-spacing, and actual 200% zoom behavior in Chrome on
+macOS. One actual VoiceOver session was manually confirmed by the author
+without independent speech logging. Product corrections addressed native-name
+selector clipping, German hero-heading wrapping, and Russian status-value
+overflow. These are bounded platform/scenario results, not formal WCAG
+certification or universal assistive-technology evidence.
+
+M6.33 added exact per-leaf preservation counts for eight protected factual
+tokens in all backend action-plan catalogs and an exhaustive explicit
+English-equality allowlist for all 24 non-English interface catalogs. The
+stronger invariant identified and corrected one candidate-warning leaf in 13
+backend catalogs; no other catalog leaf changed.
+
+M6.34-C1 made sanitized successful-call usage visible through
+`uvicorn.error.heatrelay.usage` under standard Uvicorn logging. Records contain
+only an allowlisted model and aggregate input, output, and total tokens;
+grounded-plan records also contain payload bytes. They never contain submitted
+text, model output, model-visible content, locale, public prose, candidate or
+place data, coordinates, credentials, response IDs, exceptions, provider
+bodies, or raw unapproved metadata. The correction passed 248 focused tests
+and all 2,568 backend tests offline at `$0.00` API cost.
+
+An earlier Spanish-only M6.34 attempt remains incomplete historical evidence
+because usage was unavailable; it is not counted in C2. M6.34-C2 completed
+four fresh UI submissions spanning Spanish, Arabic, Russian input with Hebrew
+output, and Traditional Chinese urgent output. It produced seven OpenAI calls,
+three Open-Meteo calls, zero retries, 9,223 input tokens, 792 output tokens,
+and 10,015 total tokens. `$0.1628075` is the deliberately conservative C2
+upper-bound calculation, not exact provider billing.
+
+All 24 non-English catalogs remain AI-assisted drafts without independent
+native-speaker, linguistic, cultural, medical, emergency, accessibility, or
+safety-critical approval. The live smoke covered four scenarios, not all 25
+locales. The evidence does not establish formal WCAG conformance, universal
+assistive-technology behavior, cross-browser compatibility, medical approval,
+deployment readiness, or release readiness. At the time this verification
+record was written, Milestone 6 was uncommitted and unpublished. Publication
+is represented by the repository commit containing this compliance revision.
 
 The second model cannot omit the backend-owned minimum safety matrix. All
 three normal priorities require the immediate `move_to_cooler_space`,
@@ -354,9 +464,9 @@ use an applicable plan and re-check the then-current terms.
 ## Direct dependency license inventory
 
 Versions are pinned in `frontend/package.json` and the backend requirements
-files. Licenses are the packages' declared upstream licenses. Milestone 5
-added or removed no dependency, so this inventory remains unchanged. The
-HeatRelay MIT license does not relicense third-party code.
+files. Licenses are the packages' declared upstream licenses. Milestone 6 adds
+the two direct localization dependencies listed below. The HeatRelay MIT
+license does not relicense third-party code.
 
 ### Frontend runtime
 
@@ -364,6 +474,8 @@ HeatRelay MIT license does not relicense third-party code.
 | --- | ---: | --- | --- |
 | [react](https://www.npmjs.com/package/react) | 19.2.7 | Component UI runtime | MIT |
 | [react-dom](https://www.npmjs.com/package/react-dom) | 19.2.7 | Browser rendering | MIT |
+| [i18next](https://www.npmjs.com/package/i18next) | 26.3.6 | Bundled interface-catalog runtime | MIT |
+| [react-i18next](https://www.npmjs.com/package/react-i18next) | 17.0.10 | React localization bindings | MIT |
 
 ### Frontend development and testing
 

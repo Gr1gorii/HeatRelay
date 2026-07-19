@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from datetime import date, datetime, timedelta, timezone
 from typing import Annotated, Literal, get_args
 
@@ -17,6 +17,17 @@ from pydantic import (
     model_validator,
 )
 
+from backend.app.action_plan_catalog import (
+    ACTION_PLAN_CATALOGS,
+    FIXED_LOCAL_PHRASES,
+    ActionPlanCatalog,
+    get_action_plan_catalog,
+)
+from backend.app.localization import (
+    DEFAULT_OUTPUT_LOCALE,
+    OutputLocale,
+    require_supported_output_locale,
+)
 from backend.app.grounded_plan import (
     BRING_ITEM_ORDER,
     EXPLANATION_REASON_ORDER,
@@ -42,11 +53,7 @@ from backend.app.grounded_plan import (
     validate_grounded_plan,
 )
 from backend.app.places import (
-    CANDIDATE_NOTICE,
-    EMPTY_EXPLANATION,
-    HOURS_WARNING,
     MADRID_TIMEZONE,
-    MATCH_EXPLANATION,
     OFFICIAL_DATASET_URL,
     Address,
     CandidatePlace,
@@ -81,7 +88,7 @@ from backend.app.weather import (
 )
 
 ACTION_PLAN_ENDPOINT_PATH = "/api/v1/action-plan"
-ACTION_PLAN_SCHEMA_VERSION = "1.0.0"
+ACTION_PLAN_SCHEMA_VERSION = "1.16.0"
 ACTION_POLICY_VERSION = "heatrelay-barcelona-action-policy-1.0.0"
 DEFAULT_MAXIMUM_DISTANCE_M = 3_000
 MINIMUM_DISTANCE_PREFERENCE_M = 100
@@ -114,43 +121,57 @@ INVALID_ACTION_PLAN_REQUEST_MESSAGE = "Action-plan request is invalid."
 ACTION_PLAN_UNAVAILABLE_CODE = "action_plan_unavailable"
 ACTION_PLAN_UNAVAILABLE_MESSAGE = "Action-plan workflow is temporarily unavailable."
 
-MODEL_DERIVED_POLICY_NOTICE = (
-    "HeatRelay applies transparent Barcelona policy heuristics to bounded "
-    "situation facts and, for non-urgent cases, model-derived weather context. "
-    "This does not prove that an official alert or emergency has been activated."
-)
-NORMAL_PLAN_NOTICE = (
-    "This is informational heat-safety planning, not medical advice, a route, "
-    "or a guarantee that a place will remain available."
-)
+_ENGLISH_ACTION_PLAN_CATALOG = get_action_plan_catalog("en")
+
+# Compatibility aliases for existing backend consumers and tests. Each alias
+# points into the one authoritative immutable English catalog.
+MODEL_DERIVED_POLICY_NOTICE = _ENGLISH_ACTION_PLAN_CATALOG.policy_notice
+NORMAL_PLAN_NOTICE = _ENGLISH_ACTION_PLAN_CATALOG.normal_notice
 HOURS_REACHABILITY_NOTICE = (
-    "A place being open at the evaluation time does not prove that it can be "
-    "reached before closing."
+    _ENGLISH_ACTION_PLAN_CATALOG.candidate_warnings["reachability"]
 )
-DISTANCE_NOTICE = (
-    "Distances are straight-line estimates only; HeatRelay does not provide "
-    "routes or travel-time estimates."
-)
-URGENT_MEDICAL_NOTICE = (
-    "Climate shelters are not substitutes for medical attention."
-)
-URGENT_NO_PLAN_NOTICE = (
-    "Because a bounded warning symptom was explicitly reported, HeatRelay "
-    "did not retrieve weather or places and did not ask GPT-5.6 for a plan."
-)
+DISTANCE_NOTICE = _ENGLISH_ACTION_PLAN_CATALOG.candidate_warnings["distance"]
+URGENT_MEDICAL_NOTICE = _ENGLISH_ACTION_PLAN_CATALOG.urgent_actions[
+    "do_not_use_shelter_as_medical_substitute"
+]
+URGENT_NO_PLAN_NOTICE = _ENGLISH_ACTION_PLAN_CATALOG.urgent_notices[1]
 MOVEMENT_PROHIBITED_EXPLANATION = (
-    "No travel candidate is returned because the normalized situation "
-    "explicitly reports that leaving is not currently possible."
+    _ENGLISH_ACTION_PLAN_CATALOG.candidate_explanations[
+        "movement_prohibited"
+    ]
 )
 TRAVEL_COMPATIBILITY_UNPROVEN_EXPLANATION = (
-    "No immediate travel candidate is returned because compatibility with "
-    "the explicitly reported time or mobility constraint cannot be proven "
-    "from the retained server-owned facts."
+    _ENGLISH_ACTION_PLAN_CATALOG.candidate_explanations[
+        "unresolved_travel_compatibility"
+    ]
 )
 TRAVEL_COMPATIBILITY_UNPROVEN_NOTICE = (
-    "Immediate travel was not offered because compatibility with an "
-    "explicitly reported time or mobility constraint could not be verified."
+    _ENGLISH_ACTION_PLAN_CATALOG.unresolved_travel_notice
 )
+HOURS_WARNING = _ENGLISH_ACTION_PLAN_CATALOG.candidate_warnings["hours"]
+CANDIDATE_NOTICE = _ENGLISH_ACTION_PLAN_CATALOG.candidate_warnings[
+    "candidate_notice"
+]
+MATCH_EXPLANATION = _ENGLISH_ACTION_PLAN_CATALOG.candidate_explanations[
+    "matched_candidate"
+]
+EMPTY_EXPLANATION = _ENGLISH_ACTION_PLAN_CATALOG.candidate_explanations[
+    "no_candidate"
+]
+
+
+def _require_registered_catalog_value(
+    value: str,
+    selector: Callable[[ActionPlanCatalog], str],
+    field_name: str,
+) -> str:
+    if any(
+        value == selector(catalog)
+        for catalog in ACTION_PLAN_CATALOGS.values()
+    ):
+        return value
+    raise ValueError(f"{field_name} must equal a registered catalog value")
+
 
 ActionPriority = Literal[
     "urgent_help",
@@ -230,6 +251,7 @@ class ActionPlanRequest(StrictModel):
             le=MAXIMUM_DISTANCE_PREFERENCE_M,
         ),
     ] = DEFAULT_MAXIMUM_DISTANCE_M
+    output_locale: OutputLocale = DEFAULT_OUTPUT_LOCALE
 
     @field_validator("situation_text", mode="before")
     @classmethod
@@ -257,69 +279,69 @@ class PolicySource(StrictModel):
     heatrelay_rule: str
 
 
-POLICY_SOURCES: tuple[PolicySource, ...] = (
-    PolicySource(
-        publisher="Ajuntament de Barcelona — Serveis Socials",
-        url=(
+_POLICY_SOURCE_FACTS: tuple[tuple[str, str, date], ...] = (
+    (
+        "Ajuntament de Barcelona — Serveis Socials",
+        (
             "https://ajuntament.barcelona.cat/serveissocials/es/noticia/"
             "crece-la-red-de-refugios-climaticos-para-protegerse-del-"
             "calor_1523924"
         ),
-        accessed_on=date(2026, 7, 17),
-        heatrelay_rule=(
-            "Use the published 34.0°C and 36.0°C daytime boundaries only as "
-            "versioned HeatRelay policy heuristics over same-day model-derived "
-            "maximum temperature, never as proof of municipal activation."
-        ),
+        date(2026, 7, 17),
     ),
-    PolicySource(
-        publisher="Ajuntament de Barcelona — Barcelona pel Clima",
-        url=(
+    (
+        "Ajuntament de Barcelona — Barcelona pel Clima",
+        (
             "https://www.barcelona.cat/barcelona-pel-clima/ca/accions-"
             "concretes/xarxa-de-refugis-climatics"
         ),
-        accessed_on=date(2026, 7, 17),
-        heatrelay_rule=(
-            "Retain the check-hours warning and never offer a climate shelter "
-            "as a substitute for medical attention."
-        ),
+        date(2026, 7, 17),
     ),
-    PolicySource(
-        publisher="Generalitat de Catalunya — Canal Salut",
-        url=(
+    (
+        "Generalitat de Catalunya — Canal Salut",
+        (
             "https://canalsalut.gencat.cat/ca/vida-saludable/consells-"
             "estacionals/estiu/calor/efectes-exces/"
         ),
-        accessed_on=date(2026, 7, 17),
-        heatrelay_rule=(
-            "An explicitly reported bounded warning symptom takes the urgent "
-            "branch and bypasses normal weather, place, and plan generation."
-        ),
+        date(2026, 7, 17),
     ),
-    PolicySource(
-        publisher="Generalitat de Catalunya — 112 emergències",
-        url="https://112.gencat.cat/es/us-del-112/preguntes-frequeents/",
-        accessed_on=date(2026, 7, 17),
-        heatrelay_rule=(
-            "Route every value in the current closed bounded warning-symptom "
-            "catalog to fixed backend-owned 112 contact content."
-        ),
+    (
+        "Generalitat de Catalunya — 112 emergències",
+        "https://112.gencat.cat/es/us-del-112/preguntes-frequeents/",
+        date(2026, 7, 17),
     ),
-    PolicySource(
-        publisher="World Health Organization",
-        url=(
+    (
+        "World Health Organization",
+        (
             "https://www.who.int/news-room/fact-sheets/detail/climate-change-"
             "heat-and-health"
         ),
-        accessed_on=date(2026, 7, 17),
-        heatrelay_rule=(
-            "Keep the result informational and deterministic; do not diagnose "
-            "or create a medical risk score. Offer reported fan-only cooling "
-            "only when both current and same-day maximum temperatures are "
-            "strictly below 40.0°C."
-        ),
+        date(2026, 7, 17),
     ),
 )
+
+
+def _policy_sources_for_locale(
+    output_locale: OutputLocale,
+) -> tuple[PolicySource, ...]:
+    catalog = get_action_plan_catalog(output_locale)
+    if len(catalog.policy_rules) != len(_POLICY_SOURCE_FACTS):
+        raise ValueError("policy catalog must cover every fixed source")
+    return tuple(
+        PolicySource(
+            publisher=publisher,
+            url=url,
+            accessed_on=accessed_on,
+            heatrelay_rule=rule,
+        )
+        for (publisher, url, accessed_on), rule in zip(
+            _POLICY_SOURCE_FACTS,
+            catalog.policy_rules,
+        )
+    )
+
+
+POLICY_SOURCES = _policy_sources_for_locale(DEFAULT_OUTPUT_LOCALE)
 
 
 class PriorityDecision(StrictModel):
@@ -330,9 +352,7 @@ class PriorityDecision(StrictModel):
         Field(min_length=1, max_length=len(PRIORITY_REASON_ORDER)),
     ]
     sources: Annotated[list[PolicySource], Field(min_length=len(POLICY_SOURCES))]
-    notice: Literal[
-        "HeatRelay applies transparent Barcelona policy heuristics to bounded situation facts and, for non-urgent cases, model-derived weather context. This does not prove that an official alert or emergency has been activated."
-    ]
+    notice: str
 
     @field_validator("reason_codes")
     @classmethod
@@ -348,7 +368,11 @@ class PriorityDecision(StrictModel):
 
     @model_validator(mode="after")
     def validate_server_owned_policy(self) -> PriorityDecision:
-        if self.sources != list(POLICY_SOURCES):
+        if not any(
+            self.sources == list(_policy_sources_for_locale(locale))
+            and self.notice == catalog.policy_notice
+            for locale, catalog in ACTION_PLAN_CATALOGS.items()
+        ):
             raise ValueError("priority sources must equal the policy catalog")
         return self
 
@@ -356,8 +380,12 @@ class PriorityDecision(StrictModel):
 def determine_action_priority(
     situation: SituationExtractionResponse,
     same_day_max_temperature_c: float | None,
+    *,
+    output_locale: OutputLocale = DEFAULT_OUTPUT_LOCALE,
 ) -> PriorityDecision:
     """Apply closed precedence; GPT has no influence over this result."""
+
+    catalog = get_action_plan_catalog(output_locale)
 
     symptoms = situation.reported_symptoms
     if symptoms.status == "reported" and symptoms.values:
@@ -412,8 +440,8 @@ def determine_action_priority(
         policy_version=ACTION_POLICY_VERSION,
         priority=priority,
         reason_codes=reasons,
-        sources=list(POLICY_SOURCES),
-        notice=MODEL_DERIVED_POLICY_NOTICE,
+        sources=list(_policy_sources_for_locale(output_locale)),
+        notice=catalog.policy_notice,
     )
 
 
@@ -424,14 +452,81 @@ UrgentActionCode = Literal[
 ]
 
 
+class ActionPlanSituationProjection(SituationExtractionResponse):
+    """Action-plan-owned situation projection with catalog-managed notice."""
+
+    notice: str
+
+    @field_validator("notice")
+    @classmethod
+    def validate_catalog_notice(cls, value: str) -> str:
+        return _require_registered_catalog_value(
+            value,
+            lambda catalog: catalog.situation_notice,
+            "situation notice",
+        )
+
+
+class ActionPlanWeatherProjection(WeatherContextResponse):
+    """Action-plan-owned weather projection with catalog-managed notice."""
+
+    notice: str
+
+    @field_validator("notice")
+    @classmethod
+    def validate_catalog_notice(cls, value: str) -> str:
+        return _require_registered_catalog_value(
+            value,
+            lambda catalog: catalog.weather_notice,
+            "weather notice",
+        )
+
+
+def project_action_plan_situation(
+    situation: SituationExtractionResponse,
+    output_locale: OutputLocale,
+) -> ActionPlanSituationProjection:
+    """Strictly revalidate standalone facts before catalog notice projection."""
+
+    validated = SituationExtractionResponse.model_validate_json(
+        situation.model_dump_json()
+    )
+    payload = validated.model_dump(mode="python")
+    payload["notice"] = get_action_plan_catalog(output_locale).situation_notice
+    return ActionPlanSituationProjection.model_validate(payload)
+
+
+def project_action_plan_weather(
+    weather: WeatherContextResponse,
+    output_locale: OutputLocale,
+) -> ActionPlanWeatherProjection:
+    """Strictly revalidate standalone facts before catalog notice projection."""
+
+    validated = WeatherContextResponse.model_validate_json(
+        weather.model_dump_json()
+    )
+    payload = validated.model_dump(mode="python")
+    payload["notice"] = get_action_plan_catalog(output_locale).weather_notice
+    return ActionPlanWeatherProjection.model_validate(payload)
+
+
 class UrgentContact(StrictModel):
     code: Literal["112"]
     service: Literal["112 emergències"]
     number: Literal["112"]
-    instruction: Literal["Call 112 now for emergency assistance."]
+    instruction: str
     source_url: Literal[
         "https://112.gencat.cat/es/us-del-112/preguntes-frequeents/"
     ]
+
+    @field_validator("instruction")
+    @classmethod
+    def validate_catalog_instruction(cls, value: str) -> str:
+        return _require_registered_catalog_value(
+            value,
+            lambda catalog: catalog.urgent_contact_instruction,
+            "urgent contact instruction",
+        )
 
 
 class UrgentAction(StrictModel):
@@ -472,27 +567,48 @@ class HydratedGroundedPlan(StrictModel):
     bring_items: list[HydratedBringItem]
     explanations: list[HydratedExplanation]
     local_phrase: HydratedLocalPhrase | None
-    notice: Literal[
-        "This is informational heat-safety planning, not medical advice, a route, or a guarantee that a place will remain available."
-    ]
+    notice: str
+
+    @field_validator("notice")
+    @classmethod
+    def validate_catalog_notice(cls, value: str) -> str:
+        return _require_registered_catalog_value(
+            value,
+            lambda catalog: catalog.normal_notice,
+            "normal plan notice",
+        )
 
 
 class CandidateContext(StrictModel):
     eligible_candidate_count: Annotated[int, Field(ge=0, le=3)]
     snapshot: SnapshotProvenance
     explanation: str
-    hours_warning: Literal[
-        "Municipal opening hours may change; check the official source before travel."
-    ]
-    candidate_notice: Literal[
-        "These are factual, backend-approved candidate places, not medical recommendations."
-    ]
-    distance_warning: Literal[
-        "Distances are straight-line estimates only; HeatRelay does not provide routes or travel-time estimates."
-    ]
-    reachability_warning: Literal[
-        "A place being open at the evaluation time does not prove that it can be reached before closing."
-    ]
+    hours_warning: str
+    candidate_notice: str
+    distance_warning: str
+    reachability_warning: str
+
+    @model_validator(mode="after")
+    def validate_catalog_warning_bundle(self) -> CandidateContext:
+        if not any(
+            (
+                self.hours_warning,
+                self.candidate_notice,
+                self.distance_warning,
+                self.reachability_warning,
+            )
+            == (
+                catalog.candidate_warnings["hours"],
+                catalog.candidate_warnings["candidate_notice"],
+                catalog.candidate_warnings["distance"],
+                catalog.candidate_warnings["reachability"],
+            )
+            for catalog in ACTION_PLAN_CATALOGS.values()
+        ):
+            raise ValueError(
+                "candidate warnings must equal one registered catalog bundle"
+            )
+        return self
 
 
 class SelectedCandidatePlace(StrictModel):
@@ -522,9 +638,10 @@ class SelectedCandidatePlace(StrictModel):
 
 class UrgentActionPlanResponse(StrictModel):
     branch: Literal["urgent"]
-    schema_version: Literal["1.0.0"]
+    schema_version: Literal["1.16.0"]
+    output_locale: OutputLocale
     evaluation_time: AwareDatetime
-    situation: SituationExtractionResponse
+    situation: ActionPlanSituationProjection
     priority: PriorityDecision
     urgent_contact: UrgentContact
     actions: list[UrgentAction]
@@ -532,6 +649,9 @@ class UrgentActionPlanResponse(StrictModel):
 
     @model_validator(mode="after")
     def validate_urgent_contract(self) -> UrgentActionPlanResponse:
+        catalog = get_action_plan_catalog(self.output_locale)
+        if self.situation.notice != catalog.situation_notice:
+            raise ValueError("urgent situation notice must equal the catalog")
         symptoms = self.situation.reported_symptoms
         if (
             symptoms.status != "reported"
@@ -539,33 +659,46 @@ class UrgentActionPlanResponse(StrictModel):
             or not set(symptoms.values).issubset(UNIVERSAL_URGENT_112_SYMPTOMS)
         ):
             raise ValueError("urgent response requires reported bounded symptoms")
-        expected_priority = determine_action_priority(self.situation, None)
+        expected_priority = determine_action_priority(
+            self.situation,
+            None,
+            output_locale=self.output_locale,
+        )
         if self.priority != expected_priority:
             raise ValueError("urgent response priority is inconsistent")
         expected_actions = [
             UrgentAction(
                 code="contact_emergency_service_now",
-                text="Call 112 now.",
+                text=catalog.urgent_actions[
+                    "contact_emergency_service_now"
+                ],
             ),
             UrgentAction(
                 code="do_not_use_shelter_as_medical_substitute",
-                text=URGENT_MEDICAL_NOTICE,
+                text=catalog.urgent_actions[
+                    "do_not_use_shelter_as_medical_substitute"
+                ],
             ),
         ]
-        if self.actions != expected_actions:
+        if (
+            self.urgent_contact.instruction
+            != catalog.urgent_contact_instruction
+            or self.actions != expected_actions
+        ):
             raise ValueError("urgent response actions must equal the fixed catalog")
-        if self.notices != [URGENT_MEDICAL_NOTICE, URGENT_NO_PLAN_NOTICE]:
+        if self.notices != list(catalog.urgent_notices):
             raise ValueError("urgent response notices must equal the fixed catalog")
         return self
 
 
 class NormalActionPlanResponse(StrictModel):
     branch: Literal["normal"]
-    schema_version: Literal["1.0.0"]
+    schema_version: Literal["1.16.0"]
+    output_locale: OutputLocale
     evaluation_time: AwareDatetime
-    situation: SituationExtractionResponse
+    situation: ActionPlanSituationProjection
     priority: PriorityDecision
-    weather: WeatherContextResponse
+    weather: ActionPlanWeatherProjection
     plan: HydratedGroundedPlan
     selected_place: SelectedCandidatePlace | None
     candidate_context: CandidateContext
@@ -573,6 +706,12 @@ class NormalActionPlanResponse(StrictModel):
 
     @model_validator(mode="after")
     def validate_normal_contract(self) -> NormalActionPlanResponse:
+        catalog = get_action_plan_catalog(self.output_locale)
+        if (
+            self.situation.notice != catalog.situation_notice
+            or self.weather.notice != catalog.weather_notice
+        ):
+            raise ValueError("normal projection notices must equal the catalog")
         if (
             self.priority.priority == "urgent_help"
             or self.situation.reported_symptoms.status == "reported"
@@ -581,11 +720,12 @@ class NormalActionPlanResponse(StrictModel):
         expected_priority = determine_action_priority(
             self.situation,
             self.weather.today.temperature_max_c,
+            output_locale=self.output_locale,
         )
         if self.priority != expected_priority:
             raise ValueError("normal response priority is inconsistent")
         try:
-            ActionPlanWorkflow._validate_weather_coherence(
+            ActionPlanWorkflow._validate_weather_facts(
                 self.weather,
                 self.evaluation_time,
             )
@@ -593,15 +733,19 @@ class NormalActionPlanResponse(StrictModel):
             raise ValueError("normal response weather is incoherent") from error
 
         phase_catalogs = (
-            (self.plan.now, NOW_ACTION_TEXT, NOW_ACTION_ORDER),
+            (self.plan.now, catalog.now_actions, NOW_ACTION_ORDER),
             (
                 self.plan.next_few_hours,
-                NEXT_ACTION_TEXT,
+                catalog.next_few_hours_actions,
                 NEXT_FEW_HOURS_ACTION_ORDER,
             ),
-            (self.plan.tonight, TONIGHT_ACTION_TEXT, TONIGHT_ACTION_ORDER),
+            (
+                self.plan.tonight,
+                catalog.tonight_actions,
+                TONIGHT_ACTION_ORDER,
+            ),
         )
-        for phase, catalog, canonical_order in phase_catalogs:
+        for phase, action_text, canonical_order in phase_catalogs:
             codes = [action.code for action in phase.actions]
             if (
                 len(codes) != len(set(codes))
@@ -609,17 +753,20 @@ class NormalActionPlanResponse(StrictModel):
             ):
                 raise ValueError("hydrated actions must be unique and canonical")
             for action in phase.actions:
-                if action.code not in catalog or (
+                if action.code not in action_text or (
                     action.text,
                     action.explanation,
-                ) != catalog[action.code]:
+                ) != action_text[action.code]:
                     raise ValueError("hydrated action text must equal the catalog")
 
         item_codes = [item.code for item in self.plan.bring_items]
         if (
             len(item_codes) != len(set(item_codes))
             or item_codes != [code for code in BRING_ITEM_ORDER if code in item_codes]
-            or any(item.text != BRING_ITEM_TEXT[item.code] for item in self.plan.bring_items)
+            or any(
+                item.text != catalog.bring_items[item.code]
+                for item in self.plan.bring_items
+            )
         ):
             raise ValueError("hydrated bring items must equal the catalog")
         explanation_codes = [item.code for item in self.plan.explanations]
@@ -632,18 +779,20 @@ class NormalActionPlanResponse(StrictModel):
                 if code in explanation_codes
             ]
             or any(
-                item.text != EXPLANATION_TEXT[item.code]
+                item.text != catalog.explanations[item.code]
                 for item in self.plan.explanations
             )
         ):
             raise ValueError("hydrated explanations must equal the catalog")
         if self.plan.local_phrase is not None:
             phrase = self.plan.local_phrase
-            if phrase.code not in LOCAL_PHRASES or (
+            if phrase.code not in FIXED_LOCAL_PHRASES or (
                 phrase.language,
                 phrase.text,
-            ) != LOCAL_PHRASES[phrase.code]:
+            ) != FIXED_LOCAL_PHRASES[phrase.code]:
                 raise ValueError("hydrated local phrase must equal the catalog")
+        if self.plan.notice != catalog.normal_notice:
+            raise ValueError("normal plan notice must equal the catalog")
 
         contract = derive_normal_plan_contract(
             self.situation,
@@ -759,27 +908,44 @@ class NormalActionPlanResponse(StrictModel):
             raise ValueError("selected place chronology is inconsistent")
 
         if contract.movement_prohibited:
-            expected_explanation = MOVEMENT_PROHIBITED_EXPLANATION
+            expected_explanation = catalog.candidate_explanations[
+                "movement_prohibited"
+            ]
         elif contract.travel_compatibility_unproven:
-            expected_explanation = TRAVEL_COMPATIBILITY_UNPROVEN_EXPLANATION
+            expected_explanation = catalog.candidate_explanations[
+                "unresolved_travel_compatibility"
+            ]
         else:
             expected_explanation = (
-                MATCH_EXPLANATION
+                catalog.candidate_explanations["matched_candidate"]
                 if self.candidate_context.eligible_candidate_count
-                else EMPTY_EXPLANATION
+                else catalog.candidate_explanations["no_candidate"]
             )
         if self.candidate_context.explanation != expected_explanation:
             raise ValueError("candidate explanation is inconsistent")
 
+        expected_candidate_warnings = catalog.candidate_warnings
+        if (
+            self.candidate_context.hours_warning
+            != expected_candidate_warnings["hours"]
+            or self.candidate_context.candidate_notice
+            != expected_candidate_warnings["candidate_notice"]
+            or self.candidate_context.distance_warning
+            != expected_candidate_warnings["distance"]
+            or self.candidate_context.reachability_warning
+            != expected_candidate_warnings["reachability"]
+        ):
+            raise ValueError("candidate warnings must equal the catalog")
+
         expected_notices = [
-            MODEL_DERIVED_POLICY_NOTICE,
-            HOURS_WARNING,
-            DISTANCE_NOTICE,
-            HOURS_REACHABILITY_NOTICE,
-            NORMAL_PLAN_NOTICE,
+            catalog.policy_notice,
+            catalog.candidate_warnings["hours"],
+            catalog.candidate_warnings["distance"],
+            catalog.candidate_warnings["reachability"],
+            catalog.normal_notice,
         ]
         if contract.travel_compatibility_unproven:
-            expected_notices.append(TRAVEL_COMPATIBILITY_UNPROVEN_NOTICE)
+            expected_notices.append(catalog.unresolved_travel_notice)
         if self.notices != expected_notices:
             raise ValueError("normal response notices are inconsistent")
         return self
@@ -808,6 +974,11 @@ def validate_action_plan_response(
         validated = _ACTION_PLAN_RESPONSE_ADAPTER.validate_json(
             response.model_dump_json()
         )
+        requested_output_locale = require_supported_output_locale(
+            request.output_locale
+        )
+        if validated.output_locale != requested_output_locale:
+            raise ValueError("response output locale does not match request")
         _validate_trusted_evaluation_interval(
             validated.evaluation_time,
             evaluation_started_at=evaluation_started_at,
@@ -907,116 +1078,12 @@ def _validate_normal_response_against_repository(
         raise ValueError("selected place differs from committed candidate facts")
 
 
-NOW_ACTION_TEXT: dict[NowActionCode, tuple[str, str]] = {
-    "move_to_cooler_space": (
-        "Move to the coolest available spot where you already are.",
-        "Reducing heat exposure is useful without assuming travel is possible.",
-    ),
-    "reduce_physical_effort": (
-        "Reduce physical effort for now.",
-        "Lower exertion can reduce additional heat load.",
-    ),
-    "drink_water": (
-        "Drink water regularly if you can do so safely.",
-        "Hydration is a standard heat-safety measure.",
-    ),
-    "use_available_home_cooling": (
-        "Use the cooling equipment you explicitly reported having.",
-        "This action relies only on reported cooling access.",
-    ),
-    "contact_support_person": (
-        "Contact a trusted person before considering travel.",
-        "The reported constraints indicate that travelling alone is not suitable.",
-    ),
-    "remain_at_current_location": (
-        "Remain at your current location and use non-travel cooling steps.",
-        "A reported constraint currently prohibits leaving.",
-    ),
-    "travel_to_selected_place": (
-        "Consider the selected verified-open candidate only after checking its current hours.",
-        "The place was in this request's backend-approved candidate set.",
-    ),
-}
-NEXT_ACTION_TEXT: dict[NextFewHoursActionCode, tuple[str, str]] = {
-    "keep_drinking_water": (
-        "Keep water available and drink regularly if safe for you.",
-        "Ongoing hydration is a standard heat-safety measure.",
-    ),
-    "stay_in_cool_space": (
-        "Spend the next few hours in the coolest suitable space available.",
-        "This reduces continued heat exposure.",
-    ),
-    "check_updated_weather": (
-        "Check updated weather information from a reliable source.",
-        "Model-derived conditions can change after this response.",
-    ),
-    "check_on_household_members": (
-        "Check on household members who may need help staying cool.",
-        "This action applies only as a general household check.",
-    ),
-    "prepare_for_tonight": (
-        "Prepare the coolest available sleeping space before evening.",
-        "Advance preparation can make the night-time environment safer.",
-    ),
-}
-TONIGHT_ACTION_TEXT: dict[TonightActionCode, tuple[str, str]] = {
-    "ventilate_when_outside_is_cooler": (
-        "Ventilate only when the outside air is cooler than indoors.",
-        "This avoids assuming that opening windows is always cooling.",
-    ),
-    "sleep_in_coolest_available_room": (
-        "Use the coolest suitable room available for sleep.",
-        "This reduces night-time heat exposure.",
-    ),
-    "keep_water_nearby": (
-        "Keep water nearby overnight if safe for you.",
-        "This makes hydration easier to maintain.",
-    ),
-    "check_updated_weather_tonight": (
-        "Check updated night-time weather information from a reliable source.",
-        "This plan does not predict later conditions or official warnings.",
-    ),
-}
-BRING_ITEM_TEXT: dict[BringItemCode, str] = {
-    "water": "Water",
-    "phone": "A charged phone",
-    "keys": "Keys",
-    "light_clothing": "Light clothing",
-}
-EXPLANATION_TEXT: dict[ExplanationReasonCode, str] = {
-    "forecast_at_or_above_36c": "The model-derived same-day maximum meets the 36.0°C HeatRelay policy boundary.",
-    "forecast_at_or_above_34c": "The model-derived same-day maximum meets the 34.0°C HeatRelay policy boundary.",
-    "reported_vulnerability": "The extracted profile contains an explicitly reported vulnerability factor.",
-    "no_home_cooling": "The extracted profile explicitly reports no home cooling.",
-    "temporary_or_unsheltered_housing": "The extracted profile explicitly reports temporary or unsheltered housing.",
-    "reported_mobility_constraint": "The extracted profile contains an explicitly reported mobility constraint.",
-    "verified_open_candidate": "The selected place was verified open at the server-owned evaluation instant.",
-    "travel_support_required": "The extracted profile explicitly reports that travel alone is not possible.",
-    "movement_prohibited": "The extracted profile explicitly reports that leaving is not currently possible.",
-    "unresolved_travel_constraint": (
-        "Immediate travel compatibility could not be verified from the "
-        "retained time or mobility facts."
-    ),
-    "baseline_monitoring": "No higher HeatRelay policy rule matched the bounded inputs.",
-}
-LOCAL_PHRASES: dict[LocalPhraseCode, tuple[Literal["es", "ca"], str]] = {
-    "spanish_request_cool_space": (
-        "es",
-        "Necesito un lugar fresco, por favor.",
-    ),
-    "spanish_request_accessible_entry": (
-        "es",
-        "Necesito una entrada accesible, por favor.",
-    ),
-    "catalan_request_cool_space": (
-        "ca",
-        "Necessito un lloc fresc, si us plau.",
-    ),
-    "catalan_request_accessible_entry": (
-        "ca",
-        "Necessito una entrada accessible, si us plau.",
-    ),
-}
+NOW_ACTION_TEXT = _ENGLISH_ACTION_PLAN_CATALOG.now_actions
+NEXT_ACTION_TEXT = _ENGLISH_ACTION_PLAN_CATALOG.next_few_hours_actions
+TONIGHT_ACTION_TEXT = _ENGLISH_ACTION_PLAN_CATALOG.tonight_actions
+BRING_ITEM_TEXT = _ENGLISH_ACTION_PLAN_CATALOG.bring_items
+EXPLANATION_TEXT = _ENGLISH_ACTION_PLAN_CATALOG.explanations
+LOCAL_PHRASES = FIXED_LOCAL_PHRASES
 
 
 def _reported_values(situation: SituationExtractionResponse, field: str) -> set[str]:
@@ -1276,17 +1343,22 @@ def build_grounded_plan_context(
     )
 
 
-def hydrate_grounded_plan(plan: ModelGroundedPlan) -> HydratedGroundedPlan:
+def hydrate_grounded_plan(
+    plan: ModelGroundedPlan,
+    output_locale: OutputLocale,
+) -> HydratedGroundedPlan:
+    catalog = get_action_plan_catalog(output_locale)
+
     def actions(
         codes: list[str],
-        catalog: dict[str, tuple[str, str]],
+        action_text: Mapping[str, tuple[str, str]],
     ) -> HydratedPlanPhase:
         return HydratedPlanPhase(
             actions=[
                 HydratedAction(
                     code=code,
-                    text=catalog[code][0],
-                    explanation=catalog[code][1],
+                    text=action_text[code][0],
+                    explanation=action_text[code][1],
                 )
                 for code in codes
             ]
@@ -1294,29 +1366,37 @@ def hydrate_grounded_plan(plan: ModelGroundedPlan) -> HydratedGroundedPlan:
 
     phrase = None
     if plan.local_phrase_code is not None:
-        phrase_language, phrase_text = LOCAL_PHRASES[plan.local_phrase_code]
+        phrase_language, phrase_text = FIXED_LOCAL_PHRASES[
+            plan.local_phrase_code
+        ]
         phrase = HydratedLocalPhrase(
             code=plan.local_phrase_code,
             language=phrase_language,
             text=phrase_text,
         )
     return HydratedGroundedPlan(
-        now=actions(plan.now.action_codes, NOW_ACTION_TEXT),  # type: ignore[arg-type]
+        now=actions(  # type: ignore[arg-type]
+            plan.now.action_codes,
+            catalog.now_actions,
+        ),
         next_few_hours=actions(  # type: ignore[arg-type]
             plan.next_few_hours.action_codes,
-            NEXT_ACTION_TEXT,
+            catalog.next_few_hours_actions,
         ),
-        tonight=actions(plan.tonight.action_codes, TONIGHT_ACTION_TEXT),  # type: ignore[arg-type]
+        tonight=actions(  # type: ignore[arg-type]
+            plan.tonight.action_codes,
+            catalog.tonight_actions,
+        ),
         bring_items=[
-            HydratedBringItem(code=code, text=BRING_ITEM_TEXT[code])
+            HydratedBringItem(code=code, text=catalog.bring_items[code])
             for code in plan.bring_items
         ],
         explanations=[
-            HydratedExplanation(code=code, text=EXPLANATION_TEXT[code])
+            HydratedExplanation(code=code, text=catalog.explanations[code])
             for code in plan.explanation_reasons
         ],
         local_phrase=phrase,
-        notice=NORMAL_PLAN_NOTICE,
+        notice=catalog.normal_notice,
     )
 
 
@@ -1348,7 +1428,13 @@ def build_urgent_response(
     situation: SituationExtractionResponse,
     evaluation_time: datetime,
     priority: PriorityDecision,
+    output_locale: OutputLocale,
 ) -> UrgentActionPlanResponse:
+    try:
+        output_locale = require_supported_output_locale(output_locale)
+        catalog = get_action_plan_catalog(output_locale)
+    except ValueError as error:
+        raise ActionPlanWorkflowUnavailable() from error
     reported = frozenset(situation.reported_symptoms.values)
     if (
         situation.reported_symptoms.status != "reported"
@@ -1360,31 +1446,37 @@ def build_urgent_response(
         code="112",
         service="112 emergències",
         number="112",
-        instruction="Call 112 now for emergency assistance.",
+        instruction=catalog.urgent_contact_instruction,
         source_url=(
             "https://112.gencat.cat/es/us-del-112/preguntes-frequeents/"
         ),
     )
     contact_action = UrgentAction(
         code="contact_emergency_service_now",
-        text="Call 112 now.",
+        text=catalog.urgent_actions["contact_emergency_service_now"],
     )
     try:
         return UrgentActionPlanResponse(
             branch="urgent",
             schema_version=ACTION_PLAN_SCHEMA_VERSION,
+            output_locale=output_locale,
             evaluation_time=evaluation_time,
-            situation=situation,
+            situation=project_action_plan_situation(
+                situation,
+                output_locale,
+            ),
             priority=priority,
             urgent_contact=contact,
             actions=[
                 contact_action,
                 UrgentAction(
                     code="do_not_use_shelter_as_medical_substitute",
-                    text=URGENT_MEDICAL_NOTICE,
+                    text=catalog.urgent_actions[
+                        "do_not_use_shelter_as_medical_substitute"
+                    ],
                 ),
             ],
-            notices=[URGENT_MEDICAL_NOTICE, URGENT_NO_PLAN_NOTICE],
+            notices=list(catalog.urgent_notices),
         )
     except (ValidationError, ValueError) as error:
         raise ActionPlanWorkflowUnavailable() from error
@@ -1426,34 +1518,44 @@ class ActionPlanWorkflow:
         except Exception as error:
             raise ActionPlanWorkflowUnavailable() from error
 
-        if validated.timezone != MADRID_TIMEZONE.key:
+        ActionPlanWorkflow._validate_weather_facts(
+            validated,
+            evaluation_time,
+        )
+        return validated
+
+    @staticmethod
+    def _validate_weather_facts(
+        weather: WeatherContextResponse | ActionPlanWeatherProjection,
+        evaluation_time: datetime,
+    ) -> None:
+        if weather.timezone != MADRID_TIMEZONE.key:
             raise ActionPlanWorkflowUnavailable()
         local_evaluation_date = evaluation_time.astimezone(MADRID_TIMEZONE).date()
-        observed_at = validated.current.observed_at
+        observed_at = weather.current.observed_at
         observed_in_madrid = observed_at.astimezone(MADRID_TIMEZONE)
-        retrieved_at = validated.retrieved_at.astimezone(timezone.utc)
+        retrieved_at = weather.retrieved_at.astimezone(timezone.utc)
         observed_utc = observed_at.astimezone(timezone.utc)
         if (
-            validated.today.date != local_evaluation_date
+            weather.today.date != local_evaluation_date
             or observed_at.tzinfo is None
             or observed_at.utcoffset() is None
             or observed_at.utcoffset() != observed_in_madrid.utcoffset()
-            or observed_in_madrid.date() != validated.today.date
+            or observed_in_madrid.date() != weather.today.date
             or retrieved_at < evaluation_time
             or retrieved_at > evaluation_time + WEATHER_RETRIEVAL_WINDOW
             or retrieved_at - observed_utc > WEATHER_MAX_OBSERVATION_AGE
             or observed_utc - retrieved_at > WEATHER_MAX_FUTURE_OBSERVATION_SKEW
             or (
-                validated.today.temperature_max_c
-                < validated.current.temperature_c
+                weather.today.temperature_max_c
+                < weather.current.temperature_c
             )
             or (
-                validated.today.apparent_temperature_max_c
-                < validated.current.apparent_temperature_c
+                weather.today.apparent_temperature_max_c
+                < weather.current.apparent_temperature_c
             )
         ):
             raise ActionPlanWorkflowUnavailable()
-        return validated
 
     @staticmethod
     def _validated_candidate_response(
@@ -1515,19 +1617,33 @@ class ActionPlanWorkflow:
         return validated
 
     async def create(self, request: ActionPlanRequest) -> ActionPlanResponse:
+        try:
+            output_locale = require_supported_output_locale(request.output_locale)
+            catalog = get_action_plan_catalog(output_locale)
+        except ValueError as error:
+            raise ActionPlanWorkflowUnavailable() from error
         situation = await self._situation_service.extract(
             SituationExtractionRequest(situation_text=request.situation_text)
         )
         evaluation_time = self._evaluation_time()
-        urgent_priority = determine_action_priority(situation, None) if (
-            situation.reported_symptoms.status == "reported"
-            and situation.reported_symptoms.values
-        ) else None
+        urgent_priority = (
+            determine_action_priority(
+                situation,
+                None,
+                output_locale=output_locale,
+            )
+            if (
+                situation.reported_symptoms.status == "reported"
+                and situation.reported_symptoms.values
+            )
+            else None
+        )
         if urgent_priority is not None:
             return build_urgent_response(
                 situation,
                 evaluation_time,
                 urgent_priority,
+                output_locale,
             )
 
         weather = await self._weather_service.get_context(
@@ -1540,6 +1656,7 @@ class ActionPlanWorkflow:
         priority = determine_action_priority(
             situation,
             weather.today.temperature_max_c,
+            output_locale=output_locale,
         )
         (
             movement_prohibited,
@@ -1602,40 +1719,59 @@ class ActionPlanWorkflow:
             else None
         )
         if movement_prohibited:
-            explanation = MOVEMENT_PROHIBITED_EXPLANATION
+            explanation = catalog.candidate_explanations[
+                "movement_prohibited"
+            ]
         elif travel_compatibility_unproven:
-            explanation = TRAVEL_COMPATIBILITY_UNPROVEN_EXPLANATION
+            explanation = catalog.candidate_explanations[
+                "unresolved_travel_compatibility"
+            ]
         else:
             explanation = (
-                MATCH_EXPLANATION if eligible_tuple else EMPTY_EXPLANATION
+                catalog.candidate_explanations["matched_candidate"]
+                if eligible_tuple
+                else catalog.candidate_explanations["no_candidate"]
             )
         notices = [
-            MODEL_DERIVED_POLICY_NOTICE,
-            HOURS_WARNING,
-            DISTANCE_NOTICE,
-            HOURS_REACHABILITY_NOTICE,
-            NORMAL_PLAN_NOTICE,
+            catalog.policy_notice,
+            catalog.candidate_warnings["hours"],
+            catalog.candidate_warnings["distance"],
+            catalog.candidate_warnings["reachability"],
+            catalog.normal_notice,
         ]
         if travel_compatibility_unproven:
-            notices.append(TRAVEL_COMPATIBILITY_UNPROVEN_NOTICE)
+            notices.append(catalog.unresolved_travel_notice)
         try:
             return NormalActionPlanResponse(
                 branch="normal",
                 schema_version=ACTION_PLAN_SCHEMA_VERSION,
+                output_locale=output_locale,
                 evaluation_time=evaluation_time,
-                situation=situation,
+                situation=project_action_plan_situation(
+                    situation,
+                    output_locale,
+                ),
                 priority=priority,
-                weather=weather,
-                plan=hydrate_grounded_plan(plan),
+                weather=project_action_plan_weather(
+                    weather,
+                    output_locale,
+                ),
+                plan=hydrate_grounded_plan(plan, output_locale),
                 selected_place=selected_place,
                 candidate_context=CandidateContext(
                     eligible_candidate_count=len(eligible_tuple),
                     snapshot=place_response.snapshot,
                     explanation=explanation,
-                    hours_warning=HOURS_WARNING,
-                    candidate_notice=CANDIDATE_NOTICE,
-                    distance_warning=DISTANCE_NOTICE,
-                    reachability_warning=HOURS_REACHABILITY_NOTICE,
+                    hours_warning=catalog.candidate_warnings["hours"],
+                    candidate_notice=catalog.candidate_warnings[
+                        "candidate_notice"
+                    ],
+                    distance_warning=catalog.candidate_warnings[
+                        "distance"
+                    ],
+                    reachability_warning=catalog.candidate_warnings[
+                        "reachability"
+                    ],
                 ),
                 notices=notices,
             )

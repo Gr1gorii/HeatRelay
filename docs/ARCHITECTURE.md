@@ -1,13 +1,14 @@
 # HeatRelay architecture
 
-## First Milestone 4 frontend boundary
+## Current application boundary
 
-The React, Vite, and TypeScript frontend implements one English Barcelona demo
-flow for `POST /api/v1/action-plan`. It sends the user's trimmed situation text
-with fixed origin latitude `41.3874`, longitude `2.1686`, and maximum distance
-`3000` metres. It does not request browser geolocation or call the situation,
-weather, or places endpoints separately. Vite proxies `/api` to
-`http://127.0.0.1:8000` during local development.
+The React, Vite, and TypeScript frontend implements one localized Barcelona
+demo flow for `POST /api/v1/action-plan`. It sends exactly the user's trimmed
+situation text, fixed origin latitude `41.3874` and longitude `2.1686`, maximum
+distance `3000` metres, and the exact selected `output_locale`. It does not
+request browser geolocation or call the situation, weather, or places
+endpoints separately. Vite proxies `/api` to `http://127.0.0.1:8000` during
+local development.
 
 The FastAPI backend exposes five application contracts:
 
@@ -34,6 +35,8 @@ separately named public-origin constants intentionally match the current
 place-record validation rectangle, but a coarse rectangle does not prove
 municipal membership and is not an administrative-boundary geofence. The
 frontend uses the same-origin action-plan path and does not receive an API key.
+Successful action-plan responses use schema `1.16.0`; their nested situation
+projection remains schema `1.1.0`.
 
 ## Implemented frontend integration
 
@@ -42,10 +45,11 @@ trimmed value with a 2,000-Unicode-code-point limit, and can populate a
 synthetic Barcelona example without submitting it. A valid submit starts at
 most one `fetch`, disables duplicate submission while it is pending, and makes
 no automatic retry. The request contains exactly `situation_text`, `origin`,
-and `maximum_distance_m`.
+`maximum_distance_m`, and `output_locale`.
 
-Narrow discriminated TypeScript contracts cover only displayed fields, and a
-small top-level runtime check admits usable `normal` or `urgent` responses.
+Narrow discriminated TypeScript contracts cover only displayed fields, and
+strict runtime validation admits usable `normal` or `urgent` schema `1.16.0`
+responses only when their response locale matches the submission snapshot.
 Unknown or malformed JSON becomes fixed safe copy. The UI renders backend-owned
 normal-plan phases, weather, destination or no-place state, urgent contact
 content, and safety notices without echoing submitted text in an error.
@@ -56,7 +60,43 @@ returned HTTP 200 and rendered the normal `Prepare now` no-place result with
 zero retries. The downstream extraction, Open-Meteo, and grounded-plan calls
 were inferred from the completed normal workflow rather than independently
 logged. This is one-scenario integration evidence, not exhaustive branch or
-reliability coverage.
+reliability coverage. Later bounded Milestone 6 Chrome/macOS audits exercised
+multilingual, bidirectional, 320px, actual 200% zoom, and author-confirmed
+VoiceOver behavior. A separate four-case live smoke exercised Spanish,
+Arabic, Russian-to-Hebrew, and Traditional Chinese urgent output through the
+real frontend and backend; those bounded cases are not 25-locale coverage.
+
+## Milestone 6 localization architecture
+
+The canonical locale registry defines 25 bundled interface locales, native
+names, English names, and direction metadata. Twenty-one are left-to-right;
+`ar`, `ur`, `fa`, and `he` are right-to-left. The frontend imports one bundled
+interface catalog per locale, requires exact key and interpolation parity,
+uses shared locale-aware formatters, and keeps catalog and documentation checks
+synchronized. There is no runtime translation service.
+
+Input detection is closed to 26 language tags: the 25 launch locales plus
+input-only Catalan. The validated response also admits the bounded `other` and
+`unknown` states and pairs `unknown` with source `fallback`; every other
+accepted result uses `automatically_detected`. Interface locale, detected
+input language and source, requested output locale, and text direction remain
+separate typed concepts.
+
+The backend output registry contains the same 25 output locales in its
+canonical API order. It maps each exact code to one independently authored,
+immutable `ActionPlanCatalog`; the workflow then hydrates bounded action,
+explanation, item, notice, policy, candidate, situation, and weather prose from
+exactly that catalog. Catalog modules import shared frozen types but not prose
+from another locale. Verified facts, IDs, official names, addresses, phone
+numbers, URLs, schedules, timestamps, coordinates, distances, weather values,
+ordering, and provenance remain backend-owned and locale-independent.
+
+Frontend preference recovery and API validation intentionally differ. An
+invalid, absent, inaccessible, or throwing stored interface/output preference
+falls back locally to English without repairing storage. The API accepts only
+an exact member of the output registry and rejects unsupported, padded,
+case-altered, aliased, or regional values before downstream work. It neither
+normalizes nor silently falls back.
 
 ## Milestone 5 frontend accessibility and visual-mode boundary
 
@@ -83,6 +123,83 @@ storage write failure does not prevent the current in-memory selection from
 remaining usable. Only an explicit user change is persisted locally. The
 visual mode is never included in an API payload, switching it creates no
 request, and situation text is never written to local storage.
+
+## Milestone 6.30 action-plan language preference boundary
+
+The interface locale, detected input language, action-plan output locale, and
+text direction remain separate typed concepts. The native action-plan-language
+select is inside the existing form and is populated from the same 25-locale
+registry in backend order. Its value never changes document `lang`, document
+`dir`, or the interface locale. Changing it makes no request, preserves the
+current application state, and affects only the next submission.
+
+The exact storage key is `heatrelay.output-locale.v1`. Resolution accepts an
+exact registered value or falls back to the existing English default. It does
+not trim, normalize, alias, negotiate, inspect browser languages, or derive a
+value from the interface locale. Missing, invalid, inaccessible, wrong-type,
+or throwing storage therefore yields English without writing a repair. Only an
+explicit valid user change is persisted, including an explicit change to
+English; a failed write leaves the valid in-memory selection usable.
+
+Submission snapshots the selected locale and passes it to the existing client.
+The JSON body remains exactly `situation_text`, `origin`,
+`maximum_distance_m`, and `output_locale`. Situation text is never stored.
+Visual mode and interface locale are local-only and do not enter the request.
+The response must match the submitted locale, while rendered result prose keeps
+its response-owned language and direction. M6.30 changes no backend, response
+schema, GPT boundary, weather, place, or action-policy behavior.
+
+At the close of the M6.30 slice, language-mismatch messaging, live
+multilingual and RTL browser QA, independent human review, final Milestone 6
+verification, and publication were still pending.
+
+## Milestone 6.31 deterministic language-context boundary
+
+Language-context rendering uses only the already validated
+`detected_input_language` in the response situation and the response-owned
+`output_locale`. Classification is ordered and closed: `unknown`, `other`,
+Catalan input with unavailable Catalan output, then a mismatch between a
+supported input language and the displayed output language. Matching supported
+languages produce no input-language notice. Browser language and interface
+locale are not comparison inputs, and model confidence or other model-internal
+state is not exposed.
+
+The displayed-plan language remains immutable response state. A currently
+selected output preference is a separate next-plan fact and is shown only when
+it differs from the displayed response. The language-context component is an
+ordinary labelled section with a definition list, outside the complete normal
+or urgent result. It is neither an alert nor a live region and receives no
+automatic focus. A normal result may offer a button whose sole behavior is to
+focus the existing action-plan-language select. The urgent variant is passive,
+appears only after all fixed `112` guidance and the official link, and has no
+change-language action.
+
+M6.31 changed no backend, successful-response schema, output-preference key or
+resolution, four-field request, API behavior, GPT prompt or payload, dependency,
+weather, place, or action-policy boundary. At the close of that slice,
+multilingual and RTL browser and assistive-technology QA, human linguistic and
+safety review, final Milestone 6 verification, and publication remained
+pending.
+
+## Milestone 6 verification boundary
+
+The completed offline and bounded runtime evidence now includes catalog and
+schema invariants across all 25 output locales, exhaustive interface-key and
+interpolation parity, 320px multilingual and bidirectional reflow, real Chrome
+200% zoom checks, one author-confirmed VoiceOver session without independent
+speech logging, and a four-case live multilingual smoke. Corrected audit
+findings covered native-name selector clipping, German hero wrapping, and a
+Russian status-value flex overflow. The live smoke covered only Spanish,
+Arabic, Russian input with Hebrew output, and a Traditional Chinese urgent
+case; it is not exhaustive 25-locale runtime evidence.
+
+All 24 non-English interface and backend catalogs remain AI-assisted drafts
+without independent native-speaker, linguistic, cultural, medical, emergency,
+accessibility, or safety-critical approval. The evidence does not establish
+formal WCAG conformance, universal assistive-technology behavior,
+cross-browser compatibility, medical approval, deployment readiness, or
+release readiness. Milestone 6 is published through the repository commit
+containing this architecture revision.
 
 Enhanced Visibility is a CSS-token presentation layer over the same DOM, not
 a duplicated route or component tree and not a browser-zoom simulation. It
@@ -200,7 +317,7 @@ place/weather data, dependency, or Vite proxy configuration.
    noncanonical code order, and every branch-incompatible result reject the
    whole plan. With no travel, items must be empty and the phrase must be
    `null`; travel requires one exact selected ID, the `now` travel action,
-   `water`, `phone`, and one allowed phrase. Public English actions,
+   `water`, `phone`, and one allowed phrase. Public registered-catalog actions,
    explanations, items, a fixed Spanish/Catalan phrase, weather, place facts
    projected without coordinates,
    provenance, and notices come only from backend-owned catalogs and validated
@@ -331,6 +448,16 @@ errors and never exposes provider payloads, identifiers, headers,
 credentials, request text, or model output in an error. Situation telemetry
 allowlists only the configured model and reviewed alias; every other
 provider-controlled model value becomes `unavailable`.
+
+Each successful provider call emits exactly one sanitized `INFO` record
+through the dedicated `uvicorn.error.heatrelay.usage` logger. Records contain
+only an allowlisted model plus aggregate `input_tokens`, `output_tokens`, and
+`total_tokens`; grounded-plan records also contain `payload_bytes`. Invalid or
+unapproved metadata is reduced to `None`/`unavailable`. Failed, refused,
+invalid, incomplete, cancelled, and timed-out calls emit no successful usage
+record. Submitted text, parsed or model-visible content, locale, public prose,
+candidate/place data, coordinates, response IDs, credentials, exceptions,
+provider bodies, and raw metadata are never fields of these records.
 
 The plan call additionally fixes `service_tier="default"`, caps output at
 1,024 tokens, uses no tools, streaming, conversation, prompt reuse, or

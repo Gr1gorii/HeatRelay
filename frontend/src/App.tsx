@@ -1,100 +1,318 @@
-import { FormEvent, RefObject, useEffect, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  FormEvent,
+  RefObject,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { I18nContext, useTranslation } from "react-i18next";
 
 import {
   ActionPlanClientError,
   ActionPlanResponse,
-  BARCELONA_DEMO_TEXT,
+  DetectedInputLanguage,
   NormalActionPlanResponse,
+  PriorityCode,
   SelectedPlace,
   SITUATION_TEXT_LIMIT,
   UrgentActionPlanResponse,
   countCodePoints,
   createActionPlan,
 } from "./action-plan";
+import { type MessageKey } from "./i18n/catalogs/en";
+import {
+  formatCelsiusTemperature,
+  formatDateOnly,
+  formatDateTime,
+  formatDistance,
+  formatNumber,
+} from "./i18n/formatters";
+import {
+  DEFAULT_INTERFACE_LOCALE,
+  LOCALE_REGISTRY,
+  SUPPORTED_INTERFACE_LOCALES,
+  SUPPORTED_OUTPUT_LOCALES,
+  getLocaleDefinition,
+  isInterfaceLocale,
+  isOutputLocale,
+  persistInterfaceLocale,
+  persistOutputLocale,
+  resolveInitialOutputLocale,
+  type InterfaceLocale,
+  type OutputLocale,
+} from "./i18n/locale-registry";
+import { synchronizeDocumentLocalization } from "./i18n/runtime";
 import {
   persistVisualMode,
   resolveInitialVisualMode,
   type VisualMode,
 } from "./visual-mode";
 
-const PRIORITY_LABELS = {
-  act_now: "Act now",
-  prepare_now: "Prepare now",
-  monitor_and_prepare: "Monitor and prepare",
-} as const;
+const MADRID_TIME_ZONE = "Europe/Madrid";
 
-const FEATURE_LABELS: Array<[
-  keyof SelectedPlace["features"],
-  string,
-]> = [
-  ["indoor_space", "Indoor space"],
-  ["potable_water", "Drinking water"],
-  ["toilets", "Toilets"],
-  ["micro_shelter", "Micro-shelter"],
-  ["pets_allowed", "Pets allowed"],
-];
+const PRIORITY_LABEL_KEYS = {
+  act_now: "priority.actNow",
+  prepare_now: "priority.prepareNow",
+  monitor_and_prepare: "priority.monitorAndPrepare",
+} as const satisfies Record<PriorityCode, MessageKey>;
 
-type UiError = {
-  title: string;
-  message: string;
-};
+const FEATURE_LABEL_KEYS = {
+  indoor_space: "feature.indoorSpace",
+  potable_water: "feature.potableWater",
+  toilets: "feature.toilets",
+  micro_shelter: "feature.microShelter",
+  pets_allowed: "feature.petsAllowed",
+} as const satisfies Record<keyof SelectedPlace["features"], MessageKey>;
 
-function formatDateTime(value: string, timeZone = "Europe/Madrid"): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone,
-  }).format(new Date(value));
+const FEATURE_CODE_ORDER = [
+  "indoor_space",
+  "potable_water",
+  "toilets",
+  "micro_shelter",
+  "pets_allowed",
+] as const satisfies ReadonlyArray<keyof SelectedPlace["features"]>;
+
+type AccessibilityState = "confirmed" | "unavailable" | "unknown";
+
+const ACCESSIBILITY_LABEL_KEYS = {
+  confirmed: "place.accessibilityConfirmed",
+  unavailable: "place.accessibilityUnavailable",
+  unknown: "place.accessibilityUnknown",
+} as const satisfies Record<AccessibilityState, MessageKey>;
+
+type PhaseCode = keyof NormalActionPlanResponse["plan"] &
+  ("now" | "next_few_hours" | "tonight");
+
+const PHASE_LABEL_KEYS = {
+  now: "result.phaseNow",
+  next_few_hours: "result.phaseNextFewHours",
+  tonight: "result.phaseTonight",
+} as const satisfies Record<PhaseCode, MessageKey>;
+
+const PHASE_IDS = {
+  now: "phase-now",
+  next_few_hours: "phase-next-few-hours",
+  tonight: "phase-tonight",
+} as const satisfies Record<PhaseCode, string>;
+
+const LOCAL_PHRASE_LANGUAGE_KEYS = {
+  ca: "result.localPhraseCatalan",
+  es: "result.localPhraseSpanish",
+} as const satisfies Record<
+  NonNullable<NormalActionPlanResponse["plan"]["local_phrase"]>["language"],
+  MessageKey
+>;
+
+type FieldErrorKind = "empty" | "over_limit" | "server_input";
+
+const FIELD_ERROR_MESSAGE_KEYS = {
+  empty: "validation.empty",
+  over_limit: "validation.overLimit",
+  server_input: "validation.serverInput",
+} as const satisfies Record<FieldErrorKind, MessageKey>;
+
+type UiErrorKind = "malformed_response" | "unavailable" | "connection";
+
+type LanguageContextClassification =
+  | "supported_mismatch"
+  | "catalan_unavailable"
+  | "other"
+  | "unknown";
+
+export function classifyLanguageContext(
+  detectedInputLanguage: DetectedInputLanguage,
+  displayedOutputLocale: OutputLocale,
+): LanguageContextClassification | null {
+  if (detectedInputLanguage === "unknown") {
+    return "unknown";
+  }
+  if (detectedInputLanguage === "other") {
+    return "other";
+  }
+  if (detectedInputLanguage === "ca") {
+    return "catalan_unavailable";
+  }
+  if (detectedInputLanguage !== displayedOutputLocale) {
+    return "supported_mismatch";
+  }
+  return null;
 }
 
-function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    dateStyle: "medium",
-    timeZone: "UTC",
-  }).format(new Date(`${value}T00:00:00Z`));
+const LANGUAGE_CONTEXT_MESSAGE_KEYS = {
+  supported_mismatch: "languageContext.supportedMismatch",
+  catalan_unavailable: "languageContext.catalanUnavailable",
+  other: "languageContext.other",
+  unknown: "languageContext.unknown",
+} as const satisfies Record<LanguageContextClassification, MessageKey>;
+
+const UI_ERROR_MESSAGE_KEYS = {
+  malformed_response: {
+    title: "error.malformedTitle",
+    message: "error.malformedMessage",
+  },
+  unavailable: {
+    title: "error.unavailableTitle",
+    message: "error.unavailableMessage",
+  },
+  connection: {
+    title: "error.connectionTitle",
+    message: "error.connectionMessage",
+  },
+} as const satisfies Record<
+  UiErrorKind,
+  Readonly<{ title: MessageKey; message: MessageKey }>
+>;
+
+function activeInterfaceLocale(language: string | undefined): InterfaceLocale {
+  return isInterfaceLocale(language) ? language : DEFAULT_INTERFACE_LOCALE;
 }
 
-function formatTemperature(value: number): string {
-  return `${value.toFixed(1)}°C`;
-}
-
-function formatDistance(distanceM: number): string {
-  return distanceM >= 1000
-    ? `${(distanceM / 1000).toFixed(1)} km straight-line`
-    : `${Math.round(distanceM)} m straight-line`;
-}
-
-function formatAddress(place: SelectedPlace): string {
+function formatAddress(place: SelectedPlace, unavailable: string): string {
   const street = [place.address.street, place.address.number]
     .filter(Boolean)
     .join(" ");
   const locality = [place.address.postal_code, place.address.city]
     .filter(Boolean)
     .join(" ");
-  return [street, locality].filter(Boolean).join(", ") || "Address unavailable";
+  return [street, locality].filter(Boolean).join(", ") || unavailable;
 }
 
-function accessibilityLabel(value: boolean | null): string {
+function accessibilityState(value: boolean | null): AccessibilityState {
   if (value === true) {
-    return "Accessibility confirmed by the source";
+    return "confirmed";
   }
   if (value === false) {
-    return "Source reports this place is not accessible";
+    return "unavailable";
   }
-  return "Accessibility status unknown";
+  return "unknown";
+}
+
+function RegisteredLanguageValue({ locale }: { locale: OutputLocale }) {
+  const definition = LOCALE_REGISTRY[locale];
+  return (
+    <bdi lang={definition.code} dir={definition.direction}>
+      {definition.nativeName}
+    </bdi>
+  );
+}
+
+function DescriptionLanguageValue({
+  detectedInputLanguage,
+}: {
+  detectedInputLanguage: DetectedInputLanguage;
+}) {
+  const { t } = useTranslation();
+  if (detectedInputLanguage === "ca") {
+    return (
+      <bdi lang="ca" dir="ltr">
+        Català
+      </bdi>
+    );
+  }
+  if (detectedInputLanguage === "other") {
+    return <span>{t("languageContext.otherValue")}</span>;
+  }
+  if (detectedInputLanguage === "unknown") {
+    return <span>{t("languageContext.unknownValue")}</span>;
+  }
+  if (isOutputLocale(detectedInputLanguage)) {
+    return <RegisteredLanguageValue locale={detectedInputLanguage} />;
+  }
+  return null;
+}
+
+function LanguageContextNotice({
+  response,
+  selectedOutputLocale,
+  outputLanguageSelectRef,
+  showChangeAction,
+}: {
+  response: ActionPlanResponse;
+  selectedOutputLocale: OutputLocale;
+  outputLanguageSelectRef: RefObject<HTMLSelectElement | null>;
+  showChangeAction: boolean;
+}) {
+  const { t } = useTranslation();
+  const classification = classifyLanguageContext(
+    response.situation.detected_input_language,
+    response.output_locale,
+  );
+  const nextPlanDiffers = selectedOutputLocale !== response.output_locale;
+  if (classification === null && !nextPlanDiffers) {
+    return null;
+  }
+
+  return (
+    <section
+      className="language-context-note"
+      aria-labelledby="language-context-title"
+    >
+      <h3 id="language-context-title">{t("languageContext.title")}</h3>
+      {classification ? (
+        <p>{t(LANGUAGE_CONTEXT_MESSAGE_KEYS[classification])}</p>
+      ) : null}
+      {nextPlanDiffers ? <p>{t("languageContext.nextSelection")}</p> : null}
+      <dl>
+        {classification ? (
+          <div>
+            <dt>{t("languageContext.descriptionLanguage")}</dt>
+            <dd>
+              <DescriptionLanguageValue
+                detectedInputLanguage={
+                  response.situation.detected_input_language
+                }
+              />
+            </dd>
+          </div>
+        ) : null}
+        <div>
+          <dt>{t("languageContext.displayedLanguage")}</dt>
+          <dd>
+            <RegisteredLanguageValue locale={response.output_locale} />
+          </dd>
+        </div>
+        {nextPlanDiffers ? (
+          <div>
+            <dt>{t("languageContext.nextLanguage")}</dt>
+            <dd>
+              <RegisteredLanguageValue locale={selectedOutputLocale} />
+            </dd>
+          </div>
+        ) : null}
+      </dl>
+      {showChangeAction ? (
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => {
+            outputLanguageSelectRef.current?.focus();
+          }}
+        >
+          {t("languageContext.changeAction")}
+        </button>
+      ) : null}
+    </section>
+  );
 }
 
 function Phase({
-  title,
+  code,
   actions,
+  outputLocale,
 }: {
-  title: string;
+  code: PhaseCode;
   actions: NormalActionPlanResponse["plan"]["now"]["actions"];
+  outputLocale: NormalActionPlanResponse["output_locale"];
 }) {
+  const { t } = useTranslation();
+  const phaseId = PHASE_IDS[code];
+  const outputDirection = getLocaleDefinition(outputLocale).direction;
   return (
-    <section className="phase-card" aria-labelledby={`phase-${title.replaceAll(" ", "-")}`}>
-      <h3 id={`phase-${title.replaceAll(" ", "-")}`}>{title}</h3>
-      <ol className="action-list">
+    <section className="phase-card" aria-labelledby={phaseId}>
+      <h3 id={phaseId}>{t(PHASE_LABEL_KEYS[code])}</h3>
+      <ol className="action-list" lang={outputLocale} dir={outputDirection}>
         {actions.map((action) => (
           <li className="action-card" key={action.code}>
             <p className="action-text">{action.text}</p>
@@ -113,53 +331,75 @@ function PlaceCard({
   place: SelectedPlace;
   response: NormalActionPlanResponse;
 }) {
-  const verifiedFeatures = FEATURE_LABELS.filter(
-    ([feature]) => place.features[feature] === true,
+  const { t, i18n } = useTranslation();
+  const locale = activeInterfaceLocale(i18n.resolvedLanguage);
+  const outputDirection = getLocaleDefinition(response.output_locale).direction;
+  const verifiedFeatures = FEATURE_CODE_ORDER.filter(
+    (feature) => place.features[feature] === true,
   );
   return (
     <section className="place-card" aria-labelledby="selected-place-title">
-      <p className="card-label">Backend-approved candidate</p>
-      <h3 id="selected-place-title">{place.name}</h3>
-      <p className="place-address">{formatAddress(place)}</p>
+      <p className="card-label">{t("place.backendApprovedLabel")}</p>
+      <h3 id="selected-place-title">
+        <bdi dir="auto">{place.name}</bdi>
+      </h3>
+      <p className="place-address">
+        <bdi dir="auto">
+          {formatAddress(place, t("place.addressUnavailable"))}
+        </bdi>
+      </p>
       <dl className="place-details">
         <div>
-          <dt>Distance</dt>
-          <dd>{formatDistance(place.distance_m)}</dd>
+          <dt>{t("place.distanceLabel")}</dt>
+          <dd>
+            <bdi dir="auto">
+              {t("distance.straightLine", {
+                distance: formatDistance(place.distance_m, locale),
+              })}
+            </bdi>
+          </dd>
         </div>
         <div>
-          <dt>Closes</dt>
+          <dt>{t("place.closesLabel")}</dt>
           <dd>
-            <time dateTime={place.closes_at}>
-              {formatDateTime(place.closes_at)}
+            <time dateTime={place.closes_at} dir="auto">
+              {formatDateTime(place.closes_at, locale, MADRID_TIME_ZONE)}
             </time>
           </dd>
         </div>
         <div>
-          <dt>Accessibility</dt>
-          <dd>{accessibilityLabel(place.accessibility)}</dd>
+          <dt>{t("place.accessibilityLabel")}</dt>
+          <dd>
+            {t(ACCESSIBILITY_LABEL_KEYS[accessibilityState(place.accessibility)])}
+          </dd>
         </div>
         <div>
-          <dt>Last checked</dt>
+          <dt>{t("place.lastCheckedLabel")}</dt>
           <dd>
-            <time dateTime={place.last_checked}>{formatDate(place.last_checked)}</time>
+            <time dateTime={place.last_checked} dir="auto">
+              {formatDateOnly(place.last_checked, locale)}
+            </time>
           </dd>
         </div>
       </dl>
 
       <div>
-        <h4>Verified features</h4>
+        <h4>{t("place.featuresTitle")}</h4>
         {verifiedFeatures.length > 0 ? (
           <ul className="feature-list">
-            {verifiedFeatures.map(([feature, label]) => (
-              <li key={feature}>{label}</li>
+            {verifiedFeatures.map((feature) => (
+              <li key={feature}>{t(FEATURE_LABEL_KEYS[feature])}</li>
             ))}
           </ul>
         ) : (
-          <p>No additional verified features are listed.</p>
+          <p>{t("place.noFeatures")}</p>
         )}
       </div>
 
-      <div className="result-actions" aria-label="Official place links">
+      <div
+        className="result-actions"
+        aria-label={t("place.linksAccessibleName")}
+      >
         {place.information_url ? (
           <a
             className="text-link"
@@ -167,7 +407,7 @@ function PlaceCard({
             target="_blank"
             rel="noopener noreferrer"
           >
-            Official information
+            {t("place.informationLink")}
           </a>
         ) : null}
         <a
@@ -176,11 +416,19 @@ function PlaceCard({
           target="_blank"
           rel="noopener noreferrer"
         >
-          Official source
+          {t("place.sourceLink")}
         </a>
       </div>
 
-      <ul className="warning-list" aria-label="Place cautions">
+      <p id="selected-place-cautions-label" className="card-label">
+        {t("place.cautionsAccessibleName")}
+      </p>
+      <ul
+        className="warning-list"
+        aria-labelledby="selected-place-cautions-label"
+        lang={response.output_locale}
+        dir={outputDirection}
+      >
         <li>{response.candidate_context.candidate_notice}</li>
         <li>{response.candidate_context.hours_warning}</li>
         <li>{response.candidate_context.distance_warning}</li>
@@ -197,6 +445,10 @@ function NormalResult({
   response: NormalActionPlanResponse;
   headingRef: RefObject<HTMLHeadingElement | null>;
 }) {
+  const { t, i18n } = useTranslation();
+  const locale = activeInterfaceLocale(i18n.resolvedLanguage);
+  const outputDirection = getLocaleDefinition(response.output_locale).direction;
+  const priorityLabel = t(PRIORITY_LABEL_KEYS[response.priority.priority]);
   const notices = Array.from(
     new Set([response.weather.notice, response.plan.notice, ...response.notices]),
   );
@@ -204,57 +456,100 @@ function NormalResult({
     <section className="result-section" aria-labelledby="result-title">
       <header className="result-header">
         <div>
-          <p className="eyebrow">Your Barcelona heat action plan</p>
+          <p className="eyebrow">{t("result.eyebrow")}</p>
           <h2 id="result-title" ref={headingRef} tabIndex={-1} className="result-focus">
-            {PRIORITY_LABELS[response.priority.priority]}
+            {priorityLabel}
           </h2>
         </div>
         <span className="priority-badge">
-          Priority: {PRIORITY_LABELS[response.priority.priority]}
+          {t("result.priorityBadge", { priority: priorityLabel })}
         </span>
       </header>
 
       <p className="evaluation-time">
-        Evaluated at{" "}
-        <time dateTime={response.evaluation_time}>
-          {formatDateTime(response.evaluation_time)}
+        <time dateTime={response.evaluation_time} dir="auto">
+          {t("result.evaluatedAt", {
+            dateTime: formatDateTime(
+              response.evaluation_time,
+              locale,
+              MADRID_TIME_ZONE,
+            ),
+          })}
         </time>
       </p>
 
-      <dl className="summary-grid" aria-label="Weather summary">
+      <dl
+        className="summary-grid"
+        aria-label={t("result.weatherSummaryAccessibleName")}
+      >
         <div className="summary-card">
-          <dt>Current temperature</dt>
+          <dt>{t("result.currentTemperature")}</dt>
           <dd>
-            <strong>{formatTemperature(response.weather.current.temperature_c)}</strong>
-          </dd>
-        </div>
-        <div className="summary-card">
-          <dt>Feels like</dt>
-          <dd>
-            <strong>
-              {formatTemperature(response.weather.current.apparent_temperature_c)}
+            <strong dir="auto">
+              {formatCelsiusTemperature(
+                response.weather.current.temperature_c,
+                locale,
+              )}
             </strong>
           </dd>
         </div>
         <div className="summary-card">
-          <dt>Today’s maximum</dt>
+          <dt>{t("result.feelsLike")}</dt>
           <dd>
-            <strong>{formatTemperature(response.weather.today.temperature_max_c)}</strong>
+            <strong dir="auto">
+              {formatCelsiusTemperature(
+                response.weather.current.apparent_temperature_c,
+                locale,
+              )}
+            </strong>
+          </dd>
+        </div>
+        <div className="summary-card">
+          <dt>{t("result.todayMaximum")}</dt>
+          <dd>
+            <strong dir="auto">
+              {formatCelsiusTemperature(
+                response.weather.today.temperature_max_c,
+                locale,
+              )}
+            </strong>
           </dd>
         </div>
       </dl>
-      <p className="weather-boundary">{response.weather.notice}</p>
+      <p
+        className="weather-boundary"
+        lang={response.output_locale}
+        dir={outputDirection}
+      >
+        {response.weather.notice}
+      </p>
 
       <div className="phase-grid">
-        <Phase title="Now" actions={response.plan.now.actions} />
-        <Phase title="Next few hours" actions={response.plan.next_few_hours.actions} />
-        <Phase title="Tonight" actions={response.plan.tonight.actions} />
+        <Phase
+          code="now"
+          actions={response.plan.now.actions}
+          outputLocale={response.output_locale}
+        />
+        <Phase
+          code="next_few_hours"
+          actions={response.plan.next_few_hours.actions}
+          outputLocale={response.output_locale}
+        />
+        <Phase
+          code="tonight"
+          actions={response.plan.tonight.actions}
+          outputLocale={response.output_locale}
+        />
       </div>
 
       {response.plan.bring_items.length > 0 ? (
         <section className="plan-detail" aria-labelledby="bring-title">
-          <h3 id="bring-title">Bring with you</h3>
-          <ul className="bring-list">
+          <h3 id="bring-title">{t("result.bringItemsTitle")}</h3>
+          <ul
+            className="bring-list"
+            lang={response.output_locale}
+            dir={outputDirection}
+          >
             {response.plan.bring_items.map((item) => (
               <li key={item.code}>{item.text}</li>
             ))}
@@ -263,8 +558,12 @@ function NormalResult({
       ) : null}
 
       <section className="plan-detail" aria-labelledby="why-title">
-        <h3 id="why-title">Why this plan</h3>
-        <ul className="explanation-list">
+        <h3 id="why-title">{t("result.explanationTitle")}</h3>
+        <ul
+          className="explanation-list"
+          lang={response.output_locale}
+          dir={outputDirection}
+        >
           {response.plan.explanations.map((explanation) => (
             <li key={explanation.code}>{explanation.text}</li>
           ))}
@@ -274,10 +573,10 @@ function NormalResult({
       {response.plan.local_phrase ? (
         <section className="local-phrase" aria-labelledby="phrase-title">
           <p className="card-label">
-            {response.plan.local_phrase.language === "ca" ? "Catalan" : "Spanish"}
+            {t(LOCAL_PHRASE_LANGUAGE_KEYS[response.plan.local_phrase.language])}
           </p>
-          <h3 id="phrase-title">A local phrase</h3>
-          <blockquote lang={response.plan.local_phrase.language}>
+          <h3 id="phrase-title">{t("result.localPhraseTitle")}</h3>
+          <blockquote lang={response.plan.local_phrase.language} dir="ltr">
             {response.plan.local_phrase.text}
           </blockquote>
         </section>
@@ -287,17 +586,25 @@ function NormalResult({
         <PlaceCard place={response.selected_place} response={response} />
       ) : (
         <section className="empty-place" aria-labelledby="empty-place-title">
-          <h3 id="empty-place-title">No verified place selected</h3>
-          <p>{response.candidate_context.explanation}</p>
-          <p>{response.candidate_context.candidate_notice}</p>
+          <h3 id="empty-place-title">{t("result.noPlaceTitle")}</h3>
+          <p lang={response.output_locale} dir={outputDirection}>
+            {response.candidate_context.explanation}
+          </p>
+          <p lang={response.output_locale} dir={outputDirection}>
+            {response.candidate_context.candidate_notice}
+          </p>
         </section>
       )}
 
       <section className="safety-notices" aria-labelledby="notices-title">
-        <h3 id="notices-title">Safety and information notices</h3>
-        <ul className="notice-list">
-          {notices.map((notice) => (
-            <li key={notice}>{notice}</li>
+        <h3 id="notices-title">{t("result.noticesTitle")}</h3>
+        <ul
+          className="notice-list"
+          lang={response.output_locale}
+          dir={outputDirection}
+        >
+          {notices.map((notice, index) => (
+            <li key={`notice-${index}`}>{notice}</li>
           ))}
         </ul>
       </section>
@@ -312,34 +619,55 @@ function UrgentResult({
   response: UrgentActionPlanResponse;
   headingRef: RefObject<HTMLHeadingElement | null>;
 }) {
+  const { t } = useTranslation();
+  const outputDirection = getLocaleDefinition(response.output_locale).direction;
   return (
     <section
       className="result-section urgent-result"
       role="alert"
       aria-labelledby="urgent-result-title"
     >
-      <p className="eyebrow">Immediate safety result</p>
+      <p className="urgent-badge">{t("urgent.badge")}</p>
+      <p className="eyebrow">{t("urgent.eyebrow")}</p>
       <h2
         id="urgent-result-title"
         ref={headingRef}
         tabIndex={-1}
         className="result-focus"
       >
-        Urgent help
+        {t("urgent.title")}
       </h2>
       <p className="urgent-number">
-        <span>{response.urgent_contact.service}</span>
-        <strong>{response.urgent_contact.number}</strong>
+        <span lang="ca" dir="ltr">
+          {response.urgent_contact.service}
+        </span>
+        <bdi dir="ltr">
+          <strong>{response.urgent_contact.number}</strong>
+        </bdi>
       </p>
-      <p className="urgent-instruction">{response.urgent_contact.instruction}</p>
-      <ul className="urgent-actions">
+      <p
+        className="urgent-instruction"
+        lang={response.output_locale}
+        dir={outputDirection}
+      >
+        {response.urgent_contact.instruction}
+      </p>
+      <ul
+        className="urgent-actions"
+        lang={response.output_locale}
+        dir={outputDirection}
+      >
         {response.actions.map((action) => (
           <li key={action.code}>{action.text}</li>
         ))}
       </ul>
-      <ul className="notice-list">
-        {response.notices.map((notice) => (
-          <li key={notice}>{notice}</li>
+      <ul
+        className="notice-list"
+        lang={response.output_locale}
+        dir={outputDirection}
+      >
+        {response.notices.map((notice, index) => (
+          <li key={`urgent-notice-${index}`}>{notice}</li>
         ))}
       </ul>
       <a
@@ -348,23 +676,31 @@ function UrgentResult({
         target="_blank"
         rel="noopener noreferrer"
       >
-        Official 112 guidance
+        {t("urgent.sourceLink")}
       </a>
     </section>
   );
 }
 
 export default function App() {
+  const { t, i18n: subscribedI18n } = useTranslation();
+  const i18n = useContext(I18nContext).i18n ?? subscribedI18n;
+  const locale = activeInterfaceLocale(i18n.resolvedLanguage);
+  const interfaceDirection = LOCALE_REGISTRY[locale].direction;
   const [visualMode, setVisualMode] = useState<VisualMode>(
     resolveInitialVisualMode,
   );
+  const [outputLocale, setOutputLocale] = useState<OutputLocale>(
+    resolveInitialOutputLocale,
+  );
   const [situationText, setSituationText] = useState("");
-  const [fieldError, setFieldError] = useState<string | null>(null);
+  const [fieldError, setFieldError] = useState<FieldErrorKind | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<ActionPlanResponse | null>(null);
-  const [error, setError] = useState<UiError | null>(null);
+  const [error, setError] = useState<UiErrorKind | null>(null);
   const submissionInFlight = useRef(false);
   const situationTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const outputLanguageSelectRef = useRef<HTMLSelectElement>(null);
   const resultHeadingRef = useRef<HTMLHeadingElement>(null);
   const errorHeadingRef = useRef<HTMLHeadingElement>(null);
 
@@ -382,8 +718,8 @@ export default function App() {
     }
   }, [fieldError]);
 
-  function showSituationError(message: string) {
-    setFieldError(message);
+  function showSituationError(kind: FieldErrorKind) {
+    setFieldError(kind);
     situationTextareaRef.current?.focus();
   }
 
@@ -397,19 +733,67 @@ export default function App() {
     setResult(null);
   }
 
+  async function handleInterfaceLocaleChange(
+    event: ChangeEvent<HTMLSelectElement>,
+  ) {
+    const selectedLocale = event.currentTarget.value;
+    if (!isInterfaceLocale(selectedLocale)) {
+      return;
+    }
+
+    const previousLocale = activeInterfaceLocale(i18n.resolvedLanguage);
+    try {
+      await i18n.changeLanguage(selectedLocale);
+    } catch {
+      if (i18n.resolvedLanguage !== previousLocale) {
+        try {
+          await i18n.changeLanguage(previousLocale);
+        } catch {
+          // The last confirmed locale remains the safe presentation fallback.
+        }
+      }
+      synchronizeDocumentLocalization(i18n);
+      return;
+    }
+
+    if (i18n.resolvedLanguage !== selectedLocale) {
+      try {
+        await i18n.changeLanguage(previousLocale);
+      } catch {
+        // The last confirmed locale remains the safe presentation fallback.
+      }
+      synchronizeDocumentLocalization(i18n);
+      return;
+    }
+
+    synchronizeDocumentLocalization(i18n);
+    persistInterfaceLocale(selectedLocale);
+  }
+
+  function handleOutputLocaleChange(event: ChangeEvent<HTMLSelectElement>) {
+    const selectedLocale = event.currentTarget.value;
+    if (
+      isLoading ||
+      !isOutputLocale(selectedLocale) ||
+      selectedLocale === outputLocale
+    ) {
+      return;
+    }
+
+    setOutputLocale(selectedLocale);
+    persistOutputLocale(selectedLocale);
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submissionInFlight.current) {
       return;
     }
     const trimmedText = situationText.trim();
+    const requestedOutputLocale = outputLocale;
     const length = countCodePoints(trimmedText);
     if (length === 0 || length > SITUATION_TEXT_LIMIT) {
-      showSituationError(
-        length === 0
-          ? "Describe the situation before creating a plan."
-          : "Keep the description within 2,000 Unicode characters.",
-      );
+      showSituationError(length === 0 ? "empty" : "over_limit");
       setResult(null);
       setError(null);
       return;
@@ -421,29 +805,20 @@ export default function App() {
     setError(null);
     setIsLoading(true);
     try {
-      setResult(await createActionPlan(trimmedText));
+      setResult(await createActionPlan(trimmedText, requestedOutputLocale));
     } catch (caught) {
       if (caught instanceof ActionPlanClientError) {
         if (caught.kind === "invalid_input") {
-          showSituationError("Review the description and try again.");
+          showSituationError("server_input");
           setResult(null);
           setError(null);
         } else if (caught.kind === "malformed_response") {
-          setError({
-            title: "Response unavailable",
-            message: "The response could not be safely displayed.",
-          });
+          setError("malformed_response");
         } else {
-          setError({
-            title: "Action plan temporarily unavailable",
-            message: "The action plan is temporarily unavailable. Please try again later.",
-          });
+          setError("unavailable");
         }
       } else {
-        setError({
-          title: "Backend could not be reached",
-          message: "The backend could not be reached. Check that the local services are running.",
-        });
+        setError("connection");
       }
     } finally {
       submissionInFlight.current = false;
@@ -454,29 +829,36 @@ export default function App() {
   const characterCount = countCodePoints(situationText);
   const overLimitBy = Math.max(0, characterCount - SITUATION_TEXT_LIMIT);
   const isOverLimit = overLimitBy > 0;
+  const formattedCharacterCount = formatNumber(characterCount, locale);
+  const formattedCharacterLimit = formatNumber(SITUATION_TEXT_LIMIT, locale);
+  const formattedOverLimitCount = formatNumber(overLimitBy, locale);
 
   return (
     <div id="top" className="app-shell" data-visual-mode={visualMode}>
       <a className="skip-link" href="#main-content">
-        Skip to main content
+        {t("navigation.skipToMain")}
       </a>
 
       <header className="site-header">
         <div className="page-width header-inner">
-          <a className="brand" href="#top" aria-label="HeatRelay home">
+          <a
+            className="brand"
+            href="#top"
+            aria-label={t("navigation.homeAccessibleName")}
+          >
             <span className="brand-mark" aria-hidden="true">
               <span />
               <span />
             </span>
-            <span>HeatRelay</span>
+            <span>{t("app.name")}</span>
           </a>
           <div className="header-actions">
-            <nav aria-label="Primary">
-              <a href="#plan">Create a plan</a>
-              <a href="#trust">Safety and privacy</a>
+            <nav aria-label={t("navigation.primaryAccessibleName")}>
+              <a href="#plan">{t("navigation.createPlan")}</a>
+              <a href="#trust">{t("navigation.safetyAndPrivacy")}</a>
             </nav>
             <div className="visual-mode-control">
-              <label htmlFor="visual-mode-select">Visual mode</label>
+              <label htmlFor="visual-mode-select">{t("visualMode.label")}</label>
               <select
                 id="visual-mode-select"
                 value={visualMode}
@@ -493,12 +875,41 @@ export default function App() {
                   persistVisualMode(selectedMode);
                 }}
               >
-                <option value="standard">Standard</option>
-                <option value="enhanced">Enhanced Visibility</option>
+                <option value="standard">{t("visualMode.standard")}</option>
+                <option value="enhanced">{t("visualMode.enhanced")}</option>
               </select>
               <p id="visual-mode-description">
-                Enhanced Visibility is intended for people with low vision or
-                anyone who prefers larger and clearer content.
+                {t("visualMode.description")}
+              </p>
+            </div>
+            <div className="interface-language-control">
+              <label htmlFor="interface-language-select">
+                {t("interfaceLanguage.label")}
+              </label>
+              <select
+                id="interface-language-select"
+                value={locale}
+                aria-describedby="interface-language-description"
+                onChange={(event) => {
+                  void handleInterfaceLocaleChange(event);
+                }}
+              >
+                {SUPPORTED_INTERFACE_LOCALES.map((localeCode) => {
+                  const definition = LOCALE_REGISTRY[localeCode];
+                  return (
+                    <option
+                      key={definition.code}
+                      value={definition.code}
+                      lang={definition.code}
+                      dir={definition.direction}
+                    >
+                      {definition.nativeName}
+                    </option>
+                  );
+                })}
+              </select>
+              <p id="interface-language-description">
+                {t("interfaceLanguage.description")}
               </p>
             </div>
           </div>
@@ -508,40 +919,37 @@ export default function App() {
       <main id="main-content" tabIndex={-1}>
         <section className="hero page-width" aria-labelledby="hero-title">
           <div className="hero-copy">
-            <p className="eyebrow">Barcelona pilot · Milestone 5</p>
-            <h1 id="hero-title">From heat warning to a safe next step.</h1>
-            <p className="hero-intro">
-              Describe a heat situation and HeatRelay will ask the existing
-              backend for one grounded Barcelona action plan using fixed demo
-              coordinates.
-            </p>
+            <p className="eyebrow">{t("hero.eyebrow")}</p>
+            <h1 id="hero-title">{t("hero.title")}</h1>
+            <p className="hero-intro">{t("hero.introduction")}</p>
             <a className="primary-link" href="#plan">
-              Create a Barcelona plan <span aria-hidden="true">→</span>
+              {t("hero.action")}{" "}
+              <span aria-hidden="true">
+                {interfaceDirection === "rtl" ? "←" : "→"}
+              </span>
             </a>
           </div>
           <aside className="status-card" aria-labelledby="status-title">
             <div className="status-card-top">
-              <p className="status-kicker">Current release</p>
-              <span className="release-badge">Barcelona demo</span>
+              <p className="status-kicker">{t("release.kicker")}</p>
+              <span className="release-badge">{t("release.badge")}</span>
             </div>
-            <h2 id="status-title">One server-owned workflow</h2>
-            <p>
-              The browser sends only your description and fixed Barcelona demo
-              settings. Weather, priority, places, and factual validation stay
-              on the backend.
-            </p>
+            <h2 id="status-title">{t("release.title")}</h2>
+            <p>{t("release.description")}</p>
             <dl className="status-list">
               <div>
-                <dt>Action-plan API</dt>
-                <dd className="available">Same-origin endpoint</dd>
+                <dt>{t("release.actionPlanApiLabel")}</dt>
+                <dd className="available">
+                  {t("release.actionPlanApiValue")}
+                </dd>
               </div>
               <div>
-                <dt>Demo location</dt>
-                <dd>Fixed Barcelona point</dd>
+                <dt>{t("release.demoLocationLabel")}</dt>
+                <dd>{t("release.demoLocationValue")}</dd>
               </div>
               <div>
-                <dt>Browser location</dt>
-                <dd>Not available</dd>
+                <dt>{t("release.browserLocationLabel")}</dt>
+                <dd>{t("release.browserLocationValue")}</dd>
               </div>
             </dl>
           </aside>
@@ -549,26 +957,18 @@ export default function App() {
 
         <section id="plan" className="section page-width plan-section" aria-labelledby="plan-title">
           <div className="section-heading">
-            <p className="eyebrow">Barcelona demo</p>
-            <h2 id="plan-title">Create your heat action plan</h2>
-            <p>
-              Share only the situation details needed to personalize a bounded,
-              backend-validated plan. One submission makes one request.
-            </p>
+            <p className="eyebrow">{t("form.eyebrow")}</p>
+            <h2 id="plan-title">{t("form.title")}</h2>
+            <p>{t("form.introduction")}</p>
           </div>
 
           <div className="form-card">
             <div id="privacy-description" className="privacy-notice">
-              <h3>Before you submit</h3>
-              <p>
-                Your description is sent server-side to OpenAI for GPT-5.6
-                processing. HeatRelay does not intentionally store or log the
-                raw text; provider data-handling policies may still apply.
-              </p>
+              <h3>{t("form.privacyTitle")}</h3>
+              <p>{t("form.privacyDescription")}</p>
             </div>
             <p id="identity-warning" className="identity-warning">
-              Do not include names, contact details, addresses, or other
-              identifying information.
+              {t("form.identityWarning")}
             </p>
 
             <form
@@ -578,24 +978,67 @@ export default function App() {
               aria-describedby="privacy-description identity-warning boundary-note"
               onSubmit={handleSubmit}
             >
+              <div className="output-language-control">
+                <label htmlFor="output-language-select">
+                  {t("outputLanguage.label")}
+                </label>
+                <select
+                  ref={outputLanguageSelectRef}
+                  id="output-language-select"
+                  name="output_locale"
+                  value={outputLocale}
+                  dir={LOCALE_REGISTRY[outputLocale].direction}
+                  disabled={isLoading}
+                  aria-describedby="output-language-description"
+                  onChange={handleOutputLocaleChange}
+                >
+                  {SUPPORTED_OUTPUT_LOCALES.map((localeCode) => {
+                    const definition = LOCALE_REGISTRY[localeCode];
+                    return (
+                      <option
+                        key={definition.code}
+                        value={definition.code}
+                        lang={definition.code}
+                        dir={definition.direction}
+                      >
+                        {definition.nativeName}
+                      </option>
+                    );
+                  })}
+                </select>
+                <p id="output-language-description">
+                  {t("outputLanguage.description")}
+                </p>
+              </div>
+
               <div className="field-group">
                 <div className="textarea-heading">
-                  <label htmlFor="situation-text">Describe the heat situation</label>
+                  <label htmlFor="situation-text">
+                    {t("form.situationLabel")}
+                  </label>
                   <span
                     id="character-count"
                     className="character-count"
+                    dir="auto"
                     data-over-limit={isOverLimit}
                   >
-                    {characterCount.toLocaleString()} / 2,000 code points
                     {isOverLimit
-                      ? ` — ${overLimitBy.toLocaleString()} over limit`
-                      : null}
+                      ? t("form.characterCountOverLimit", {
+                          currentCount: formattedCharacterCount,
+                          limit: formattedCharacterLimit,
+                          overLimitCount: formattedOverLimitCount,
+                        })
+                      : t("form.characterCount", {
+                          currentCount: formattedCharacterCount,
+                          limit: formattedCharacterLimit,
+                        })}
                   </span>
                 </div>
                 <textarea
                   ref={situationTextareaRef}
                   id="situation-text"
                   name="situation_text"
+                  dir="auto"
                   rows={7}
                   value={situationText}
                   disabled={isLoading}
@@ -607,12 +1050,15 @@ export default function App() {
                   }}
                 />
                 <p id="situation-hint" className="field-hint">
-                  Use up to 2,000 Unicode code points. You can describe age,
-                  cooling access, mobility, timing, or bounded warning symptoms.
+                  {t("form.situationHint", { limit: formattedCharacterLimit })}
                 </p>
                 {fieldError ? (
                   <p id="situation-error" className="field-error">
-                    {fieldError}
+                    {fieldError === "over_limit"
+                      ? t(FIELD_ERROR_MESSAGE_KEYS[fieldError], {
+                          limit: formattedCharacterLimit,
+                        })
+                      : t(FIELD_ERROR_MESSAGE_KEYS[fieldError])}
                   </p>
                 ) : null}
               </div>
@@ -623,20 +1069,20 @@ export default function App() {
                   className="secondary-button"
                   disabled={isLoading}
                   onClick={() => {
-                    changeSituationText(BARCELONA_DEMO_TEXT);
+                    changeSituationText(t("form.demoText"));
                   }}
                 >
-                  Load Barcelona demo
+                  {t("form.demoButton")}
                 </button>
                 <button type="submit" className="primary-button" disabled={isLoading}>
-                  {isLoading ? "Creating your plan…" : "Create my heat action plan"}
+                  {isLoading
+                    ? t("form.submittingButton")
+                    : t("form.submitButton")}
                 </button>
               </div>
 
               <p id="boundary-note" className="boundary-note">
-                This MVP uses fixed Barcelona demo coordinates. Browser location
-                is not available yet. Distances are straight-line estimates;
-                HeatRelay is not medical or emergency advice.
+                {t("form.boundaryNote")}
               </p>
             </form>
           </div>
@@ -648,61 +1094,66 @@ export default function App() {
             aria-atomic="true"
           >
             {isLoading
-              ? "Creating your action plan."
+              ? t("status.creating")
               : result
-                ? "Your action plan is ready."
+                ? t("status.ready")
                 : ""}
           </p>
           {isLoading ? (
             <div className="loading-state" aria-hidden="true">
               <span />
-              <p>Checking the situation, weather, and verified candidates…</p>
+              <p>{t("status.loadingDetail")}</p>
             </div>
           ) : null}
 
           {error ? (
             <section className="error-panel" role="alert" aria-labelledby="error-title">
               <h2 id="error-title" ref={errorHeadingRef} tabIndex={-1} className="result-focus">
-                {error.title}
+                {t(UI_ERROR_MESSAGE_KEYS[error].title)}
               </h2>
-              <p>{error.message}</p>
+              <p>{t(UI_ERROR_MESSAGE_KEYS[error].message)}</p>
             </section>
           ) : null}
 
           {result?.branch === "normal" ? (
-            <NormalResult response={result} headingRef={resultHeadingRef} />
+            <>
+              <NormalResult response={result} headingRef={resultHeadingRef} />
+              <LanguageContextNotice
+                response={result}
+                selectedOutputLocale={outputLocale}
+                outputLanguageSelectRef={outputLanguageSelectRef}
+                showChangeAction
+              />
+            </>
           ) : null}
           {result?.branch === "urgent" ? (
-            <UrgentResult response={result} headingRef={resultHeadingRef} />
+            <>
+              <UrgentResult response={result} headingRef={resultHeadingRef} />
+              <LanguageContextNotice
+                response={result}
+                selectedOutputLocale={outputLocale}
+                outputLanguageSelectRef={outputLanguageSelectRef}
+                showChangeAction={false}
+              />
+            </>
           ) : null}
         </section>
 
         <section id="trust" className="section page-width trust-section" aria-labelledby="trust-title">
           <div className="section-heading">
-            <p className="eyebrow">Trust boundaries</p>
-            <h2 id="trust-title">Useful without overstating certainty.</h2>
+            <p className="eyebrow">{t("trust.eyebrow")}</p>
+            <h2 id="trust-title">{t("trust.title")}</h2>
           </div>
           <div className="trust-grid">
             <article className="trust-card safety-card">
-              <p className="card-label">Safety</p>
-              <h3>Information, not medical advice</h3>
-              <p>
-                Weather is model-derived, not an official heat warning. Places,
-                hours, straight-line distance, and reachability should be checked
-                before travel. Urgent output uses fixed backend-owned content.
-              </p>
+              <p className="card-label">{t("trust.safetyLabel")}</p>
+              <h3>{t("trust.safetyTitle")}</h3>
+              <p>{t("trust.safetyDescription")}</p>
             </article>
             <article className="trust-card privacy-card">
-              <p className="card-label">Privacy</p>
-              <h3>Keep identifying details out</h3>
-              <p>
-                Situation text stays in React memory in this browser, is sent
-                only in the action-plan request body, and is not stored in
-                browser storage. Only the visual-mode preference is stored
-                locally; it is never included in the action-plan
-                request. HeatRelay does not use analytics, cookies, URL
-                parameters, or geolocation in this demo.
-              </p>
+              <p className="card-label">{t("trust.privacyLabel")}</p>
+              <h3>{t("trust.privacyTitle")}</h3>
+              <p>{t("trust.privacyDescription")}</p>
             </article>
           </div>
         </section>
@@ -715,9 +1166,9 @@ export default function App() {
               <span />
               <span />
             </span>
-            <span>HeatRelay</span>
+            <span>{t("app.name")}</span>
           </a>
-          <p>Milestone 5 · English Barcelona demo · Fixed coordinates</p>
+          <p>{t("footer.description")}</p>
         </div>
       </footer>
     </div>
