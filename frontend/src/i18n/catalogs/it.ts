@@ -9,9 +9,12 @@ export const ITALIAN_CATALOG = {
   "navigation.createPlan": "Crea un piano",
   "navigation.safetyAndPrivacy": "Sicurezza e privacy",
 
-  "visualMode.label": "Modalità visiva",
+  "header.settings": "Impostazioni",
+
+"visualMode.label": "Modalità visiva",
   "visualMode.standard": "Standard",
   "visualMode.enhanced": "Visibilità migliorata",
+  "visualMode.highContrast": "Contrasto elevato",
   "visualMode.description":
     "La Visibilità migliorata è pensata per le persone ipovedenti o per chiunque preferisca contenuti più grandi e chiari.",
 
@@ -84,6 +87,16 @@ export const ITALIAN_CATALOG = {
   "form.demoText":
     "Ho 69 anni, vivo in casa senza altre persone, non ho l’aria condizionata, cammino lentamente e non parlo spagnolo.",
 
+  "scenario.heading": "Come possiamo aiutarti?",
+  "scenario.selfTitle": "Ho troppo caldo",
+  "scenario.selfDescription": "Crea un piano d’azione personale",
+  "scenario.someoneTitle": "Aiuta una persona vicina",
+  "scenario.someoneDescription": "Crea un piano per un’altra persona",
+  "scenario.placeTitle": "Trova un luogo fresco nelle vicinanze",
+  "scenario.placeDescription": "Mostra l’aiuto verificato più vicino",
+  "scenario.nearestHelp": "Aiuto più vicino",
+  "scenario.importantNow": "Importante adesso",
+
   "validation.empty": "Descrivi la situazione prima di creare un piano.",
   "validation.overLimit":
     "Mantieni la descrizione entro {{limit}} caratteri Unicode.",
@@ -135,6 +148,7 @@ export const ITALIAN_CATALOG = {
   "place.linksAccessibleName": "Link ufficiali del luogo",
   "place.informationLink": "Informazioni ufficiali",
   "place.sourceLink": "Fonte ufficiale",
+  "place.mapLink": "Apri il percorso in Google Maps",
   "place.cautionsAccessibleName": "Avvertenze sul luogo",
   "place.addressUnavailable": "Indirizzo non disponibile",
   "place.accessibilityConfirmed": "Accessibilità confermata dalla fonte",
@@ -147,6 +161,10 @@ export const ITALIAN_CATALOG = {
   "feature.toilets": "Servizi igienici",
   "feature.microShelter": "Micro-rifugio",
   "feature.petsAllowed": "Animali ammessi",
+
+  "feature.confirmed": "Confermato",
+  "feature.unavailable": "Non indicato come disponibile",
+  "feature.unknown": "Non confermato",
 
   "distance.straightLine": "{{distance}} in linea d’aria",
 

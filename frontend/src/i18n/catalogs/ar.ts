@@ -9,9 +9,12 @@ export const ARABIC_CATALOG = {
   "navigation.createPlan": "إنشاء خطة",
   "navigation.safetyAndPrivacy": "السلامة والخصوصية",
 
-  "visualMode.label": "الوضع المرئي",
+  "header.settings": "الإعدادات",
+
+"visualMode.label": "الوضع المرئي",
   "visualMode.standard": "قياسي",
   "visualMode.enhanced": "وضوح محسّن",
+  "visualMode.highContrast": "تباين عالٍ",
   "visualMode.description":
     "وضع الوضوح المحسّن مخصص للأشخاص ذوي ضعف البصر أو لأي شخص يفضّل محتوى أكبر حجمًا وأكثر وضوحًا.",
 
@@ -84,6 +87,16 @@ export const ARABIC_CATALOG = {
   "form.demoText":
     "عمري 69 عامًا، وأعيش وحدي، وليس لدي تكييف هواء، وأمشي ببطء، ولا أتحدث الإسبانية.",
 
+  "scenario.heading": "كيف يمكننا المساعدة؟",
+  "scenario.selfTitle": "أشعر بحر شديد",
+  "scenario.selfDescription": "أنشئ خطة عمل شخصية",
+  "scenario.someoneTitle": "ساعد شخصًا قريبًا منك",
+  "scenario.someoneDescription": "أنشئ خطة لشخص آخر",
+  "scenario.placeTitle": "اعثر على مكان بارد قريب",
+  "scenario.placeDescription": "اعرض أقرب مساعدة موثقة",
+  "scenario.nearestHelp": "أقرب مساعدة",
+  "scenario.importantNow": "مهم الآن",
+
   "validation.empty": "صِف الموقف قبل إنشاء خطة.",
   "validation.overLimit":
     "أبقِ الوصف ضمن {{limit}} حرف Unicode.",
@@ -135,6 +148,7 @@ export const ARABIC_CATALOG = {
   "place.linksAccessibleName": "روابط المكان الرسمية",
   "place.informationLink": "المعلومات الرسمية",
   "place.sourceLink": "المصدر الرسمي",
+  "place.mapLink": "فتح المسار في خرائط Google",
   "place.cautionsAccessibleName": "تنبيهات خاصة بالمكان",
   "place.addressUnavailable": "العنوان غير متاح",
   "place.accessibilityConfirmed": "أكد المصدر إمكانية الوصول",
@@ -147,6 +161,10 @@ export const ARABIC_CATALOG = {
   "feature.toilets": "دورات مياه",
   "feature.microShelter": "مأوى صغير",
   "feature.petsAllowed": "مسموح بالحيوانات الأليفة",
+
+  "feature.confirmed": "مؤكّد",
+  "feature.unavailable": "غير مدرج كمتاح",
+  "feature.unknown": "غير مؤكّد",
 
   "distance.straightLine": "{{distance}} بخط مستقيم",
 

@@ -9,9 +9,12 @@ export const RUSSIAN_CATALOG = {
   "navigation.createPlan": "Создать план",
   "navigation.safetyAndPrivacy": "Безопасность и конфиденциальность",
 
-  "visualMode.label": "Режим отображения",
+  "header.settings": "Настройки",
+
+"visualMode.label": "Режим отображения",
   "visualMode.standard": "Стандартный",
   "visualMode.enhanced": "Повышенная видимость",
+  "visualMode.highContrast": "Высокая контрастность",
   "visualMode.description":
     "Повышенная видимость предназначена для людей со слабым зрением и для всех, кому удобнее более крупный и чёткий контент.",
 
@@ -84,6 +87,16 @@ export const RUSSIAN_CATALOG = {
   "form.demoText":
     "Мне 69 лет, я живу в одиночку, у меня нет кондиционера, я медленно хожу и не говорю по-испански.",
 
+  "scenario.heading": "Как мы можем помочь?",
+  "scenario.selfTitle": "Мне слишком жарко",
+  "scenario.selfDescription": "Получить личный план действий",
+  "scenario.someoneTitle": "Помочь близкому человеку",
+  "scenario.someoneDescription": "Составить план для другого человека",
+  "scenario.placeTitle": "Найти прохладное место рядом",
+  "scenario.placeDescription": "Показать ближайшую проверенную помощь",
+  "scenario.nearestHelp": "Ближайшая помощь",
+  "scenario.importantNow": "Сейчас важно",
+
   "validation.empty": "Опишите ситуацию перед созданием плана.",
   "validation.overLimit":
     "Сократите описание до {{limit}} символов Unicode.",
@@ -135,6 +148,7 @@ export const RUSSIAN_CATALOG = {
   "place.linksAccessibleName": "Официальные ссылки о месте",
   "place.informationLink": "Официальная информация",
   "place.sourceLink": "Официальный источник",
+  "place.mapLink": "Открыть маршрут в Google Maps",
   "place.cautionsAccessibleName": "Предупреждения о месте",
   "place.addressUnavailable": "Адрес недоступен",
   "place.accessibilityConfirmed": "Источник подтверждает доступность",
@@ -147,6 +161,10 @@ export const RUSSIAN_CATALOG = {
   "feature.toilets": "Туалеты",
   "feature.microShelter": "Небольшое укрытие",
   "feature.petsAllowed": "Разрешено с домашними животными",
+
+  "feature.confirmed": "Подтверждено",
+  "feature.unavailable": "Не указано как доступное",
+  "feature.unknown": "Не подтверждено",
 
   "distance.straightLine": "{{distance}} по прямой",
 

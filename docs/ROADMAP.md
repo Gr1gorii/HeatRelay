@@ -4,8 +4,9 @@ This is HeatRelay's authoritative forward-looking development sequence as of
 2026-07-19. Completed milestones below are historical facts. Milestone 5 is
 published at `5f5d23c4ba3af9c318e8427ed717f7b5b7656a00`. Milestone 6 is
 implemented, verified within the explicitly tested scope, and published
-through the repository commit containing this roadmap revision. Milestone 7
-remains blocked, and Milestone 8 remains deferred. This roadmap does not claim
+through the repository commit containing this roadmap revision. Milestone 7 is
+implemented but remains uncommitted, unpublished, and pending final
+verification; Milestone 8 remains deferred. This roadmap does not claim
 accessibility certification, complete standards conformance, deployment
 readiness, or release status.
 
@@ -153,28 +154,39 @@ output-locale fields remain separate concepts.
 
 ## Milestone 7 — Complete UI Redesign
 
-**Status:** Blocked.
+**Status:** Implemented and verified within the bounded offline/browser scope;
+uncommitted and unpublished.
 
-Implementation requires all of the following:
+- The approved red-and-white mockup is implemented through the existing React
+  flow without changing the four-field request, backend, catalogs, or safety
+  policy.
+- M5 Standard and Enhanced Visibility remain intact. High Contrast is the M7
+  third visual mode under the same strict storage, state, request, target-size,
+  focus, and RTL contracts; it is not retroactively attributed to M5.
+- The form keeps essential privacy, identity, fixed-origin, OpenAI-processing,
+  and demo boundaries permanently available before submission. Scenario cards
+  are localized non-interactive examples and add no request field.
+- Normal weather is one accessible native three-pair definition list. Urgent
+  results put the one complete fixed `112` alert before any resubmission form
+  and omit ordinary dashboard/normal-result surfaces ahead of it.
+- A normal-result language action opens mobile Settings before focusing the
+  native output selector, preserves the displayed result, and makes no request.
+- The Google Maps boundary is one HTTPS new-tab link for a backend-verified
+  selected-place address only. It is not an embedded map, geolocation, route,
+  ETA, or navigation feature.
+- Listen/speech, an embedded map preview, a calculated route or ETA, a permanent
+  emergency strip, and an unverified third initial safety instruction remain
+  intentional omissions because no approved behavioral or verified-data
+  contract exists.
 
-- The author supplies a separate, explicitly approved redesign prompt.
-- An attached or otherwise accessible authoritative design file is available.
-- Any conflict with the established accessibility, localization, privacy, or
-  safety contracts is resolved before implementation.
-
-The design source must cover, or explicitly define handling for, the initial
-screen, form, loading, normal result, no-place result, urgent result, error
-states, settings, mobile and desktop layouts, Standard and Enhanced Visibility,
-RTL, long translated strings, and privacy and safety notices.
-
-If the design source is absent, inaccessible, ambiguous, or conflicts with
-accessibility, localization, privacy, or safety contracts, the implementation
-task must return `HUMAN_REQUIRED` with no code changes. HeatRelay will not invent
-a replacement visual identity from prose.
+The ordered offline and loopback-only M7 verification is complete; publication
+remains a separate task. The evidence does not establish complete design
+fidelity, formal WCAG conformance, native-speaker review, cross-browser
+support, medical approval, or release readiness.
 
 ## Milestone 8 — Release Verification
 
-**Status:** Deferred until after the verified Milestone 7 redesign.
+**Status:** Deferred until after Milestone 7 publication.
 
 All release work moves to this milestone:
 

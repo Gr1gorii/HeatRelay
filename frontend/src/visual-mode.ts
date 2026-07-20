@@ -1,4 +1,4 @@
-export type VisualMode = "standard" | "enhanced";
+export type VisualMode = "standard" | "enhanced" | "high-contrast";
 
 export const VISUAL_MODE_STORAGE_KEY = "heatrelay.visual-mode.v1";
 
@@ -9,7 +9,11 @@ function browserWindow(): Window | null {
 }
 
 function isVisualMode(value: string | null): value is VisualMode {
-  return value === "standard" || value === "enhanced";
+  return (
+    value === "standard" ||
+    value === "enhanced" ||
+    value === "high-contrast"
+  );
 }
 
 export function resolveInitialVisualMode(): VisualMode {

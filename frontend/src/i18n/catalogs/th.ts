@@ -9,9 +9,12 @@ export const THAI_CATALOG = {
   "navigation.createPlan": "สร้างแผน",
   "navigation.safetyAndPrivacy": "ความปลอดภัยและความเป็นส่วนตัว",
 
-  "visualMode.label": "โหมดการแสดงผล",
+  "header.settings": "การตั้งค่า",
+
+"visualMode.label": "โหมดการแสดงผล",
   "visualMode.standard": "มาตรฐาน",
   "visualMode.enhanced": "การมองเห็นที่ชัดเจนขึ้น",
+  "visualMode.highContrast": "ความเปรียบต่างสูง",
   "visualMode.description":
     "การมองเห็นที่ชัดเจนขึ้นมีไว้สำหรับผู้ที่มีสายตาเลือนราง หรือทุกคนที่ต้องการเนื้อหาขนาดใหญ่และชัดเจนกว่าเดิม",
 
@@ -84,6 +87,16 @@ export const THAI_CATALOG = {
   "form.demoText":
     "อายุ 69 ปี อาศัยอยู่คนเดียว ไม่มีเครื่องปรับอากาศ เดินช้า และพูดภาษาสเปนไม่ได้",
 
+  "scenario.heading": "เราช่วยอะไรคุณได้บ้าง?",
+  "scenario.selfTitle": "ฉันร้อนเกินไป",
+  "scenario.selfDescription": "สร้างแผนปฏิบัติการส่วนตัว",
+  "scenario.someoneTitle": "ช่วยคนใกล้ชิด",
+  "scenario.someoneDescription": "สร้างแผนสำหรับบุคคลอื่น",
+  "scenario.placeTitle": "ค้นหาสถานที่เย็นใกล้เคียง",
+  "scenario.placeDescription": "แสดงความช่วยเหลือที่ยืนยันแล้วใกล้ที่สุด",
+  "scenario.nearestHelp": "ความช่วยเหลือใกล้ที่สุด",
+  "scenario.importantNow": "สิ่งสำคัญตอนนี้",
+
   "validation.empty": "โปรดอธิบายสถานการณ์ก่อนสร้างแผน",
   "validation.overLimit":
     "จำกัดคำอธิบายไว้ไม่เกิน {{limit}} อักขระยูนิโคด",
@@ -135,6 +148,7 @@ export const THAI_CATALOG = {
   "place.linksAccessibleName": "ลิงก์ทางการของสถานที่",
   "place.informationLink": "ข้อมูลทางการ",
   "place.sourceLink": "แหล่งข้อมูลทางการ",
+  "place.mapLink": "เปิดเส้นทางใน Google Maps",
   "place.cautionsAccessibleName": "ข้อควรระวังเกี่ยวกับสถานที่",
   "place.addressUnavailable": "ไม่มีข้อมูลที่อยู่",
   "place.accessibilityConfirmed": "แหล่งข้อมูลยืนยันว่าสถานที่นี้เข้าถึงได้",
@@ -147,6 +161,10 @@ export const THAI_CATALOG = {
   "feature.toilets": "ห้องน้ำ",
   "feature.microShelter": "ที่หลบภัยขนาดเล็ก",
   "feature.petsAllowed": "อนุญาตสัตว์เลี้ยง",
+
+  "feature.confirmed": "ยืนยันแล้ว",
+  "feature.unavailable": "ไม่ได้ระบุว่ามีให้บริการ",
+  "feature.unknown": "ยังไม่ยืนยัน",
 
   "distance.straightLine": "{{distance}} แบบเส้นตรง",
 

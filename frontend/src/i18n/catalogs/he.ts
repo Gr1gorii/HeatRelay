@@ -9,9 +9,12 @@ export const HEBREW_CATALOG = {
   "navigation.createPlan": "יצירת תוכנית",
   "navigation.safetyAndPrivacy": "בטיחות ופרטיות",
 
-  "visualMode.label": "מצב תצוגה",
+  "header.settings": "הגדרות",
+
+"visualMode.label": "מצב תצוגה",
   "visualMode.standard": "רגיל",
   "visualMode.enhanced": "נראות משופרת",
+  "visualMode.highContrast": "ניגודיות גבוהה",
   "visualMode.description":
     "נראות משופרת מיועדת לאנשים עם ראייה ירודה או לכל מי שמעדיפים תוכן גדול וברור יותר.",
 
@@ -84,6 +87,16 @@ export const HEBREW_CATALOG = {
   "form.demoText":
     "אני בן או בת 69, גר או גרה לבד, אין לי מיזוג אוויר, אני הולך או הולכת לאט ואינני מדבר או מדברת ספרדית.",
 
+  "scenario.heading": "איך נוכל לעזור?",
+  "scenario.selfTitle": "חם לי מדי",
+  "scenario.selfDescription": "יצירת תוכנית פעולה אישית",
+  "scenario.someoneTitle": "עזרה לאדם קרוב",
+  "scenario.someoneDescription": "יצירת תוכנית עבור אדם אחר",
+  "scenario.placeTitle": "מציאת מקום קריר בקרבת מקום",
+  "scenario.placeDescription": "הצגת העזרה המאומתת הקרובה ביותר",
+  "scenario.nearestHelp": "העזרה הקרובה ביותר",
+  "scenario.importantNow": "חשוב עכשיו",
+
   "validation.empty": "תארו את המצב לפני יצירת תוכנית.",
   "validation.overLimit":
     "שמרו את התיאור בגבול של {{limit}} תווי Unicode.",
@@ -135,6 +148,7 @@ export const HEBREW_CATALOG = {
   "place.linksAccessibleName": "קישורים רשמיים של המקום",
   "place.informationLink": "מידע רשמי",
   "place.sourceLink": "מקור רשמי",
+  "place.mapLink": "פתיחת המסלול ב-Google Maps",
   "place.cautionsAccessibleName": "אזהרות לגבי המקום",
   "place.addressUnavailable": "הכתובת אינה זמינה",
   "place.accessibilityConfirmed": "הנגישות אושרה על ידי המקור",
@@ -147,6 +161,10 @@ export const HEBREW_CATALOG = {
   "feature.toilets": "שירותים",
   "feature.microShelter": "מחסה קטן",
   "feature.petsAllowed": "מותר להכניס חיות מחמד",
+
+  "feature.confirmed": "מאומת",
+  "feature.unavailable": "לא צוין כזמין",
+  "feature.unknown": "לא מאומת",
 
   "distance.straightLine": "{{distance}} בקו ישר",
 

@@ -9,9 +9,12 @@ export const BENGALI_CATALOG = {
   "navigation.createPlan": "পরিকল্পনা তৈরি করুন",
   "navigation.safetyAndPrivacy": "নিরাপত্তা ও গোপনীয়তা",
 
-  "visualMode.label": "ভিজ্যুয়াল মোড",
+  "header.settings": "সেটিংস",
+
+"visualMode.label": "ভিজ্যুয়াল মোড",
   "visualMode.standard": "মানক",
   "visualMode.enhanced": "উন্নত দৃশ্যমানতা",
+  "visualMode.highContrast": "উচ্চ কনট্রাস্ট",
   "visualMode.description":
     "উন্নত দৃশ্যমানতা কম দৃষ্টিশক্তিসম্পন্ন মানুষ অথবা যারা আরও বড় ও স্পষ্ট বিষয়বস্তু পছন্দ করেন, তাঁদের জন্য।",
 
@@ -84,6 +87,16 @@ export const BENGALI_CATALOG = {
   "form.demoText":
     "আমার বয়স ৬৯ বছর, আমি একা থাকি, আমার শীতাতপনিয়ন্ত্রণ নেই, আমি ধীরে হাঁটি এবং আমি স্প্যানিশ বলতে পারি না।",
 
+  "scenario.heading": "আমরা কীভাবে সাহায্য করতে পারি?",
+  "scenario.selfTitle": "আমার খুব গরম লাগছে",
+  "scenario.selfDescription": "ব্যক্তিগত করণীয় পরিকল্পনা তৈরি করুন",
+  "scenario.someoneTitle": "কাছের কাউকে সাহায্য করুন",
+  "scenario.someoneDescription": "অন্য একজনের জন্য পরিকল্পনা তৈরি করুন",
+  "scenario.placeTitle": "কাছাকাছি শীতল জায়গা খুঁজুন",
+  "scenario.placeDescription": "নিকটতম যাচাইকৃত সহায়তা দেখান",
+  "scenario.nearestHelp": "নিকটতম সহায়তা",
+  "scenario.importantNow": "এখন গুরুত্বপূর্ণ",
+
   "validation.empty": "পরিকল্পনা তৈরির আগে পরিস্থিতি বর্ণনা করুন।",
   "validation.overLimit":
     "বর্ণনাটি {{limit}} ইউনিকোড অক্ষরের মধ্যে রাখুন।",
@@ -135,6 +148,7 @@ export const BENGALI_CATALOG = {
   "place.linksAccessibleName": "স্থানের অফিশিয়াল লিংক",
   "place.informationLink": "অফিশিয়াল তথ্য",
   "place.sourceLink": "অফিশিয়াল উৎস",
+  "place.mapLink": "Google Maps-এ পথ খুলুন",
   "place.cautionsAccessibleName": "স্থানসংক্রান্ত সতর্কতা",
   "place.addressUnavailable": "ঠিকানা উপলভ্য নয়",
   "place.accessibilityConfirmed": "উৎসটি প্রবেশগম্যতা নিশ্চিত করেছে",
@@ -147,6 +161,10 @@ export const BENGALI_CATALOG = {
   "feature.toilets": "শৌচাগার",
   "feature.microShelter": "ক্ষুদ্র আশ্রয়স্থল",
   "feature.petsAllowed": "পোষা প্রাণী অনুমোদিত",
+
+  "feature.confirmed": "নিশ্চিত",
+  "feature.unavailable": "উপলভ্য হিসেবে তালিকাভুক্ত নয়",
+  "feature.unknown": "নিশ্চিত নয়",
 
   "distance.straightLine": "সরলরেখায় {{distance}}",
 

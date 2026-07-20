@@ -9,9 +9,12 @@ export const HINDI_CATALOG = {
   "navigation.createPlan": "योजना बनाएँ",
   "navigation.safetyAndPrivacy": "सुरक्षा और गोपनीयता",
 
-  "visualMode.label": "दृश्य मोड",
+  "header.settings": "सेटिंग्स",
+
+"visualMode.label": "दृश्य मोड",
   "visualMode.standard": "मानक",
   "visualMode.enhanced": "बेहतर दृश्यता",
+  "visualMode.highContrast": "उच्च कंट्रास्ट",
   "visualMode.description":
     "बेहतर दृश्यता कम दृष्टि वाले लोगों या अधिक बड़ी और स्पष्ट सामग्री पसंद करने वाले किसी भी व्यक्ति के लिए है।",
 
@@ -84,6 +87,16 @@ export const HINDI_CATALOG = {
   "form.demoText":
     "मेरी उम्र 69 वर्ष है, मेरे घर में कोई और नहीं रहता, एयर कंडीशनिंग उपलब्ध नहीं है, चलने की गति धीमी है और मुझे स्पेनिश नहीं आती।",
 
+  "scenario.heading": "हम कैसे मदद कर सकते हैं?",
+  "scenario.selfTitle": "मुझे बहुत गर्मी लग रही है",
+  "scenario.selfDescription": "व्यक्तिगत कार्य योजना बनाएँ",
+  "scenario.someoneTitle": "किसी करीबी की मदद करें",
+  "scenario.someoneDescription": "किसी अन्य व्यक्ति के लिए योजना बनाएँ",
+  "scenario.placeTitle": "पास में ठंडी जगह खोजें",
+  "scenario.placeDescription": "निकटतम सत्यापित सहायता दिखाएँ",
+  "scenario.nearestHelp": "निकटतम सहायता",
+  "scenario.importantNow": "अभी महत्वपूर्ण",
+
   "validation.empty": "योजना बनाने से पहले स्थिति का वर्णन करें।",
   "validation.overLimit":
     "विवरण को {{limit}} Unicode वर्णों के भीतर रखें।",
@@ -135,6 +148,7 @@ export const HINDI_CATALOG = {
   "place.linksAccessibleName": "स्थान के आधिकारिक लिंक",
   "place.informationLink": "आधिकारिक जानकारी",
   "place.sourceLink": "आधिकारिक स्रोत",
+  "place.mapLink": "Google Maps में रास्ता खोलें",
   "place.cautionsAccessibleName": "स्थान संबंधी सावधानियाँ",
   "place.addressUnavailable": "पता उपलब्ध नहीं है",
   "place.accessibilityConfirmed": "स्रोत ने सुगम्यता की पुष्टि की है",
@@ -147,6 +161,10 @@ export const HINDI_CATALOG = {
   "feature.toilets": "शौचालय",
   "feature.microShelter": "लघु आश्रय",
   "feature.petsAllowed": "पालतू पशुओं की अनुमति",
+
+  "feature.confirmed": "पुष्टि की गई",
+  "feature.unavailable": "उपलब्ध के रूप में सूचीबद्ध नहीं",
+  "feature.unknown": "पुष्टि नहीं की गई",
 
   "distance.straightLine": "सीधी रेखा में {{distance}}",
 

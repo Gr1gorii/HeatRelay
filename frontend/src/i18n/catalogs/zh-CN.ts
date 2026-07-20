@@ -9,9 +9,12 @@ export const SIMPLIFIED_CHINESE_CATALOG = {
   "navigation.createPlan": "创建计划",
   "navigation.safetyAndPrivacy": "安全与隐私",
 
-  "visualMode.label": "视觉模式",
+  "header.settings": "设置",
+
+"visualMode.label": "视觉模式",
   "visualMode.standard": "标准",
   "visualMode.enhanced": "增强可见性",
+  "visualMode.highContrast": "高对比度",
   "visualMode.description":
     "增强可见性适用于低视力人士，也适用于任何偏好更大、更清晰内容的人。",
 
@@ -84,6 +87,16 @@ export const SIMPLIFIED_CHINESE_CATALOG = {
   "form.demoText":
     "我 69 岁，独居，没有空调，走路较慢，也不会说西班牙语。",
 
+  "scenario.heading": "我们能怎样帮助您？",
+  "scenario.selfTitle": "我感觉太热了",
+  "scenario.selfDescription": "创建个人行动计划",
+  "scenario.someoneTitle": "帮助我关心的人",
+  "scenario.someoneDescription": "为他人创建计划",
+  "scenario.placeTitle": "查找附近的凉爽场所",
+  "scenario.placeDescription": "显示最近的已核实帮助",
+  "scenario.nearestHelp": "最近的帮助",
+  "scenario.importantNow": "现在很重要",
+
   "validation.empty": "请先描述情况，再创建计划。",
   "validation.overLimit":
     "描述请勿超过 {{limit}} 个 Unicode 字符。",
@@ -133,6 +146,7 @@ export const SIMPLIFIED_CHINESE_CATALOG = {
   "place.linksAccessibleName": "官方地点链接",
   "place.informationLink": "官方信息",
   "place.sourceLink": "官方来源",
+  "place.mapLink": "在 Google 地图中打开路线",
   "place.cautionsAccessibleName": "地点注意事项",
   "place.addressUnavailable": "无可用地址",
   "place.accessibilityConfirmed": "来源确认无障碍",
@@ -144,6 +158,10 @@ export const SIMPLIFIED_CHINESE_CATALOG = {
   "feature.toilets": "卫生间",
   "feature.microShelter": "小型避暑点",
   "feature.petsAllowed": "允许携带宠物",
+
+  "feature.confirmed": "已确认",
+  "feature.unavailable": "未列为可用",
+  "feature.unknown": "未确认",
 
   "distance.straightLine": "{{distance}} 直线距离",
 

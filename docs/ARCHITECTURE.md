@@ -100,17 +100,17 @@ normalizes nor silently falls back.
 
 ## Milestone 5 frontend accessibility and visual-mode boundary
 
-Milestone 5 keeps one React application and one component tree for every
-state. The existing `.app-shell` owns exactly one `data-visual-mode` value:
-`standard` or `enhanced`. A native, visibly labelled `Visual mode` select
-offers `Standard` and `Enhanced Visibility`; it remains available during the
+Milestone 5 introduced one React application and one component tree for every
+state. At that milestone, `.app-shell` accepted `standard` or `enhanced`. A
+native, visibly labelled `Visual mode` select offered `Standard` and
+`Enhanced Visibility`; it remains available during the
 initial, loading, normal, urgent, and error states. Standard and Enhanced
 therefore share the same normal, no-place, urgent, loading, validation, and
 error components and the same data and safety contracts.
 
 The visual-mode preference uses the single local-storage key
-`heatrelay.visual-mode.v1` and accepts only `standard` or `enhanced`. Its
-first-load resolution order is:
+`heatrelay.visual-mode.v1`. M5 accepted `standard` or `enhanced`; M7 adds the
+strict `high-contrast` value without changing the first-load resolution order:
 
 1. A valid stored value.
 2. `prefers-contrast: more` when no valid value is stored and that media query
@@ -169,8 +169,9 @@ selected output preference is a separate next-plan fact and is shown only when
 it differs from the displayed response. The language-context component is an
 ordinary labelled section with a definition list, outside the complete normal
 or urgent result. It is neither an alert nor a live region and receives no
-automatic focus. A normal result may offer a button whose sole behavior is to
-focus the existing action-plan-language select. The urgent variant is passive,
+automatic focus. A normal result may offer a button that opens the existing
+mobile Settings disclosure when needed and then focuses the existing
+action-plan-language select. The urgent variant is passive,
 appears only after all fixed `112` guidance and the official link, and has no
 change-language action.
 
@@ -200,6 +201,47 @@ formal WCAG conformance, universal assistive-technology behavior,
 cross-browser compatibility, medical approval, deployment readiness, or
 release readiness. Milestone 6 is published through the repository commit
 containing this architecture revision.
+
+## Milestone 7 redesign boundary
+
+Milestone 7 preserves the M5/M6 storage, request, response, safety, locale, and
+RTL contracts while applying the approved red-and-white presentation. It adds
+`high-contrast` as the third accepted value under the existing
+`heatrelay.visual-mode.v1` preference; High Contrast is an M7 capability, not
+a retroactive M5 capability. All three modes retain one component tree,
+request noninterference, state preservation, Standard 48px and Enhanced 56px
+targets, logical properties, and RTL behavior.
+
+The task region owns one `h1` before focused normal, urgent, and error `h2`
+headings. The three localized scenario cards are non-interactive examples;
+they do not create a scenario request field. Essential privacy, identity,
+fixed-origin, server-side OpenAI-processing, and demo-boundary guidance remains
+permanently visible and connected to the form before submission. Normal weather
+facts use one native `dl` with three ordered, exposed `dt`/`dd` pairs. Enhanced
+Visibility uses a control-boundary color above the 3:1 adjacent-background
+target and automatic programmatic scrolling.
+
+Urgent output places the one complete fixed `112` alert first after the page
+heading and before the resubmission form. It does not put the ordinary scenario
+dashboard, generic advice, empty place pane, weather, or normal-plan content in
+front of the alert. The normal-result language action opens a closed mobile
+Settings disclosure before focusing the native output select and performs no
+fetch or result rewrite.
+
+The only Google Maps integration is an HTTPS new-tab outbound link for a
+backend-verified selected place. It contains the verified address only, uses
+`noopener noreferrer`, and includes neither submitted text nor a user/device
+origin. It is not an embedded map, geolocation feature, route engine, ETA, or
+navigation implementation.
+
+The mockup's Listen/speech control, embedded map preview, calculated route or
+ETA, permanent emergency strip, and unverified third initial safety instruction
+remain intentional deviations because no approved behavioral or verified-data
+contract exists. M7 adds no Web Speech integration, maps SDK, geolocation,
+routing service, external font, or new API. The implementation remains
+uncommitted and unpublished. Its bounded offline and loopback-browser
+verification establishes neither complete design fidelity nor release
+readiness.
 
 Enhanced Visibility is a CSS-token presentation layer over the same DOM, not
 a duplicated route or component tree and not a browser-zoom simulation. It
@@ -491,7 +533,8 @@ fresh check of official pricing.
 The first Milestone 4 slice adds one complete fixed-coordinate Barcelona demo
 path over the existing server-side extraction, deterministic priority, urgent
 contact routing, and grounded closed-code plan selection. It does not implement
-medical diagnosis or risk scoring, official-warning retrieval, routes, ETA,
+medical diagnosis or risk scoring, official-warning retrieval, calculated
+routes, ETA,
 reservations, guaranteed availability or hours, free-form runtime translation,
-maps, browser geolocation, authentication, analytics, deployment, or
+embedded maps, browser geolocation, authentication, analytics, deployment, or
 additional cities.

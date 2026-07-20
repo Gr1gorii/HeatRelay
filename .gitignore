@@ -35,3 +35,11 @@ data/barcelona/*.upstream.json
 .vscode/
 *.log
 *.tmp
+
+docs/audit-*.png
+docs/qa-*.png
+docs/design-qa-comparison*
+docs/design-qa-feedback-before-after.png
+docs/heatrelay-adaptations.html
+docs/heatrelay-final-figma-import.html
+docs/render-adaptations.cjs

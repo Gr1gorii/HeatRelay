@@ -9,9 +9,12 @@ export const DUTCH_CATALOG = {
   "navigation.createPlan": "Maak een plan",
   "navigation.safetyAndPrivacy": "Veiligheid en privacy",
 
-  "visualMode.label": "Visuele modus",
+  "header.settings": "Instellingen",
+
+"visualMode.label": "Visuele modus",
   "visualMode.standard": "Standaard",
   "visualMode.enhanced": "Verbeterde zichtbaarheid",
+  "visualMode.highContrast": "Hoog contrast",
   "visualMode.description":
     "Verbeterde zichtbaarheid is bedoeld voor mensen met een verminderd gezichtsvermogen of voor iedereen die de voorkeur geeft aan grotere en duidelijkere inhoud.",
 
@@ -84,6 +87,16 @@ export const DUTCH_CATALOG = {
   "form.demoText":
     "Ik ben 69, ik woon alleen, ik heb geen airconditioning, ik loop langzaam en ik spreek geen Spaans.",
 
+  "scenario.heading": "Hoe kunnen we helpen?",
+  "scenario.selfTitle": "Ik heb het te warm",
+  "scenario.selfDescription": "Maak een persoonlijk actieplan",
+  "scenario.someoneTitle": "Help iemand die dichtbij staat",
+  "scenario.someoneDescription": "Maak een plan voor iemand anders",
+  "scenario.placeTitle": "Vind een koele plek in de buurt",
+  "scenario.placeDescription": "Toon de dichtstbijzijnde geverifieerde hulp",
+  "scenario.nearestHelp": "Dichtstbijzijnde hulp",
+  "scenario.importantNow": "Nu belangrijk",
+
   "validation.empty": "Beschrijf de situatie voordat u een plan maakt.",
   "validation.overLimit":
     "Houd de beschrijving binnen {{limit}} Unicode-tekens.",
@@ -135,6 +148,7 @@ export const DUTCH_CATALOG = {
   "place.linksAccessibleName": "Officiële links van de locatie",
   "place.informationLink": "Officiële informatie",
   "place.sourceLink": "Officiële bron",
+  "place.mapLink": "Route openen in Google Maps",
   "place.cautionsAccessibleName": "Waarschuwingen voor de locatie",
   "place.addressUnavailable": "Adres niet beschikbaar",
   "place.accessibilityConfirmed": "Toegankelijkheid bevestigd door de bron",
@@ -147,6 +161,10 @@ export const DUTCH_CATALOG = {
   "feature.toilets": "Toiletten",
   "feature.microShelter": "Micro-opvanglocatie",
   "feature.petsAllowed": "Huisdieren toegestaan",
+
+  "feature.confirmed": "Bevestigd",
+  "feature.unavailable": "Niet als beschikbaar vermeld",
+  "feature.unknown": "Niet bevestigd",
 
   "distance.straightLine": "{{distance}} hemelsbreed",
 

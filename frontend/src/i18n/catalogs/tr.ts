@@ -9,9 +9,12 @@ export const TURKISH_CATALOG = {
   "navigation.createPlan": "Plan oluştur",
   "navigation.safetyAndPrivacy": "Güvenlik ve gizlilik",
 
-  "visualMode.label": "Görsel mod",
+  "header.settings": "Ayarlar",
+
+"visualMode.label": "Görsel mod",
   "visualMode.standard": "Standart",
   "visualMode.enhanced": "Geliştirilmiş Görünürlük",
+  "visualMode.highContrast": "Yüksek kontrast",
   "visualMode.description":
     "Geliştirilmiş Görünürlük, az gören kişiler veya daha büyük ve daha net içerik tercih eden herkes için tasarlanmıştır.",
 
@@ -84,6 +87,16 @@ export const TURKISH_CATALOG = {
   "form.demoText":
     "69 yaşındayım, yalnız yaşıyorum, klimam yok, yavaş yürüyorum ve İspanyolca konuşamıyorum.",
 
+  "scenario.heading": "Nasıl yardımcı olabiliriz?",
+  "scenario.selfTitle": "Çok sıcak hissediyorum",
+  "scenario.selfDescription": "Kişisel eylem planı oluştur",
+  "scenario.someoneTitle": "Yakınınızdaki birine yardım edin",
+  "scenario.someoneDescription": "Başka biri için plan oluştur",
+  "scenario.placeTitle": "Yakında serin bir yer bulun",
+  "scenario.placeDescription": "En yakın doğrulanmış yardımı göster",
+  "scenario.nearestHelp": "En yakın yardım",
+  "scenario.importantNow": "Şimdi önemli",
+
   "validation.empty": "Plan oluşturmadan önce durumu açıklayın.",
   "validation.overLimit":
     "Açıklamayı {{limit}} Unicode karakter sınırı içinde tutun.",
@@ -135,6 +148,7 @@ export const TURKISH_CATALOG = {
   "place.linksAccessibleName": "Resmî yer bağlantıları",
   "place.informationLink": "Resmî bilgiler",
   "place.sourceLink": "Resmî kaynak",
+  "place.mapLink": "Rotayı Google Maps'te aç",
   "place.cautionsAccessibleName": "Yerle ilgili uyarılar",
   "place.addressUnavailable": "Adres kullanılamıyor",
   "place.accessibilityConfirmed": "Erişilebilirlik kaynak tarafından doğrulandı",
@@ -147,6 +161,10 @@ export const TURKISH_CATALOG = {
   "feature.toilets": "Tuvaletler",
   "feature.microShelter": "Mikro barınak",
   "feature.petsAllowed": "Evcil hayvanlara izin verilir",
+
+  "feature.confirmed": "Doğrulandı",
+  "feature.unavailable": "Mevcut olarak listelenmemiş",
+  "feature.unknown": "Doğrulanmadı",
 
   "distance.straightLine": "Kuş uçuşu {{distance}}",
 

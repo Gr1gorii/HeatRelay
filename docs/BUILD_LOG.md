@@ -1474,3 +1474,65 @@ No formal WCAG certification, universal assistive-technology support, medical
 approval, cross-browser compatibility, deployment readiness, or release
 readiness is established. At the time this verification record was written,
 Milestone 6 was uncommitted and unpublished.
+
+## Milestone 7 redesign audit correction — 2026-07-20
+
+This bounded pass corrects the verified redesign audit findings without
+redesigning the page again or expanding the product contract. It changes only
+the authorized frontend integration, CSS, tests, and synchronized M7
+documentation. Backend code, translation catalogs, dependencies, the
+four-field action-plan request, schemas, safety policy, and provider boundaries
+remain unchanged.
+
+- Urgent output now places the one complete fixed `112` alert before the
+  resubmission form and does not precede it with the ordinary scenario
+  dashboard, generic advice, empty place pane, weather, or normal-plan content.
+- Privacy, identity, fixed Barcelona origin, server-side OpenAI processing, and
+  demo limitations remain permanently exposed before submission; only the
+  optional demo-loading explanation remains in the disclosure.
+- Enhanced Visibility uses a stronger necessary control boundary and automatic
+  programmatic scrolling while retaining 56px targets and existing focus.
+- All three weather facts are exposed once through one native ordered `dl`.
+- A normal-result language action opens closed mobile Settings before focusing
+  the native output-language select, without persistence, fetch, retry, or
+  result mutation.
+- One page `h1` precedes focused normal, urgent, and error `h2` result headings.
+- The three localized scenario cards are non-interactive examples and add no
+  scenario field to the exact request.
+- The Google Maps surface remains one HTTPS new-tab link based only on a
+  backend-verified address. It is not a map, geolocation, route engine, ETA, or
+  navigation implementation.
+- High Contrast is attributed to M7, not M5, and preserves strict storage,
+  state, request, target-size, focus, and RTL contracts.
+
+The mockup's Listen/speech control, embedded map preview, calculated route or
+ETA, permanent emergency strip, and unverified third initial safety instruction
+remain intentional deviations because no approved behavioral or verified-data
+contract exists. This pass adds no Web Speech integration, maps SDK,
+geolocation, routing, external font, dependency, or new API.
+
+The focused changed-component run passed all 662 tests. The ordered offline
+verification then passed 1,329 frontend tests and 2,568 backend tests in the
+separate suite runs, followed by the same counts through `make test`. The
+production build, `pip check`, direct frontend dependency check, and
+`git diff --check` also passed. The final build retained only Vite's
+informational large-chunk warning.
+
+A loopback-only browser pass used a temporary Vite proxy and strict mock API;
+it made four exact UI submissions, with four mock POSTs, no retry, no invalid
+body, no unexpected request, and no console warning or error. Desktop root and
+body widths were both `1265 / 1265` CSS pixels (client/scroll); the 320px pass
+reported `305 / 305`. It verified the initial view, a normal result, the
+urgent-first result, mobile Settings opening before output-language focus,
+Arabic RTL content, and Standard, Enhanced Visibility, and High Contrast.
+Standard and High Contrast selects remained 48px; Enhanced Visibility selects
+remained 56px, used automatic scroll behavior, and exposed the strengthened
+`rgb(130, 123, 114)` control boundary on white. The authoritative mockup
+comparison confirmed that the implemented red-and-white structure is retained
+while the documented Listen control, embedded map, route/ETA, permanent
+emergency strip, and unverified third initial instruction remain omitted.
+
+Milestone 7 is implemented and verified within this bounded scope, but remains
+uncommitted and unpublished. No formal WCAG conformance, complete design
+fidelity, native-speaker review, cross-browser support, medical approval, or
+release readiness is claimed.

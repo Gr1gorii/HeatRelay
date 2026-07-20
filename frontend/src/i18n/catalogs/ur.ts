@@ -9,9 +9,12 @@ export const URDU_CATALOG = {
   "navigation.createPlan": "منصوبہ بنائیں",
   "navigation.safetyAndPrivacy": "حفاظت اور رازداری",
 
-  "visualMode.label": "بصری وضع",
+  "header.settings": "ترتیبات",
+
+"visualMode.label": "بصری وضع",
   "visualMode.standard": "معیاری",
   "visualMode.enhanced": "بہتر مرئیت",
+  "visualMode.highContrast": "زیادہ تضاد",
   "visualMode.description":
     "بہتر مرئیت کم بصارت والے افراد یا ہر اس شخص کے لیے ہے جو بڑا اور زیادہ واضح مواد پسند کرے۔",
 
@@ -84,6 +87,16 @@ export const URDU_CATALOG = {
   "form.demoText":
     "میری عمر 69 سال ہے۔ گھر میں میرے ساتھ کوئی اور نہیں رہتا، ایئر کنڈیشننگ نہیں ہے، چلنے کی رفتار سست ہے، اور ہسپانوی زبان نہیں آتی۔",
 
+  "scenario.heading": "ہم کیسے مدد کر سکتے ہیں؟",
+  "scenario.selfTitle": "مجھے بہت گرمی لگ رہی ہے",
+  "scenario.selfDescription": "ذاتی عملی منصوبہ بنائیں",
+  "scenario.someoneTitle": "کسی قریبی شخص کی مدد کریں",
+  "scenario.someoneDescription": "کسی دوسرے شخص کے لیے منصوبہ بنائیں",
+  "scenario.placeTitle": "قریب کوئی ٹھنڈی جگہ تلاش کریں",
+  "scenario.placeDescription": "قریب ترین تصدیق شدہ مدد دکھائیں",
+  "scenario.nearestHelp": "قریب ترین مدد",
+  "scenario.importantNow": "ابھی اہم",
+
   "validation.empty": "منصوبہ بنانے سے پہلے صورت حال بیان کریں۔",
   "validation.overLimit":
     "تفصیل کو {{limit}} یونیکوڈ حروف کے اندر رکھیں۔",
@@ -135,6 +148,7 @@ export const URDU_CATALOG = {
   "place.linksAccessibleName": "مقام کے سرکاری لنکس",
   "place.informationLink": "سرکاری معلومات",
   "place.sourceLink": "سرکاری ماخذ",
+  "place.mapLink": "Google Maps میں راستہ کھولیں",
   "place.cautionsAccessibleName": "مقام سے متعلق احتیاطیں",
   "place.addressUnavailable": "پتہ دستیاب نہیں",
   "place.accessibilityConfirmed": "ماخذ نے رسائی پذیری کی تصدیق کی ہے",
@@ -147,6 +161,10 @@ export const URDU_CATALOG = {
   "feature.toilets": "بیت الخلا",
   "feature.microShelter": "چھوٹی پناہ گاہ",
   "feature.petsAllowed": "پالتو جانوروں کی اجازت",
+
+  "feature.confirmed": "تصدیق شدہ",
+  "feature.unavailable": "دستیاب کے طور پر درج نہیں",
+  "feature.unknown": "غیر تصدیق شدہ",
 
   "distance.straightLine": "سیدھی لکیر میں {{distance}}",
 

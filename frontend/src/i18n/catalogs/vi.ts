@@ -9,9 +9,12 @@ export const VIETNAMESE_CATALOG = {
   "navigation.createPlan": "Tạo kế hoạch",
   "navigation.safetyAndPrivacy": "An toàn và quyền riêng tư",
 
-  "visualMode.label": "Chế độ hiển thị",
+  "header.settings": "Cài đặt",
+
+"visualMode.label": "Chế độ hiển thị",
   "visualMode.standard": "Tiêu chuẩn",
   "visualMode.enhanced": "Hiển thị tăng cường",
+  "visualMode.highContrast": "Tương phản cao",
   "visualMode.description":
     "Chế độ Hiển thị tăng cường dành cho người có thị lực kém hoặc bất kỳ ai muốn nội dung lớn hơn và rõ ràng hơn.",
 
@@ -84,6 +87,16 @@ export const VIETNAMESE_CATALOG = {
   "form.demoText":
     "Tôi 69 tuổi, sống một mình, không có điều hòa, đi lại chậm và không nói được tiếng Tây Ban Nha.",
 
+  "scenario.heading": "Chúng tôi có thể giúp gì?",
+  "scenario.selfTitle": "Tôi đang quá nóng",
+  "scenario.selfDescription": "Tạo kế hoạch hành động cá nhân",
+  "scenario.someoneTitle": "Giúp một người thân cận",
+  "scenario.someoneDescription": "Tạo kế hoạch cho người khác",
+  "scenario.placeTitle": "Tìm nơi mát mẻ gần đây",
+  "scenario.placeDescription": "Hiển thị trợ giúp đã xác minh gần nhất",
+  "scenario.nearestHelp": "Trợ giúp gần nhất",
+  "scenario.importantNow": "Quan trọng lúc này",
+
   "validation.empty": "Hãy mô tả tình huống trước khi tạo kế hoạch.",
   "validation.overLimit":
     "Giữ nội dung mô tả trong giới hạn {{limit}} ký tự Unicode.",
@@ -135,6 +148,7 @@ export const VIETNAMESE_CATALOG = {
   "place.linksAccessibleName": "Liên kết chính thức của địa điểm",
   "place.informationLink": "Thông tin chính thức",
   "place.sourceLink": "Nguồn chính thức",
+  "place.mapLink": "Mở tuyến đường trong Google Maps",
   "place.cautionsAccessibleName": "Lưu ý về địa điểm",
   "place.addressUnavailable": "Thông tin địa chỉ không khả dụng",
   "place.accessibilityConfirmed": "Nguồn đã xác nhận khả năng tiếp cận",
@@ -147,6 +161,10 @@ export const VIETNAMESE_CATALOG = {
   "feature.toilets": "Nhà vệ sinh",
   "feature.microShelter": "Điểm trú ẩn nhỏ",
   "feature.petsAllowed": "Cho phép vật nuôi",
+
+  "feature.confirmed": "Đã xác nhận",
+  "feature.unavailable": "Không được ghi là có sẵn",
+  "feature.unknown": "Chưa xác nhận",
 
   "distance.straightLine": "{{distance}} theo đường thẳng",
 

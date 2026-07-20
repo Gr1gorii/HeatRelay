@@ -9,9 +9,12 @@ export const TRADITIONAL_CHINESE_CATALOG = {
   "navigation.createPlan": "建立計畫",
   "navigation.safetyAndPrivacy": "安全與隱私",
 
-  "visualMode.label": "視覺模式",
+  "header.settings": "設定",
+
+"visualMode.label": "視覺模式",
   "visualMode.standard": "標準",
   "visualMode.enhanced": "增強可見性",
+  "visualMode.highContrast": "高對比度",
   "visualMode.description":
     "增強可見性適合低視能者，以及任何偏好較大、更清晰內容的人。",
 
@@ -84,6 +87,16 @@ export const TRADITIONAL_CHINESE_CATALOG = {
   "form.demoText":
     "我 69 歲，獨居，沒有冷氣，走路較慢，而且不會說西班牙語。",
 
+  "scenario.heading": "我們可以如何幫助您？",
+  "scenario.selfTitle": "我覺得太熱了",
+  "scenario.selfDescription": "建立個人行動計畫",
+  "scenario.someoneTitle": "幫助我關心的人",
+  "scenario.someoneDescription": "為他人建立計畫",
+  "scenario.placeTitle": "尋找附近的涼爽場所",
+  "scenario.placeDescription": "顯示最近的已核實協助",
+  "scenario.nearestHelp": "最近的協助",
+  "scenario.importantNow": "現在很重要",
+
   "validation.empty": "請先描述情況，再建立計畫。",
   "validation.overLimit":
     "請將描述限制在 {{limit}} 個 Unicode 字元以內。",
@@ -133,6 +146,7 @@ export const TRADITIONAL_CHINESE_CATALOG = {
   "place.linksAccessibleName": "地點官方連結",
   "place.informationLink": "官方資訊",
   "place.sourceLink": "官方來源",
+  "place.mapLink": "在 Google 地圖中開啟路線",
   "place.cautionsAccessibleName": "地點注意事項",
   "place.addressUnavailable": "無可用地址",
   "place.accessibilityConfirmed": "資料來源確認此地點具備無障礙條件",
@@ -144,6 +158,10 @@ export const TRADITIONAL_CHINESE_CATALOG = {
   "feature.toilets": "廁所",
   "feature.microShelter": "微型庇護空間",
   "feature.petsAllowed": "可攜帶寵物",
+
+  "feature.confirmed": "已確認",
+  "feature.unavailable": "未列為可用",
+  "feature.unknown": "未確認",
 
   "distance.straightLine": "直線距離 {{distance}}",
 

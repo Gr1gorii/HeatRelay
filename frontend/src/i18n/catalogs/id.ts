@@ -9,9 +9,12 @@ export const INDONESIAN_CATALOG = {
   "navigation.createPlan": "Buat rencana",
   "navigation.safetyAndPrivacy": "Keselamatan dan privasi",
 
-  "visualMode.label": "Mode visual",
+  "header.settings": "Pengaturan",
+
+"visualMode.label": "Mode visual",
   "visualMode.standard": "Standar",
   "visualMode.enhanced": "Visibilitas yang Ditingkatkan",
+  "visualMode.highContrast": "Kontras tinggi",
   "visualMode.description":
     "Visibilitas yang Ditingkatkan ditujukan bagi orang dengan penglihatan terbatas atau siapa pun yang memilih konten yang lebih besar dan lebih jelas.",
 
@@ -84,6 +87,16 @@ export const INDONESIAN_CATALOG = {
   "form.demoText":
     "Saya berusia 69 tahun, tinggal sendiri, tidak memiliki pendingin udara, berjalan lambat, dan tidak bisa berbahasa Spanyol.",
 
+  "scenario.heading": "Bagaimana kami dapat membantu?",
+  "scenario.selfTitle": "Saya merasa terlalu panas",
+  "scenario.selfDescription": "Buat rencana tindakan pribadi",
+  "scenario.someoneTitle": "Bantu orang terdekat",
+  "scenario.someoneDescription": "Buat rencana untuk orang lain",
+  "scenario.placeTitle": "Cari tempat sejuk di dekat sini",
+  "scenario.placeDescription": "Tampilkan bantuan terverifikasi terdekat",
+  "scenario.nearestHelp": "Bantuan terdekat",
+  "scenario.importantNow": "Penting sekarang",
+
   "validation.empty": "Jelaskan situasinya sebelum membuat rencana.",
   "validation.overLimit":
     "Pastikan deskripsi tidak melebihi {{limit}} karakter Unicode.",
@@ -135,6 +148,7 @@ export const INDONESIAN_CATALOG = {
   "place.linksAccessibleName": "Tautan resmi tempat",
   "place.informationLink": "Informasi resmi",
   "place.sourceLink": "Sumber resmi",
+  "place.mapLink": "Buka rute di Google Maps",
   "place.cautionsAccessibleName": "Perhatian mengenai tempat",
   "place.addressUnavailable": "Alamat tidak tersedia",
   "place.accessibilityConfirmed": "Aksesibilitas dikonfirmasi oleh sumber",
@@ -147,6 +161,10 @@ export const INDONESIAN_CATALOG = {
   "feature.toilets": "Toilet",
   "feature.microShelter": "Tempat berlindung kecil",
   "feature.petsAllowed": "Hewan peliharaan diizinkan",
+
+  "feature.confirmed": "Terkonfirmasi",
+  "feature.unavailable": "Tidak tercantum tersedia",
+  "feature.unknown": "Belum terkonfirmasi",
 
   "distance.straightLine": "{{distance}} dalam garis lurus",
 

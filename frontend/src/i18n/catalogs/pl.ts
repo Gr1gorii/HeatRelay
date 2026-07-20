@@ -9,9 +9,12 @@ export const POLISH_CATALOG = {
   "navigation.createPlan": "Utwórz plan",
   "navigation.safetyAndPrivacy": "Bezpieczeństwo i prywatność",
 
-  "visualMode.label": "Tryb wizualny",
+  "header.settings": "Ustawienia",
+
+"visualMode.label": "Tryb wizualny",
   "visualMode.standard": "Standardowy",
   "visualMode.enhanced": "Zwiększona widoczność",
+  "visualMode.highContrast": "Wysoki kontrast",
   "visualMode.description":
     "Zwiększona widoczność jest przeznaczona dla osób słabowidzących oraz wszystkich, którzy wolą większe i wyraźniejsze treści.",
 
@@ -84,6 +87,16 @@ export const POLISH_CATALOG = {
   "form.demoText":
     "Mam 69 lat, mieszkam bez innych osób, nie mam klimatyzacji, chodzę powoli i nie mówię po hiszpańsku.",
 
+  "scenario.heading": "Jak możemy pomóc?",
+  "scenario.selfTitle": "Jest mi za gorąco",
+  "scenario.selfDescription": "Utwórz osobisty plan działania",
+  "scenario.someoneTitle": "Pomóż bliskiej osobie",
+  "scenario.someoneDescription": "Utwórz plan dla innej osoby",
+  "scenario.placeTitle": "Znajdź chłodne miejsce w pobliżu",
+  "scenario.placeDescription": "Pokaż najbliższą zweryfikowaną pomoc",
+  "scenario.nearestHelp": "Najbliższa pomoc",
+  "scenario.importantNow": "Ważne teraz",
+
   "validation.empty": "Opisz sytuację przed utworzeniem planu.",
   "validation.overLimit":
     "Ogranicz opis do {{limit}} znaków Unicode.",
@@ -135,6 +148,7 @@ export const POLISH_CATALOG = {
   "place.linksAccessibleName": "Oficjalne linki do miejsca",
   "place.informationLink": "Oficjalne informacje",
   "place.sourceLink": "Oficjalne źródło",
+  "place.mapLink": "Otwórz trasę w Google Maps",
   "place.cautionsAccessibleName": "Uwagi dotyczące miejsca",
   "place.addressUnavailable": "Adres niedostępny",
   "place.accessibilityConfirmed": "Dostępność potwierdzona przez źródło",
@@ -147,6 +161,10 @@ export const POLISH_CATALOG = {
   "feature.toilets": "Toalety",
   "feature.microShelter": "Mikroschronienie",
   "feature.petsAllowed": "Zwierzęta dozwolone",
+
+  "feature.confirmed": "Potwierdzone",
+  "feature.unavailable": "Brak informacji o dostępności",
+  "feature.unknown": "Niepotwierdzone",
 
   "distance.straightLine": "{{distance}} w linii prostej",
 

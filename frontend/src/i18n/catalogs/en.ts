@@ -7,9 +7,12 @@ export const ENGLISH_CATALOG = {
   "navigation.createPlan": "Create a plan",
   "navigation.safetyAndPrivacy": "Safety and privacy",
 
-  "visualMode.label": "Visual mode",
+  "header.settings": "Settings",
+
+"visualMode.label": "Visual mode",
   "visualMode.standard": "Standard",
   "visualMode.enhanced": "Enhanced Visibility",
+  "visualMode.highContrast": "High contrast",
   "visualMode.description":
     "Enhanced Visibility is intended for people with low vision or anyone who prefers larger and clearer content.",
 
@@ -82,6 +85,16 @@ export const ENGLISH_CATALOG = {
   "form.demoText":
     "I am 69, I live alone, I have no air conditioning, I walk slowly, and I do not speak Spanish.",
 
+  "scenario.heading": "How can we help?",
+  "scenario.selfTitle": "I am too hot",
+  "scenario.selfDescription": "Create a personal action plan",
+  "scenario.someoneTitle": "Help someone I care about",
+  "scenario.someoneDescription": "Create a plan for another person",
+  "scenario.placeTitle": "Find a cool place nearby",
+  "scenario.placeDescription": "Show the nearest verified help",
+  "scenario.nearestHelp": "Nearest help",
+  "scenario.importantNow": "Important now",
+
   "validation.empty": "Describe the situation before creating a plan.",
   "validation.overLimit":
     "Keep the description within {{limit}} Unicode characters.",
@@ -133,6 +146,7 @@ export const ENGLISH_CATALOG = {
   "place.linksAccessibleName": "Official place links",
   "place.informationLink": "Official information",
   "place.sourceLink": "Official source",
+  "place.mapLink": "Open route in Google Maps",
   "place.cautionsAccessibleName": "Place cautions",
   "place.addressUnavailable": "Address unavailable",
   "place.accessibilityConfirmed": "Accessibility confirmed by the source",
@@ -145,6 +159,10 @@ export const ENGLISH_CATALOG = {
   "feature.toilets": "Toilets",
   "feature.microShelter": "Micro-shelter",
   "feature.petsAllowed": "Pets allowed",
+
+  "feature.confirmed": "Confirmed",
+  "feature.unavailable": "Not listed as available",
+  "feature.unknown": "Not confirmed",
 
   "distance.straightLine": "{{distance}} straight-line",
 

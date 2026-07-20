@@ -9,9 +9,12 @@ export const UKRAINIAN_CATALOG = {
   "navigation.createPlan": "Створити план",
   "navigation.safetyAndPrivacy": "Безпека та конфіденційність",
 
-  "visualMode.label": "Візуальний режим",
+  "header.settings": "Налаштування",
+
+"visualMode.label": "Візуальний режим",
   "visualMode.standard": "Стандартний",
   "visualMode.enhanced": "Покращена видимість",
+  "visualMode.highContrast": "Висока контрастність",
   "visualMode.description":
     "Покращена видимість призначена для людей зі слабким зором або для всіх, хто віддає перевагу більшому й чіткішому вмісту.",
 
@@ -84,6 +87,16 @@ export const UKRAINIAN_CATALOG = {
   "form.demoText":
     "Мені 69 років, я живу без інших людей, у мене немає кондиціонера, я повільно ходжу й не розмовляю іспанською.",
 
+  "scenario.heading": "Як ми можемо допомогти?",
+  "scenario.selfTitle": "Мені надто спекотно",
+  "scenario.selfDescription": "Отримати особистий план дій",
+  "scenario.someoneTitle": "Допомогти близькій людині",
+  "scenario.someoneDescription": "Створити план для іншої людини",
+  "scenario.placeTitle": "Знайти прохолодне місце поруч",
+  "scenario.placeDescription": "Показати найближчу перевірену допомогу",
+  "scenario.nearestHelp": "Найближча допомога",
+  "scenario.importantNow": "Зараз важливо",
+
   "validation.empty": "Опишіть ситуацію, перш ніж створювати план.",
   "validation.overLimit":
     "Обмежте опис до {{limit}} символів Unicode.",
@@ -135,6 +148,7 @@ export const UKRAINIAN_CATALOG = {
   "place.linksAccessibleName": "Офіційні посилання на місце",
   "place.informationLink": "Офіційна інформація",
   "place.sourceLink": "Офіційне джерело",
+  "place.mapLink": "Відкрити маршрут у Google Maps",
   "place.cautionsAccessibleName": "Застереження щодо місця",
   "place.addressUnavailable": "Адреса недоступна",
   "place.accessibilityConfirmed": "Доступність підтверджено джерелом",
@@ -147,6 +161,10 @@ export const UKRAINIAN_CATALOG = {
   "feature.toilets": "Туалети",
   "feature.microShelter": "Мікроукриття",
   "feature.petsAllowed": "Дозволено з домашніми тваринами",
+
+  "feature.confirmed": "Підтверджено",
+  "feature.unavailable": "Не вказано як доступне",
+  "feature.unknown": "Не підтверджено",
 
   "distance.straightLine": "{{distance}} по прямій",
 

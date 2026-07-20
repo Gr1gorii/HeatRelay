@@ -12,17 +12,21 @@ server-owned action workflow with deterministic priority and a second grounded
 GPT-5.6 code-selection step. Milestone 4's first slice connects one accessible
 English Barcelona demo flow to that action workflow. The backend pilot accepts
 origins only inside a documented rectangle; that coarse bound is not a
-municipal-boundary geofence. Milestone 5 adds one shared Standard and Enhanced
-Visibility application, a defensively persisted presentation preference,
+municipal-boundary geofence. Milestone 5 added one shared Standard and Enhanced
+Visibility application with a defensively persisted presentation preference,
 stronger semantic interaction, and verified low-vision and accessibility
 foundations without changing the backend or API contract. Milestone 6 adds 25
 bundled interface catalogs, 25 immutable deterministic backend action-plan
 catalogs, independent interface and output-language preferences, strict
 locale propagation, and deterministic language-context information. Its
 implementation is verified within the explicitly tested scope and published
-through the repository commit containing this revision.
+through the repository commit containing this revision. Milestone 7 implements
+the approved red-and-white redesign and adds High Contrast as the third visual
+mode while preserving the M5/M6 contracts. It is verified within the bounded
+offline and loopback-browser scope recorded in the build log, but remains
+uncommitted and unpublished.
 
-## Implemented scope through Milestone 6
+## Implemented scope through Milestone 7
 
 Included in the implemented scope:
 
@@ -47,9 +51,9 @@ Included in the implemented scope:
 - An accessible single-page Barcelona demo that sends one same-origin
   `POST /api/v1/action-plan` request with fixed coordinates and renders
   loading, normal, no-place, urgent, and sanitized error states.
-- One shared application and component flow with `Standard` and `Enhanced
-  Visibility`, selected through a labeled native visual-mode control that
-  remains available throughout the single-page flow.
+- One shared application and component flow. Milestone 5 introduced `Standard`
+  and `Enhanced Visibility`; Milestone 7 adds `High Contrast` through the same
+  labelled native visual-mode control without changing requests or state.
 - Defensive local persistence under `heatrelay.visual-mode.v1`: a valid stored
   preference takes precedence, while first load uses `prefers-contrast: more`
   when no valid value is stored and otherwise falls back to Standard. No
@@ -72,10 +76,10 @@ Included in the implemented scope:
   response facts. It distinguishes the displayed plan from the next selected
   output language without rewriting an existing result or using an alert/live
   region.
-- A CSS-token-based Enhanced Visibility layer rather than duplicated
-  components or browser zoom, with larger text and controls, increased spacing
-  and line height, stronger contrast, borders and focus, clearer selected and
-  disabled states, reduced decoration, and reduced motion.
+- CSS-token-based Enhanced Visibility and High Contrast layers rather than
+  duplicated components or browser zoom. Enhanced retains 56px targets,
+  automatic programmatic scrolling, stronger control boundaries, spacing,
+  line height, borders, and focus; High Contrast is an M7 presentation layer.
 - Semantic form, description, error, focus, status, skip-link, native weather
   description-list, urgent-alert, and page-error improvements.
 - Verified 320px reflow and text spacing, actual Chrome 200% zoom, runtime
@@ -90,15 +94,22 @@ distance, and selected action-plan language code. It does not send visual mode
 or interface locale. It uses fixed coordinates rather than browser location
 and does not call the situation, weather, or places endpoints separately.
 Official heat-warning retrieval, medical diagnosis or risk scoring, free-form
-medical or emergency decision logic, maps, routes, travel times, browser
+medical or emergency decision logic, embedded maps, route calculation, ETAs, browser
 geolocation, runtime machine translation, authentication, analytics,
 deployment, and additional cities remain **unimplemented**.
 
+For a backend-verified selected place only, the result may expose one HTTPS
+Google Maps link in a new tab. Its destination contains only the verified
+address and never the submitted description or a user/device origin. This
+outbound link is not an implemented map, geolocation feature, route engine,
+ETA, or navigation service.
+
 ## Accessibility and visual modes
 
-Standard and Enhanced Visibility use the same data, workflow, components, API,
-and safety contracts. Enhanced Visibility is intended for people with low
-vision or anyone who prefers larger, clearer content. It is a presentation
+Standard, Enhanced Visibility, and the M7 High Contrast mode use the same data,
+workflow, components, API, and safety contracts. Enhanced Visibility is intended for
+people with low vision or anyone who prefers larger, clearer content. It is a
+presentation
 preference, not a medical classification or a mode exclusively for completely
 blind users, and it does not require an account.
 
@@ -147,6 +158,25 @@ without independent native-speaker, linguistic, cultural, medical, emergency,
 accessibility, or safety-critical approval. That limitation does not block a
 bounded implementation commit, but it prohibits claims that translations are
 human-reviewed or release-ready.
+
+## Milestone 7 redesign boundary
+
+The redesign keeps one logical page heading followed by focused result
+headings, permanently visible privacy, identity, fixed-origin,
+OpenAI-processing, and demo-boundary guidance, three non-interactive localized
+scenario examples, and one native three-pair weather description list. An
+urgent response places the complete fixed `112` alert before its resubmission
+form and does not render ordinary scenario, weather, place, or normal-plan
+surfaces ahead of the alert. On mobile, the normal-result language action opens
+Settings before focusing the existing native output-language select; it
+preserves the result and makes no request.
+
+The visual mockup's Listen/speech control, embedded map preview, calculated
+route or ETA, permanent emergency strip, and unverified third initial safety
+instruction are intentional deviations. They are omitted because no approved
+behavioral or verified-data contract exists. HeatRelay adds no Web Speech
+integration, maps SDK, geolocation, routing service, external font, or new API
+for those concepts.
 
 ## Intended audience
 

@@ -9,9 +9,12 @@ export const GERMAN_CATALOG = {
   "navigation.createPlan": "Plan erstellen",
   "navigation.safetyAndPrivacy": "Sicherheit und Datenschutz",
 
-  "visualMode.label": "Darstellungsmodus",
+  "header.settings": "Einstellungen",
+
+"visualMode.label": "Darstellungsmodus",
   "visualMode.standard": "Standard",
   "visualMode.enhanced": "Verbesserte Sichtbarkeit",
+  "visualMode.highContrast": "Hoher Kontrast",
   "visualMode.description":
     "Die verbesserte Sichtbarkeit ist für Menschen mit eingeschränktem Sehvermögen oder für alle gedacht, die größere und klarere Inhalte bevorzugen.",
 
@@ -84,6 +87,16 @@ export const GERMAN_CATALOG = {
   "form.demoText":
     "Ich bin 69 Jahre alt, lebe allein, habe keine Klimaanlage, gehe langsam und spreche kein Spanisch.",
 
+  "scenario.heading": "Wie können wir helfen?",
+  "scenario.selfTitle": "Mir ist zu heiß",
+  "scenario.selfDescription": "Persönlichen Aktionsplan erstellen",
+  "scenario.someoneTitle": "Einer nahestehenden Person helfen",
+  "scenario.someoneDescription": "Plan für eine andere Person erstellen",
+  "scenario.placeTitle": "Einen kühlen Ort in der Nähe finden",
+  "scenario.placeDescription": "Die nächste bestätigte Hilfe anzeigen",
+  "scenario.nearestHelp": "Nächste Hilfe",
+  "scenario.importantNow": "Jetzt wichtig",
+
   "validation.empty": "Beschreibe die Situation, bevor du einen Plan erstellst.",
   "validation.overLimit":
     "Halte die Beschreibung innerhalb von {{limit}} Unicode-Zeichen.",
@@ -135,6 +148,7 @@ export const GERMAN_CATALOG = {
   "place.linksAccessibleName": "Offizielle Links zum Ort",
   "place.informationLink": "Offizielle Informationen",
   "place.sourceLink": "Offizielle Quelle",
+  "place.mapLink": "Route in Google Maps öffnen",
   "place.cautionsAccessibleName": "Hinweise zum Ort",
   "place.addressUnavailable": "Adresse nicht verfügbar",
   "place.accessibilityConfirmed": "Barrierefreiheit von der Quelle bestätigt",
@@ -147,6 +161,10 @@ export const GERMAN_CATALOG = {
   "feature.toilets": "Toiletten",
   "feature.microShelter": "Mikro-Schutzraum",
   "feature.petsAllowed": "Haustiere erlaubt",
+
+  "feature.confirmed": "Bestätigt",
+  "feature.unavailable": "Nicht als verfügbar aufgeführt",
+  "feature.unknown": "Nicht bestätigt",
 
   "distance.straightLine": "{{distance}} Luftlinie",
 

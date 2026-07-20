@@ -9,9 +9,12 @@ export const JAPANESE_CATALOG = {
   "navigation.createPlan": "プランを作成",
   "navigation.safetyAndPrivacy": "安全性とプライバシー",
 
-  "visualMode.label": "表示モード",
+  "header.settings": "設定",
+
+"visualMode.label": "表示モード",
   "visualMode.standard": "標準",
   "visualMode.enhanced": "見やすさを向上",
+  "visualMode.highContrast": "ハイコントラスト",
   "visualMode.description":
     "見やすさを向上するモードは、弱視の方や、より大きく明瞭な表示を希望する方を対象としています。",
 
@@ -84,6 +87,16 @@ export const JAPANESE_CATALOG = {
   "form.demoText":
     "私は69歳で、一人暮らしです。エアコンがなく、歩くのが遅く、スペイン語を話せません。",
 
+  "scenario.heading": "どのようにお手伝いできますか？",
+  "scenario.selfTitle": "暑すぎます",
+  "scenario.selfDescription": "自分の行動計画を作成する",
+  "scenario.someoneTitle": "身近な人を助ける",
+  "scenario.someoneDescription": "別の人のための計画を作成する",
+  "scenario.placeTitle": "近くの涼しい場所を探す",
+  "scenario.placeDescription": "最寄りの確認済み支援を表示する",
+  "scenario.nearestHelp": "最寄りの支援",
+  "scenario.importantNow": "今、大切なこと",
+
   "validation.empty": "プランを作成する前に状況を説明してください。",
   "validation.overLimit":
     "説明は {{limit}} Unicode 文字以内にしてください。",
@@ -135,6 +148,7 @@ export const JAPANESE_CATALOG = {
   "place.linksAccessibleName": "場所の公式リンク",
   "place.informationLink": "公式情報",
   "place.sourceLink": "公式情報源",
+  "place.mapLink": "Google マップで経路を開く",
   "place.cautionsAccessibleName": "場所に関する注意事項",
   "place.addressUnavailable": "住所を利用できません",
   "place.accessibilityConfirmed": "情報源によりアクセシビリティを確認済み",
@@ -147,6 +161,10 @@ export const JAPANESE_CATALOG = {
   "feature.toilets": "トイレ",
   "feature.microShelter": "小規模シェルター",
   "feature.petsAllowed": "ペット同伴可",
+
+  "feature.confirmed": "確認済み",
+  "feature.unavailable": "利用可能との記載なし",
+  "feature.unknown": "未確認",
 
   "distance.straightLine": "{{distance}}（直線距離）",
 

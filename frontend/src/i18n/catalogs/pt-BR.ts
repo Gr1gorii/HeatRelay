@@ -9,9 +9,12 @@ export const BRAZILIAN_PORTUGUESE_CATALOG = {
   "navigation.createPlan": "Criar um plano",
   "navigation.safetyAndPrivacy": "Segurança e privacidade",
 
-  "visualMode.label": "Modo visual",
+  "header.settings": "Configurações",
+
+"visualMode.label": "Modo visual",
   "visualMode.standard": "Padrão",
   "visualMode.enhanced": "Visibilidade aprimorada",
+  "visualMode.highContrast": "Alto contraste",
   "visualMode.description":
     "A Visibilidade aprimorada é destinada a pessoas com baixa visão ou a qualquer pessoa que prefira conteúdo maior e mais nítido.",
 
@@ -84,6 +87,16 @@ export const BRAZILIAN_PORTUGUESE_CATALOG = {
   "form.demoText":
     "Tenho 69 anos, moro sem companhia, não tenho ar-condicionado, caminho devagar e não falo espanhol.",
 
+  "scenario.heading": "Como podemos ajudar?",
+  "scenario.selfTitle": "Estou com muito calor",
+  "scenario.selfDescription": "Criar um plano de ação pessoal",
+  "scenario.someoneTitle": "Ajudar alguém próximo",
+  "scenario.someoneDescription": "Criar um plano para outra pessoa",
+  "scenario.placeTitle": "Encontrar um lugar fresco por perto",
+  "scenario.placeDescription": "Mostrar a ajuda verificada mais próxima",
+  "scenario.nearestHelp": "Ajuda mais próxima",
+  "scenario.importantNow": "Importante agora",
+
   "validation.empty": "Descreva a situação antes de criar um plano.",
   "validation.overLimit":
     "Mantenha a descrição dentro do limite de {{limit}} caracteres Unicode.",
@@ -135,6 +148,7 @@ export const BRAZILIAN_PORTUGUESE_CATALOG = {
   "place.linksAccessibleName": "Links oficiais do local",
   "place.informationLink": "Informações oficiais",
   "place.sourceLink": "Fonte oficial",
+  "place.mapLink": "Abrir rota no Google Maps",
   "place.cautionsAccessibleName": "Cuidados relacionados ao local",
   "place.addressUnavailable": "Endereço indisponível",
   "place.accessibilityConfirmed": "Acessibilidade confirmada pela fonte",
@@ -147,6 +161,10 @@ export const BRAZILIAN_PORTUGUESE_CATALOG = {
   "feature.toilets": "Banheiros",
   "feature.microShelter": "Microabrigo",
   "feature.petsAllowed": "Animais de estimação permitidos",
+
+  "feature.confirmed": "Confirmado",
+  "feature.unavailable": "Não consta como disponível",
+  "feature.unknown": "Não confirmado",
 
   "distance.straightLine": "{{distance}} em linha reta",
 

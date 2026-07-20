@@ -1484,10 +1484,10 @@ describe("canonical catalogs and bundled runtime", () => {
   it("keeps every catalog at the exact canonical 124-key boundary", () => {
     const canonicalKeys = Object.keys(ENGLISH_CATALOG).sort();
 
-    expect(canonicalKeys).toHaveLength(124);
+    expect(canonicalKeys).toHaveLength(139);
     for (const locale of SUPPORTED_INTERFACE_LOCALES) {
       const localeKeys = Object.keys(LOCALE_REGISTRY[locale].catalog).sort();
-      expect(localeKeys).toHaveLength(124);
+      expect(localeKeys).toHaveLength(139);
       expect(localeKeys).toEqual(canonicalKeys);
     }
   });

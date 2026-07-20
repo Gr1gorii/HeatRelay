@@ -9,9 +9,12 @@ export const PERSIAN_CATALOG = {
   "navigation.createPlan": "ایجاد برنامه",
   "navigation.safetyAndPrivacy": "ایمنی و حریم خصوصی",
 
-  "visualMode.label": "حالت نمایش",
+  "header.settings": "تنظیمات",
+
+"visualMode.label": "حالت نمایش",
   "visualMode.standard": "استاندارد",
   "visualMode.enhanced": "دید بهتر",
+  "visualMode.highContrast": "کنتراست بالا",
   "visualMode.description":
     "حالت دید بهتر برای افراد کم‌بینا یا هر کسی است که محتوای بزرگ‌تر و واضح‌تر را ترجیح می‌دهد.",
 
@@ -84,6 +87,16 @@ export const PERSIAN_CATALOG = {
   "form.demoText":
     "۶۹ ساله‌ام، تنها زندگی می‌کنم، دستگاه تهویه مطبوع ندارم، آهسته راه می‌روم و اسپانیایی صحبت نمی‌کنم.",
 
+  "scenario.heading": "چگونه می‌توانیم کمک کنیم؟",
+  "scenario.selfTitle": "خیلی گرمم است",
+  "scenario.selfDescription": "یک برنامه اقدام شخصی بسازید",
+  "scenario.someoneTitle": "به فردی نزدیک کمک کنید",
+  "scenario.someoneDescription": "برای فرد دیگری برنامه بسازید",
+  "scenario.placeTitle": "یک مکان خنک نزدیک پیدا کنید",
+  "scenario.placeDescription": "نزدیک‌ترین کمک تأییدشده را نشان دهید",
+  "scenario.nearestHelp": "نزدیک‌ترین کمک",
+  "scenario.importantNow": "اکنون مهم است",
+
   "validation.empty": "پیش از ایجاد برنامه، وضعیت را شرح دهید.",
   "validation.overLimit":
     "شرح را در محدوده {{limit}} نویسه یونی‌کد نگه دارید.",
@@ -135,6 +148,7 @@ export const PERSIAN_CATALOG = {
   "place.linksAccessibleName": "پیوندهای رسمی مکان",
   "place.informationLink": "اطلاعات رسمی",
   "place.sourceLink": "منبع رسمی",
+  "place.mapLink": "باز کردن مسیر در Google Maps",
   "place.cautionsAccessibleName": "هشدارهای مربوط به مکان",
   "place.addressUnavailable": "نشانی در دسترس نیست",
   "place.accessibilityConfirmed": "دسترس‌پذیری توسط منبع تأیید شده است",
@@ -147,6 +161,10 @@ export const PERSIAN_CATALOG = {
   "feature.toilets": "سرویس بهداشتی",
   "feature.microShelter": "پناهگاه کوچک",
   "feature.petsAllowed": "ورود حیوانات خانگی مجاز است",
+
+  "feature.confirmed": "تأیید شده",
+  "feature.unavailable": "به‌عنوان موجود فهرست نشده",
+  "feature.unknown": "تأیید نشده",
 
   "distance.straightLine": "{{distance}} در خط مستقیم",
 

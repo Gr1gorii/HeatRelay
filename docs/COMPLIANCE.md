@@ -53,6 +53,7 @@ supplied publication reports, not inferred from Git author metadata.
 | Corrected-contract grounded-plan access | **Verified by one separately authorized final smoke on 2026-07-17** | Exactly one direct `GroundedPlanService` request with zero retries passed strict Pydantic, allowed-code, safe-model-metadata, and exact candidate-whitelist validation. It used 1,326 input and 171 output tokens; this single scenario is not a general accuracy evaluation. |
 | Live Milestone 4 browser workflow | **Verified for one bounded smoke on 2026-07-18** | One Chrome submission produced one observed action-plan POST and HTTP 200, rendering the normal `Prepare now` no-place result with zero retries. Extraction, Open-Meteo, and grounded-plan calls were inferred rather than independently provider-logged. Model metadata and token usage were unavailable; `$0.25` was a conservative authorized upper bound, not the actual measured charge. |
 | Milestone 5 accessibility and low-vision foundation | **Verified within the explicitly tested scope on 2026-07-18** | Offline automated tests and the production build passed. An isolated loopback harness verified corrected 320px reflow; actual Chrome verified 200% page zoom; runtime macOS Reduce Motion was exercised and restored; and one actual VoiceOver session was manually confirmed by the author. This is platform- and scenario-bounded evidence, not formal accessibility certification or a claim of complete conformance. |
+| Milestone 7 redesign | **Implemented and verified within the bounded offline/browser scope; uncommitted and unpublished** | The approved red-and-white presentation, M7 High Contrast mode, urgent-first hierarchy, permanent form guidance, non-interactive scenario examples, accessible weather facts, and mobile Settings focus correction preserve the M5/M6 contracts. No release-readiness or complete-design-fidelity claim is made. |
 
 The Milestone 3 adversarial correction implementations and ordinary
 verification were deliberately offline. The later final smoke was a separate,
@@ -69,7 +70,8 @@ extraction, and M3 Barcelona action workflow, then adds one browser flow for
 the action-plan endpoint. It fixes the demo origin at latitude `41.3874` and
 longitude `2.1686`, with a `3000` metre maximum distance; browser geolocation
 is not available. It does not add medical diagnosis or risk scoring,
-official-warning retrieval, routes, ETA, reservations, guaranteed hours, maps,
+official-warning retrieval, calculated routes, ETA, reservations, guaranteed
+hours, embedded maps,
 translations, accounts, analytics, deployment, or additional cities. The
 action-plan origin rectangle is bounded pilot coverage, not evidence of
 Barcelona municipal membership and not an administrative-boundary geofence.
@@ -510,3 +512,36 @@ license does not relicense third-party code.
 
 No map library, routing client, authentication library, analytics library,
 scraping framework, or process-runner package is included.
+
+## Milestone 7 redesign compliance boundary
+
+High Contrast is introduced by M7, not retroactively by M5. It uses the same
+strict visual-preference key and validation, preserves session state and
+request noninterference, retains Standard 48px and Enhanced 56px targets, and
+uses the same logical RTL-capable component tree. Enhanced necessary control
+boundaries meet the adjacent-background contrast target and Enhanced
+programmatic scrolling is automatic rather than smooth.
+
+The three scenario cards are non-interactive examples because the product and
+four-field request have no scenario field. Essential privacy, identity,
+fixed-origin, server-side OpenAI-processing, and demo guidance is permanently
+visible before submission. The normal weather summary uses one native `dl`
+with three exposed fact pairs. The urgent branch presents exactly one complete
+fixed `112` alert before its resubmission form and does not precede it with
+ordinary dashboard, place, weather, or normal-plan content. Normal and urgent
+completion continue focusing their result headings; errors focus their `h2`
+after the page `h1`.
+
+The only Google Maps behavior is an HTTPS link for a backend-verified selected
+place, opened with `target="_blank"` and `rel="noopener noreferrer"`. Its
+destination contains only the verified address, never situation text or a
+user/device origin. It does not implement an embedded map, geolocation, route
+engine, ETA, or navigation.
+
+Listen/speech, an embedded map preview, a calculated route or ETA, a permanent
+emergency strip, and an unverified third initial safety instruction are omitted
+because no approved behavioral or verified-data contract exists. No Web
+Speech API, map SDK, geolocation, routing, external font, dependency, backend,
+schema, catalog, or new API is added. This bounded correction does not establish
+formal WCAG conformance, complete design fidelity, native-speaker review,
+cross-browser support, medical approval, or release readiness.

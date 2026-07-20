@@ -9,9 +9,12 @@ export const SWAHILI_CATALOG = {
   "navigation.createPlan": "Tengeneza mpango",
   "navigation.safetyAndPrivacy": "Usalama na faragha",
 
-  "visualMode.label": "Hali ya mwonekano",
+  "header.settings": "Mipangilio",
+
+"visualMode.label": "Hali ya mwonekano",
   "visualMode.standard": "Kawaida",
   "visualMode.enhanced": "Mwonekano ulioboreshwa",
+  "visualMode.highContrast": "Utofautishaji wa juu",
   "visualMode.description":
     "Mwonekano ulioboreshwa umekusudiwa watu wenye uoni hafifu au mtu yeyote anayependelea maudhui makubwa na yaliyo wazi zaidi.",
 
@@ -84,6 +87,16 @@ export const SWAHILI_CATALOG = {
   "form.demoText":
     "Nina umri wa miaka 69, ninaishi peke yangu, sina kiyoyozi, ninatembea polepole na sizungumzi Kihispania.",
 
+  "scenario.heading": "Tunawezaje kusaidia?",
+  "scenario.selfTitle": "Ninahisi joto kupita kiasi",
+  "scenario.selfDescription": "Unda mpango wangu wa hatua",
+  "scenario.someoneTitle": "Msaidie mtu wa karibu",
+  "scenario.someoneDescription": "Unda mpango kwa ajili ya mtu mwingine",
+  "scenario.placeTitle": "Tafuta mahali penye baridi karibu",
+  "scenario.placeDescription": "Onyesha msaada uliothibitishwa ulio karibu",
+  "scenario.nearestHelp": "Msaada wa karibu",
+  "scenario.importantNow": "Muhimu sasa",
+
   "validation.empty": "Eleza hali kabla ya kutengeneza mpango.",
   "validation.overLimit":
     "Weka maelezo ndani ya kikomo cha herufi {{limit}} za Unicode.",
@@ -135,6 +148,7 @@ export const SWAHILI_CATALOG = {
   "place.linksAccessibleName": "Viungo rasmi vya eneo",
   "place.informationLink": "Taarifa rasmi",
   "place.sourceLink": "Chanzo rasmi",
+  "place.mapLink": "Fungua njia katika Google Maps",
   "place.cautionsAccessibleName": "Tahadhari za eneo",
   "place.addressUnavailable": "Anwani haipatikani",
   "place.accessibilityConfirmed": "Ufikivu umethibitishwa na chanzo",
@@ -147,6 +161,10 @@ export const SWAHILI_CATALOG = {
   "feature.toilets": "Vyoo",
   "feature.microShelter": "Sehemu ndogo ya kujisitiri",
   "feature.petsAllowed": "Wanyama vipenzi wanaruhusiwa",
+
+  "feature.confirmed": "Imethibitishwa",
+  "feature.unavailable": "Haijaorodheshwa kuwa inapatikana",
+  "feature.unknown": "Haijathibitishwa",
 
   "distance.straightLine": "{{distance}} kwa mstari wa moja kwa moja",
 

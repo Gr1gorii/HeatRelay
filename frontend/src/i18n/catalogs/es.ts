@@ -9,9 +9,12 @@ export const SPANISH_CATALOG = {
   "navigation.createPlan": "Crear un plan",
   "navigation.safetyAndPrivacy": "Seguridad y privacidad",
 
-  "visualMode.label": "Modo visual",
+  "header.settings": "Ajustes",
+
+"visualMode.label": "Modo visual",
   "visualMode.standard": "Estándar",
   "visualMode.enhanced": "Visibilidad mejorada",
+  "visualMode.highContrast": "Alto contraste",
   "visualMode.description":
     "La Visibilidad mejorada está pensada para personas con baja visión o para cualquiera que prefiera contenido más grande y claro.",
 
@@ -84,6 +87,16 @@ export const SPANISH_CATALOG = {
   "form.demoText":
     "Tengo 69 años, vivo sin compañía, no tengo aire acondicionado, camino despacio y no hablo español.",
 
+  "scenario.heading": "¿Cómo podemos ayudar?",
+  "scenario.selfTitle": "Tengo demasiado calor",
+  "scenario.selfDescription": "Crear un plan de acción personal",
+  "scenario.someoneTitle": "Ayudar a una persona cercana",
+  "scenario.someoneDescription": "Crear un plan para otra persona",
+  "scenario.placeTitle": "Encontrar un lugar fresco cercano",
+  "scenario.placeDescription": "Mostrar la ayuda verificada más cercana",
+  "scenario.nearestHelp": "Ayuda más cercana",
+  "scenario.importantNow": "Importante ahora",
+
   "validation.empty": "Describe la situación antes de crear un plan.",
   "validation.overLimit":
     "Mantén la descripción dentro del límite de {{limit}} caracteres Unicode.",
@@ -135,6 +148,7 @@ export const SPANISH_CATALOG = {
   "place.linksAccessibleName": "Enlaces oficiales del lugar",
   "place.informationLink": "Información oficial",
   "place.sourceLink": "Fuente oficial",
+  "place.mapLink": "Abrir ruta en Google Maps",
   "place.cautionsAccessibleName": "Precauciones sobre el lugar",
   "place.addressUnavailable": "Dirección no disponible",
   "place.accessibilityConfirmed": "Accesibilidad confirmada por la fuente",
@@ -147,6 +161,10 @@ export const SPANISH_CATALOG = {
   "feature.toilets": "Aseos",
   "feature.microShelter": "Microrrefugio",
   "feature.petsAllowed": "Se admiten mascotas",
+
+  "feature.confirmed": "Confirmado",
+  "feature.unavailable": "No figura como disponible",
+  "feature.unknown": "Sin confirmar",
 
   "distance.straightLine": "{{distance}} en línea recta",
 

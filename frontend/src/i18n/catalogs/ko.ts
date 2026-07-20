@@ -9,9 +9,12 @@ export const KOREAN_CATALOG = {
   "navigation.createPlan": "계획 만들기",
   "navigation.safetyAndPrivacy": "안전 및 개인정보 보호",
 
-  "visualMode.label": "시각 모드",
+  "header.settings": "설정",
+
+"visualMode.label": "시각 모드",
   "visualMode.standard": "표준",
   "visualMode.enhanced": "향상된 가시성",
+  "visualMode.highContrast": "고대비",
   "visualMode.description":
     "향상된 가시성은 저시력인 분이나 더 크고 선명한 콘텐츠를 선호하는 누구나 사용할 수 있습니다.",
 
@@ -84,6 +87,16 @@ export const KOREAN_CATALOG = {
   "form.demoText":
     "저는 69세이고 혼자 살며 에어컨이 없습니다. 천천히 걷고 스페인어를 하지 못합니다.",
 
+  "scenario.heading": "어떻게 도와드릴까요?",
+  "scenario.selfTitle": "너무 덥습니다",
+  "scenario.selfDescription": "개인 행동 계획 만들기",
+  "scenario.someoneTitle": "가까운 사람 돕기",
+  "scenario.someoneDescription": "다른 사람을 위한 계획 만들기",
+  "scenario.placeTitle": "가까운 시원한 장소 찾기",
+  "scenario.placeDescription": "가장 가까운 확인된 도움 보기",
+  "scenario.nearestHelp": "가장 가까운 도움",
+  "scenario.importantNow": "지금 중요한 일",
+
   "validation.empty": "계획을 만들기 전에 상황을 설명해 주세요.",
   "validation.overLimit":
     "설명은 Unicode 문자 {{limit}}개 이내로 작성해 주세요.",
@@ -135,6 +148,7 @@ export const KOREAN_CATALOG = {
   "place.linksAccessibleName": "공식 장소 링크",
   "place.informationLink": "공식 정보",
   "place.sourceLink": "공식 출처",
+  "place.mapLink": "Google 지도에서 경로 열기",
   "place.cautionsAccessibleName": "장소 주의사항",
   "place.addressUnavailable": "주소를 사용할 수 없음",
   "place.accessibilityConfirmed": "출처에서 접근 가능한 장소임을 확인함",
@@ -147,6 +161,10 @@ export const KOREAN_CATALOG = {
   "feature.toilets": "화장실",
   "feature.microShelter": "소형 쉼터",
   "feature.petsAllowed": "반려동물 동반 가능",
+
+  "feature.confirmed": "확인됨",
+  "feature.unavailable": "이용 가능으로 표시되지 않음",
+  "feature.unknown": "확인되지 않음",
 
   "distance.straightLine": "직선거리 {{distance}}",
 

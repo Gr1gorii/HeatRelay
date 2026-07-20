@@ -9,9 +9,12 @@ export const FRENCH_CATALOG = {
   "navigation.createPlan": "Créer un plan",
   "navigation.safetyAndPrivacy": "Sécurité et confidentialité",
 
-  "visualMode.label": "Mode d’affichage",
+  "header.settings": "Paramètres",
+
+"visualMode.label": "Mode d’affichage",
   "visualMode.standard": "Standard",
   "visualMode.enhanced": "Visibilité renforcée",
+  "visualMode.highContrast": "Contraste élevé",
   "visualMode.description":
     "La visibilité renforcée est destinée aux personnes malvoyantes ainsi qu’à toute personne qui préfère un contenu plus grand et plus clair.",
 
@@ -84,6 +87,16 @@ export const FRENCH_CATALOG = {
   "form.demoText":
     "J’ai 69 ans, je vis sans personne avec moi, je n’ai pas de climatisation, je marche lentement et je ne parle pas espagnol.",
 
+  "scenario.heading": "Comment pouvons-nous vous aider ?",
+  "scenario.selfTitle": "J’ai trop chaud",
+  "scenario.selfDescription": "Créer un plan d’action personnel",
+  "scenario.someoneTitle": "Aider une personne proche",
+  "scenario.someoneDescription": "Créer un plan pour une autre personne",
+  "scenario.placeTitle": "Trouver un endroit frais à proximité",
+  "scenario.placeDescription": "Afficher l’aide vérifiée la plus proche",
+  "scenario.nearestHelp": "Aide la plus proche",
+  "scenario.importantNow": "Important maintenant",
+
   "validation.empty": "Décrivez la situation avant de créer un plan.",
   "validation.overLimit":
     "Limitez la description à {{limit}} caractères Unicode.",
@@ -135,6 +148,7 @@ export const FRENCH_CATALOG = {
   "place.linksAccessibleName": "Liens officiels du lieu",
   "place.informationLink": "Informations officielles",
   "place.sourceLink": "Source officielle",
+  "place.mapLink": "Ouvrir l’itinéraire dans Google Maps",
   "place.cautionsAccessibleName": "Précautions concernant le lieu",
   "place.addressUnavailable": "Adresse indisponible",
   "place.accessibilityConfirmed": "Accessibilité confirmée par la source",
@@ -147,6 +161,10 @@ export const FRENCH_CATALOG = {
   "feature.toilets": "Toilettes",
   "feature.microShelter": "Micro-abri",
   "feature.petsAllowed": "Animaux de compagnie autorisés",
+
+  "feature.confirmed": "Confirmé",
+  "feature.unavailable": "Non indiqué comme disponible",
+  "feature.unknown": "Non confirmé",
 
   "distance.straightLine": "{{distance}} à vol d’oiseau",
 

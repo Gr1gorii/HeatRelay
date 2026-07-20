@@ -1628,6 +1628,7 @@ describe("Visual mode preference foundation", () => {
     ["uses Enhanced Visibility for a first-load contrast match", null, true, "enhanced", true],
     ["lets stored Standard override matching system contrast", "standard", true, "standard", false],
     ["restores stored Enhanced Visibility", "enhanced", false, "enhanced", false],
+    ["restores stored High Contrast", "high-contrast", false, "high-contrast", false],
     ["falls through an invalid stored value", "invalid-mode", true, "enhanced", true],
   ] as const)(
     "%s",
@@ -1689,6 +1690,7 @@ describe("Visual mode preference foundation", () => {
     ).toEqual([
       ["standard", "Standard"],
       ["enhanced", "Enhanced Visibility"],
+      ["high-contrast", "High contrast"],
     ]);
     const descriptionId = select.getAttribute("aria-describedby");
     expect(descriptionId).toBe("visual-mode-description");
@@ -1704,11 +1706,16 @@ describe("Visual mode preference foundation", () => {
 
     fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } });
     expectVisualMode("enhanced");
+    fireEvent.change(visualModeSelect(), {
+      target: { value: "high-contrast" },
+    });
+    expectVisualMode("high-contrast");
     fireEvent.change(visualModeSelect(), { target: { value: "standard" } });
     expectVisualMode("standard");
 
     expect(storageWrite.mock.calls).toEqual([
       [VISUAL_MODE_STORAGE_KEY, "enhanced"],
+      [VISUAL_MODE_STORAGE_KEY, "high-contrast"],
       [VISUAL_MODE_STORAGE_KEY, "standard"],
     ]);
   });
@@ -1910,7 +1917,7 @@ describe("Interface language foundation", () => {
     render(<App />);
 
     expect(
-      screen.getByRole("heading", { name: ENGLISH_CATALOG["form.title"] }),
+      screen.getByRole("heading", { name: ENGLISH_CATALOG["scenario.heading"] }),
     ).toBeTruthy();
     await selectInterfaceLanguage("es");
 
@@ -1923,7 +1930,7 @@ describe("Interface language foundation", () => {
       document.getElementById("interface-language-description")?.textContent,
     ).toBe(SPANISH_CATALOG["interfaceLanguage.description"]);
     expect(
-      screen.getByRole("heading", { name: SPANISH_CATALOG["form.title"] }),
+      screen.getByRole("heading", { name: SPANISH_CATALOG["scenario.heading"] }),
     ).toBeTruthy();
     expect(screen.getByRole("button", {
       name: SPANISH_CATALOG["form.submitButton"],
@@ -1934,7 +1941,7 @@ describe("Interface language foundation", () => {
     await selectInterfaceLanguage("en");
 
     expect(
-      screen.getByRole("heading", { name: ENGLISH_CATALOG["form.title"] }),
+      screen.getByRole("heading", { name: ENGLISH_CATALOG["scenario.heading"] }),
     ).toBeTruthy();
     expect(document.documentElement.lang).toBe("en");
     expect(document.documentElement.dir).toBe("ltr");
@@ -2225,7 +2232,8 @@ describe("Action-plan language preference", () => {
           Node.DOCUMENT_POSITION_FOLLOWING,
       ),
     ).toBe(true);
-    expect(select.closest("form")).toBe(textarea.closest("form"));
+    expect(select.closest("header")).not.toBeNull();
+    expect(textarea.closest("form")).not.toBeNull();
   });
 
   it("renders exactly 25 ordered native-name-only output options from the shared registry", () => {
@@ -2695,7 +2703,7 @@ describe("Deterministic language context", () => {
     expect(document.documentElement.dir).not.toBe("rtl");
   });
 
-  it("focuses the existing selector from a normal note without any other mutation", async () => {
+  it("opens mobile Settings and focuses the existing selector without any other mutation", async () => {
     fetchMock.mockResolvedValue(
       jsonResponse(withDetectedLanguage(normalResponse, "es")),
     );
@@ -2717,12 +2725,26 @@ describe("Deterministic language context", () => {
     const button = screen.getByRole("button", {
       name: ENGLISH_CATALOG["languageContext.changeAction"],
     });
+    const settings = document.querySelector<HTMLDetailsElement>(
+      "details.header-settings",
+    );
+    const settingsSummary = settings?.querySelector("summary");
+    if (!settings || !settingsSummary) {
+      throw new Error("Synthetic test setup expected header Settings.");
+    }
+    if (settings.open) {
+      fireEvent.click(settingsSummary);
+      await waitFor(() => expect(settings.open).toBe(false));
+    }
     expect(button.getAttribute("type")).toBe("button");
     expect(document.activeElement).toBe(resultHeading);
 
     fireEvent.click(button);
 
-    expect(document.activeElement).toBe(outputLanguageSelect());
+    await waitFor(() => {
+      expect(settings.open).toBe(true);
+      expect(document.activeElement).toBe(outputLanguageSelect());
+    });
     expect(outputLanguageSelect().value).toBe("en");
     expect(result.outerHTML).toBe(resultMarkup);
     expect(situationField().value).toBe(SYNTHETIC_SITUATION);
@@ -2867,16 +2889,19 @@ describe("Deterministic language context", () => {
 
   it("uses logical calm-note CSS with narrow stacking and enhanced target sizing", () => {
     expect(stylesSource).toMatch(
-      /\.language-context-note\s*\{[^}]*min-width:\s*0;[^}]*margin-block-start:[^}]*padding-block:[^}]*padding-inline:[^}]*background:\s*var\(--color-info-surface\);[^}]*overflow-wrap:\s*anywhere;/s,
+      /\.language-context-note\s*\{[^}]*min-width:\s*0;[^}]*margin-block-start:[^}]*padding-block:[^}]*padding-inline:[^}]*background:\s*var\(--color-verified-surface\);[^}]*overflow-wrap:\s*anywhere;/s,
     );
     expect(stylesSource).not.toMatch(
       /\.language-context-note\s*\{[^}]*(?:box-shadow|animation|padding-left|padding-right|margin-left|margin-right):/s,
     );
     expect(stylesSource).toMatch(
-      /@media \(max-width: 580px\)[\s\S]*?\.language-context-note dl > div\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);[^}]*\}[\s\S]*?\.language-context-note \.secondary-button\s*\{[^}]*width:\s*100%;/,
+      /@media \(max-width: 760px\)[\s\S]*?\.place-details > div,[\s\S]*?\.language-context-note dl > div\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/,
     );
     expect(stylesSource).toMatch(
-      /\.app-shell\[data-visual-mode="enhanced"\] \.primary-link,[\s\S]*?\.app-shell\[data-visual-mode="enhanced"\] \.secondary-button,[\s\S]*?min-height:\s*var\(--target-control-size\);/,
+      /\.app-shell\[data-visual-mode="enhanced"\] \.settings-control select,[\s\S]*?\.app-shell\[data-visual-mode="enhanced"\] \.secondary-button,[\s\S]*?min-height:\s*var\(--target-control-size\);/,
+    );
+    expect(stylesSource).toContain(
+      '.app-shell[data-visual-mode="high-contrast"]',
     );
   });
 });
@@ -2980,7 +3005,7 @@ describe("Spanish interface pilot", () => {
     expect(
       document.querySelector(".evaluation-time time")?.textContent,
     ).toContain("17 jul 2026, 10:00");
-    expect(screen.getByText("33,0 °C")).toBeTruthy();
+    expect(screen.getAllByText("33,0 °C")).toHaveLength(1);
     expect(screen.getByText(/725 m/)).toBeTruthy();
     expect(screen.getByText("15 jul 2026")).toBeTruthy();
 
@@ -3109,7 +3134,7 @@ describe("Representative LTR catalog batch", () => {
     expect(document.title).toBe(catalog["metadata.title"]);
     expect(description.content).toBe(catalog["metadata.description"]);
     expect(
-      screen.getByRole("heading", { name: catalog["form.title"] }),
+      screen.getByRole("heading", { name: catalog["scenario.heading"] }),
     ).toBeTruthy();
     expect(
       screen.getByRole("combobox", {
@@ -3151,7 +3176,7 @@ describe("Representative LTR catalog batch", () => {
     expect(document.title).toBe(catalog["metadata.title"]);
     expect(description.content).toBe(catalog["metadata.description"]);
     expect(
-      screen.getByRole("heading", { name: catalog["form.title"] }),
+      screen.getByRole("heading", { name: catalog["scenario.heading"] }),
     ).toBeTruthy();
     expect(
       screen.getByRole("combobox", {
@@ -3192,7 +3217,7 @@ describe("Representative LTR catalog batch", () => {
     expect(document.documentElement.lang).toBe("ru");
     expect(document.documentElement.dir).toBe("ltr");
     expect(
-      screen.getByRole("heading", { name: catalog["form.title"] }),
+      screen.getByRole("heading", { name: catalog["scenario.heading"] }),
     ).toBeTruthy();
     expect(fetchMock).not.toHaveBeenCalled();
   });
@@ -3315,7 +3340,7 @@ describe("M6.8 Hindi, Bengali, and Korean catalog batch", () => {
     expect(document.title).toBe(catalog["metadata.title"]);
     expect(description.content).toBe(catalog["metadata.description"]);
     expect(
-      screen.getByRole("heading", { name: catalog["form.title"] }),
+      screen.getByRole("heading", { name: catalog["scenario.heading"] }),
     ).toBeTruthy();
     expect(
       screen.getByRole("combobox", {
@@ -3352,7 +3377,7 @@ describe("M6.8 Hindi, Bengali, and Korean catalog batch", () => {
     expect(document.documentElement.lang).toBe("bn");
     expect(document.documentElement.dir).toBe("ltr");
     expect(
-      screen.getByRole("heading", { name: catalog["form.title"] }),
+      screen.getByRole("heading", { name: catalog["scenario.heading"] }),
     ).toBeTruthy();
     expect(document.getElementById("character-count")?.textContent).toBe(
       expectedCount,
@@ -3373,7 +3398,7 @@ describe("M6.8 Hindi, Bengali, and Korean catalog batch", () => {
     expect(document.title).toBe(catalog["metadata.title"]);
     expect(description.content).toBe(catalog["metadata.description"]);
     expect(
-      screen.getByRole("heading", { name: catalog["form.title"] }),
+      screen.getByRole("heading", { name: catalog["scenario.heading"] }),
     ).toBeTruthy();
     expect(
       document.getElementById("interface-language-description")?.textContent,
@@ -3450,7 +3475,7 @@ describe("M6.9 Thai catalog and calendar contract", () => {
     expect(document.title).toBe(catalog["metadata.title"]);
     expect(description.content).toBe(catalog["metadata.description"]);
     expect(
-      screen.getByRole("heading", { name: catalog["form.title"] }),
+      screen.getByRole("heading", { name: catalog["scenario.heading"] }),
     ).toBeTruthy();
     expect(
       screen.getByRole("combobox", {
@@ -3559,7 +3584,7 @@ describe("M6.10 Portuguese, French, Italian, and Dutch catalog batch", () => {
       expect(document.title).toBe(catalog["metadata.title"]);
       expect(description.content).toBe(catalog["metadata.description"]);
       expect(
-        screen.getByRole("heading", { name: catalog["form.title"] }),
+        screen.getByRole("heading", { name: catalog["scenario.heading"] }),
       ).toBeTruthy();
       expect(
         screen.getByRole("combobox", {
@@ -3690,7 +3715,7 @@ describe("M6.11 final required LTR catalog batch", () => {
       expect(document.title).toBe(catalog["metadata.title"]);
       expect(description.content).toBe(catalog["metadata.description"]);
       expect(
-        screen.getByRole("heading", { name: catalog["form.title"] }),
+        screen.getByRole("heading", { name: catalog["scenario.heading"] }),
       ).toBeTruthy();
       expect(
         screen.getByRole("combobox", {
@@ -3732,10 +3757,10 @@ describe("M6.11 final required LTR catalog batch", () => {
       "situation-error",
     );
     expect(
-      screen.getByRole("heading", { name: ukrainianCatalog["form.title"] }),
+      screen.getByRole("heading", { name: ukrainianCatalog["scenario.heading"] }),
     ).toBeTruthy();
     expect(
-      screen.queryByText(russianCatalog["form.title"]),
+      screen.queryByText(russianCatalog["scenario.heading"]),
     ).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
   });
@@ -3847,12 +3872,14 @@ describe("M6.12 RTL interface foundation", () => {
       expect(document.title).toBe(catalog["metadata.title"]);
       expect(description.content).toBe(catalog["metadata.description"]);
       expect(
-        screen.getByRole("heading", { name: catalog["form.title"] }),
+        screen.getByRole("heading", { name: catalog["scenario.heading"] }),
       ).toBeTruthy();
       expect(situationField().value).toBe(SYNTHETIC_SITUATION);
-      expect(document.querySelector(".primary-link span")?.textContent).toBe(
-        "←",
-      );
+      expect(
+        screen
+          .getByRole("link", { name: catalog["navigation.homeAccessibleName"] })
+          .querySelector('img[alt=""]'),
+      ).not.toBeNull();
       expect(fetchMock).not.toHaveBeenCalled();
 
       await selectInterfaceLanguage("en");
@@ -3863,9 +3890,13 @@ describe("M6.12 RTL interface foundation", () => {
       expect(description.content).toBe(
         ENGLISH_CATALOG["metadata.description"],
       );
-      expect(document.querySelector(".primary-link span")?.textContent).toBe(
-        "→",
-      );
+      expect(
+        screen
+          .getByRole("link", {
+            name: ENGLISH_CATALOG["navigation.homeAccessibleName"],
+          })
+          .querySelector('img[alt=""]'),
+      ).not.toBeNull();
       expect(situationField().value).toBe(SYNTHETIC_SITUATION);
       expect(fetchMock).not.toHaveBeenCalled();
     },
@@ -4216,7 +4247,22 @@ describe("M6.12 RTL interface foundation", () => {
 
   it("allows status values to shrink and wrap at 200% zoom", () => {
     expect(stylesSource).toMatch(
-      /\.status-list dd\s*\{[^}]*min-width:\s*0;[^}]*overflow-wrap:\s*anywhere;/s,
+      /\.place-details dd\s*\{[^}]*min-width:\s*0;/s,
+    );
+    expect(stylesSource).toMatch(
+      /p,\s*li,\s*dd,[\s\S]*?\{[^}]*overflow-wrap:\s*anywhere;/s,
+    );
+  });
+
+  it("uses stronger Enhanced Visibility boundaries and automatic scrolling", () => {
+    expect(stylesSource).toMatch(
+      /html:has\(\.app-shell\[data-visual-mode="enhanced"\]\)\s*\{[^}]*scroll-behavior:\s*auto;/s,
+    );
+    expect(stylesSource).toMatch(
+      /\.app-shell\[data-visual-mode="enhanced"\]\s*\{[^}]*--color-border:\s*#827b72;/s,
+    );
+    expect(stylesSource).not.toMatch(
+      /\.app-shell\[data-visual-mode="enhanced"\][^{]*\{[^}]*scroll-behavior:\s*smooth;/s,
     );
   });
 
@@ -4229,98 +4275,41 @@ describe("M6.12 RTL interface foundation", () => {
       return match?.[1] ?? "";
     };
 
-    expect(stylesSource).toContain("inset-block-start: 12px;");
-    expect(stylesSource).toContain("inset-inline-start: 12px;");
-    expect(stylesSource).toContain("inset-block-start: -14px;");
-    expect(stylesSource).toContain("inset-inline-end: 40px;");
-    expect(stylesSource).toContain("padding-inline: 12px 34px;");
-    expect(stylesSource).toContain("padding-inline-start: 22px;");
-    expect(stylesSource).toContain("border-inline-start: 4px solid var(--blue);");
-    expect(stylesSource).toContain("border-start-start-radius: 0;");
-    expect(stylesSource).toContain("border-start-end-radius: 9px;");
-    expect(stylesSource).toContain("border-end-end-radius: 9px;");
-    expect(stylesSource).toContain("border-end-start-radius: 0;");
-    expect(stylesSource).toContain("padding-inline: 46px 0;");
-    expect(stylesSource).toContain("border-inline-start-width: var(--border-width-urgent);");
-    expect(stylesSource).toContain("padding-inline: 62px 10px;");
-    expect(stylesSource).toContain(".explanation-list[dir=\"rtl\"] li::before");
+    expect(stylesSource).toContain("inset-block-start: var(--space-3);");
+    expect(stylesSource).toContain("inset-inline-start: var(--space-3);");
+    expect(stylesSource).toContain("padding-inline-start: 5.75rem;");
+    expect(stylesSource).toContain(
+      "border-inline-start: 0.3rem solid var(--color-danger);",
+    );
     expect(stylesSource).toContain("html[dir=\"rtl\"] h1");
     expect(stylesSource).toContain("line-height: var(--line-height-heading);");
     expect(stylesSource).toContain("letter-spacing: normal;");
-    expect(stylesSource).toMatch(
-      /html\[dir="rtl"\] \.app-shell\[data-visual-mode="enhanced"\] h1,[\s\S]*?html\[dir="rtl"\] \.app-shell\[data-visual-mode="enhanced"\] h4\s*\{[^}]*letter-spacing:\s*normal;/,
-    );
+    expect(stylesSource).toContain('html[dir="rtl"] .brand img');
 
     expect(ruleFor(/\.skip-link/)).not.toMatch(/^\s*(?:top|left)\s*:/m);
-    expect(ruleFor(/\.status-card::before/)).not.toMatch(
-      /^\s*(?:top|right)\s*:/m,
+    expect(ruleFor(/\.settings-control select/)).toContain(
+      "padding-inline: var(--space-3) 2.25rem;",
     );
-    expect(
-      ruleFor(
-        /\.visual-mode-control select,\s*\.interface-language-control select/,
-      ),
-    ).not.toMatch(/^\s*padding\s*:/m);
-    expect(ruleFor(/\.output-language-control select/)).not.toMatch(
-      /^\s*(?:padding-left|padding-right)\s*:/m,
-    );
-    expect(ruleFor(/\.output-language-control select/)).toContain(
+    expect(ruleFor(/button,\s*select/)).toContain(
       "min-height: var(--target-control-size);",
     );
     expect(stylesSource).toMatch(
-      /\.app-shell\[data-visual-mode="enhanced"\] \.output-language-control select\s*\{[^}]*min-height:\s*var\(--target-control-size\);/s,
-    );
-    expect(ruleFor(/\.hero-copy/)).toContain("min-width: 0;");
-    expect(ruleFor(/\.hero-copy h1/)).toContain("overflow-wrap: anywhere;");
-    expect(stylesSource).toMatch(
-      /@media \(max-width: 580px\)[\s\S]*?\.visual-mode-control,\s*\.interface-language-control\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);[^}]*\}[\s\S]*?\.visual-mode-control label,[\s\S]*?\.interface-language-control p\s*\{[^}]*grid-column:\s*1 \/ -1;/s,
+      /\.app-shell\[data-visual-mode="enhanced"\] \.settings-control select,[\s\S]*?min-height:\s*var\(--target-control-size\);/s,
     );
     expect(stylesSource).toMatch(
-      /@media \(max-width: 580px\)[\s\S]*?\.hero\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/s,
+      /@media \(max-width: 760px\)[\s\S]*?\.header-settings-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/s,
     );
-    expect(ruleFor(/\.explanation-list li/)).not.toMatch(
-      /^\s*padding-left\s*:/m,
-    );
-    expect(ruleFor(/\.explanation-list li::before/)).not.toMatch(
-      /^\s*left\s*:/m,
-    );
-    expect(ruleFor(/\.local-phrase/)).not.toMatch(
-      /^\s*(?:border-left|border-radius)\s*:/m,
-    );
-    expect(ruleFor(/\.warning-list li,\s*\.notice-list li/)).not.toMatch(
-      /^\s*padding-left\s*:/m,
-    );
-    expect(
-      ruleFor(/\.warning-list li::before,\s*\.notice-list li::before/),
-    ).not.toMatch(/^\s*left\s*:/m);
-    expect(
-      ruleFor(/\.urgent-action-list li,\s*\.urgent-actions li/),
-    ).not.toMatch(/^\s*padding\s*:/m);
-    expect(
-      ruleFor(/\.urgent-action-list li::before,\s*\.urgent-actions li::before/),
-    ).not.toMatch(/^\s*(?:top|left)\s*:/m);
-    expect(
-      ruleFor(/\.app-shell\[data-visual-mode="enhanced"\] \.local-phrase/),
-    ).not.toMatch(/^\s*border-left-width\s*:/m);
-    expect(
-      ruleFor(/\.app-shell\[data-visual-mode="enhanced"\] \.urgent-actions li/),
-    ).not.toMatch(/^\s*padding\s*:/m);
-    expect(
-      ruleFor(
-        /\.app-shell\[data-visual-mode="enhanced"\] \.urgent-actions li::before/,
-      ),
-    ).not.toMatch(/^\s*(?:top|left)\s*:/m);
-
-    expect(stylesSource).not.toContain("padding: 8px 34px 8px 12px;");
-    expect(stylesSource).not.toContain("padding-left: 22px;");
-    expect(stylesSource).not.toContain("border-left: 4px solid var(--blue);");
-    expect(stylesSource).not.toContain("border-radius: 0 9px 9px 0;");
-    expect(stylesSource).not.toContain("padding: 5px 0 5px 46px;");
-    expect(stylesSource).not.toContain("border-left-width: var(--border-width-urgent);");
-    expect(stylesSource).not.toContain("padding: 10px 10px 10px 62px;");
-    expect(stylesSource.match(/!important/g)).toHaveLength(2);
     expect(stylesSource).toMatch(
-      /\.brand-mark span\s*{[^}]*left:\s*50%;[^}]*transform:\s*translateX\(-50%\) rotate\(28deg\);/s,
+      /@media \(max-width: 430px\)[\s\S]*?--page-padding:\s*0\.875rem;/s,
     );
+    expect(stylesSource).not.toMatch(/(?:margin|padding|border)-(?:left|right):/);
+    expect(stylesSource).not.toMatch(/^\s*(?:left|right):/m);
+    expect(stylesSource).not.toContain(".brand-mark");
+    expect(appSource).toContain('import heatRelayMark from "./assets/heatrelay-mark.png"');
+    expect(stylesSource).toContain("font-family: \"Noto Nastaliq Urdu\"");
+    expect(stylesSource).toContain("line-height: 1.92;");
+    expect(stylesSource).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(stylesSource).toContain("@media (prefers-contrast: more)");
   });
 });
 
@@ -4341,21 +4330,27 @@ describe("Barcelona action-plan flow", () => {
     expect(appSource).not.toMatch(/new Intl\.|\.toLocaleString\(|\.toFixed\(/);
   });
 
-  it("renders an accessible initial form and explicit privacy boundary", () => {
+  it("renders an accessible initial form with permanent essential guidance", () => {
     render(<App />);
 
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: "From heat warning to a safe next step.",
+        name: "How can we help?",
       }),
     ).toBeTruthy();
     expect(
-      screen.getByRole("heading", { name: /create.*heat action plan/i }),
+      screen.getByRole("form", { name: "How can we help?" }),
     ).toBeTruthy();
     expect(
-      screen.getByRole("form", { name: "Create your heat action plan" }),
+      screen.getByRole("heading", { name: "Important now" }),
     ).toBeTruthy();
+    const initialSteps = document.querySelector(".important-now-preview");
+    expect(initialSteps?.textContent).toContain("Drinking water");
+    expect(initialSteps?.textContent).toContain("Find a cool place nearby");
+    expect(
+      initialSteps?.querySelectorAll(".action-icon"),
+    ).toHaveLength(2);
 
     const textarea = situationField();
     expect(textarea.getAttribute("aria-describedby")).toBe(
@@ -4413,7 +4408,57 @@ describe("Barcelona action-plan flow", () => {
     ).toBeTruthy();
     expect(screen.getByText(/straight-line estimates/i)).toBeTruthy();
     expect(screen.getByText(/not medical or emergency advice/i)).toBeTruthy();
+    const disclosure = document.querySelector("details.form-disclosure");
+    expect(disclosure?.hasAttribute("open")).toBe(false);
+    for (const id of [
+      "privacy-description",
+      "identity-warning",
+      "boundary-note",
+      "situation-hint",
+    ]) {
+      const guidance = document.getElementById(id);
+      expect(guidance).not.toBeNull();
+      expect(guidance?.closest("details")).toBeNull();
+      expect(guidance?.hidden).toBe(false);
+    }
     expectNoLocalizationLeak();
+  });
+
+  it("renders three localized non-interactive scenario examples without changing the request", async () => {
+    fetchMock.mockResolvedValue(jsonResponse(normalResponse));
+    render(<App />);
+
+    const scenarios = Array.from(
+      document.querySelectorAll<HTMLElement>(".scenario-option"),
+    );
+    expect(scenarios).toHaveLength(3);
+    expect(scenarios.map((scenario) => scenario.textContent)).toEqual([
+      expect.stringContaining(ENGLISH_CATALOG["scenario.selfTitle"]),
+      expect.stringContaining(ENGLISH_CATALOG["scenario.someoneTitle"]),
+      expect.stringContaining(ENGLISH_CATALOG["scenario.placeTitle"]),
+    ]);
+    expect(screen.queryByRole("radio")).toBeNull();
+    expect(document.querySelector('[role="radiogroup"]')).toBeNull();
+    expect(scenarios[0].getAttribute("data-primary")).toBe("true");
+    expect(scenarios[0].querySelector("form")).not.toBeNull();
+    expect(scenarios[1].querySelector("form")).toBeNull();
+    expect(scenarios[2].querySelector("form")).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    fireEvent.change(situationField(), {
+      target: { value: SYNTHETIC_SITUATION },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Create my heat action plan" }),
+    );
+
+    await screen.findByRole("heading", { name: "Act now" });
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toEqual({
+      situation_text: SYNTHETIC_SITUATION,
+      origin: { latitude: 41.3874, longitude: 2.1686 },
+      maximum_distance_m: 3000,
+      output_locale: "en",
+    });
   });
 
   it("uses the associated field-error path for an empty submission", async () => {
@@ -4469,6 +4514,44 @@ describe("Barcelona action-plan flow", () => {
     expect(mainLandmarks[0].id).toBe("main-content");
     expect(mainLandmarks[0].tabIndex).toBe(-1);
   });
+
+  it.each(["normal", "urgent", "error"] as const)(
+    "keeps the page h1 before the focused %s result h2",
+    async (terminalState) => {
+      fetchMock.mockResolvedValue(
+        terminalState === "normal"
+          ? jsonResponse(normalResponse)
+          : terminalState === "urgent"
+            ? jsonResponse(urgentResponse)
+            : jsonResponse({ detail: "Synthetic unavailable" }, 503),
+      );
+      render(<App />);
+      submitSituation();
+
+      const terminalHeading =
+        terminalState === "normal"
+          ? await screen.findByRole("heading", { level: 2, name: "Act now" })
+          : terminalState === "urgent"
+            ? await screen.findByRole("heading", {
+                level: 2,
+                name: "Urgent help",
+              })
+            : await screen.findByRole("heading", {
+                level: 2,
+                name: "Action plan temporarily unavailable",
+              });
+      const pageHeadings = screen.getAllByRole("heading", { level: 1 });
+
+      expect(pageHeadings).toHaveLength(1);
+      expect(
+        Boolean(
+          pageHeadings[0].compareDocumentPosition(terminalHeading) &
+            Node.DOCUMENT_POSITION_FOLLOWING,
+        ),
+      ).toBe(true);
+      expect(document.activeElement).toBe(terminalHeading);
+    },
+  );
 
   it("loads the synthetic Barcelona demo without submitting", () => {
     const storageWrite = vi.spyOn(window.localStorage, "setItem");
@@ -6031,7 +6114,7 @@ describe("Barcelona action-plan flow", () => {
     expect(
       document.querySelector('time[datetime="2026-07-17T08:00:00Z"]'),
     ).toBeTruthy();
-    expect(screen.getByText("33.0°C", { selector: "strong" })).toBeTruthy();
+    expect(screen.getAllByText("33.0°C", { selector: "strong" })).toHaveLength(1);
     expect(screen.getByText("34.5°C", { selector: "strong" })).toBeTruthy();
     expect(screen.getByText("36.0°C", { selector: "strong" })).toBeTruthy();
     expect(screen.getAllByText(WEATHER_NOTICE).length).toBeGreaterThan(0);
@@ -6096,6 +6179,18 @@ describe("Barcelona action-plan flow", () => {
     const sourceLink = screen.getByRole("link", { name: "Official source" });
     expect(sourceLink.getAttribute("target")).toBe("_blank");
     expect(sourceLink.getAttribute("rel")).toBe("noopener noreferrer");
+    const routeLink = screen.getByRole("link", {
+      name: "Open route in Google Maps",
+    });
+    expect(routeLink.getAttribute("href")).toBe(
+      "https://www.google.com/maps/dir/?api=1&destination=Carrer%20de%20Prova%2010%2C%2008001%20Barcelona",
+    );
+    expect(routeLink.getAttribute("target")).toBe("_blank");
+    expect(routeLink.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(routeLink.getAttribute("href")).not.toContain(SYNTHETIC_SITUATION);
+    expect(routeLink.getAttribute("href")).not.toMatch(
+      /41\.3874|2\.1686|origin=/,
+    );
     expectNoLocalizationLeak();
   });
 
@@ -6191,6 +6286,17 @@ describe("Barcelona action-plan flow", () => {
     expect(
       cards.map((card) => card.lastElementChild?.querySelector("strong")?.textContent),
     ).toEqual(["33.0°C", "34.5°C", "36.0°C"]);
+    for (const card of cards) {
+      expect(card.closest('[aria-hidden="true"]')).toBeNull();
+      expect((card as HTMLElement).hidden).toBe(false);
+      expect(card.firstElementChild?.hasAttribute("aria-hidden")).toBe(false);
+      expect(card.lastElementChild?.hasAttribute("aria-hidden")).toBe(false);
+    }
+    expect(
+      document.querySelectorAll('.temperature-status [aria-hidden="true"]'),
+    ).toHaveLength(1);
+    expect(screen.getAllByText("Current temperature")).toHaveLength(1);
+    expect(screen.getAllByText("33.0°C")).toHaveLength(1);
   });
 
   it.each([
@@ -6264,7 +6370,8 @@ describe("Barcelona action-plan flow", () => {
       /content\s*:\s*["']Urgent · act immediately["']/,
     );
     expect(screen.getByText("112 emergències")).toBeTruthy();
-    expect(screen.getByText("112")).toBeTruthy();
+    const emergencyCallLink = screen.getByRole("link", { name: "112" });
+    expect(emergencyCallLink.getAttribute("href")).toBe("tel:112");
     expect(
       screen.getByText("Call 112 now for emergency assistance."),
     ).toBeTruthy();
@@ -6279,6 +6386,35 @@ describe("Barcelona action-plan flow", () => {
     });
     expect(sourceLink.getAttribute("target")).toBe("_blank");
     expect(sourceLink.getAttribute("rel")).toBe("noopener noreferrer");
+
+    const pageHeading = screen.getByRole("heading", {
+      level: 1,
+      name: ENGLISH_CATALOG["scenario.heading"],
+    });
+    const urgentAlert = urgentHeading.closest<HTMLElement>('[role="alert"]');
+    const postUrgentForm = document.querySelector(".post-urgent-form");
+    if (!urgentAlert || !postUrgentForm) {
+      throw new Error(
+        "Synthetic test setup expected the urgent alert and resubmission form.",
+      );
+    }
+    expect(
+      Boolean(
+        pageHeading.compareDocumentPosition(urgentHeading) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+    expect(
+      Boolean(
+        urgentAlert.compareDocumentPosition(postUrgentForm) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+    expect(document.querySelector(".support-dashboard")).toBeNull();
+    expect(document.querySelector(".important-now")).toBeNull();
+    expect(document.querySelector(".place-pane")).toBeNull();
+    expect(document.querySelector(".temperature-status")).toBeNull();
+    expect(screen.getAllByRole("alert")).toHaveLength(1);
 
     for (const phase of ["Now", "Next few hours", "Tonight"]) {
       expect(screen.queryByRole("heading", { name: phase })).toBeNull();
