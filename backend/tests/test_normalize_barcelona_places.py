@@ -313,6 +313,29 @@ def test_null_information_url_remains_absent() -> None:
     assert snapshot["places"][0]["information_url"] is None
 
 
+def test_legacy_http_information_url_is_deterministically_nulled() -> None:
+    record = source_record(10)
+    record["values"] = [
+        {
+            "attribute": 100003,
+            "url_value": "http://example.test/legacy-place",
+        },
+        {
+            "attribute": 100003,
+            "url_value": "https://example.test/later-place",
+        },
+    ]
+    review = {10: reviewed_place(record["timetable"]["html"])}
+
+    snapshot, _ = normalizer.normalize_source(
+        raw_json([record]),
+        "2026-07-16T19:08:41Z",
+        reviewed_places=review,
+    )
+
+    assert snapshot["places"][0]["information_url"] is None
+
+
 def test_hidden_reviewed_address_is_rejected() -> None:
     record = source_record(10)
     record["addresses"][0]["hide_address"] = True

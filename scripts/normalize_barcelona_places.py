@@ -1019,6 +1019,7 @@ def information_url(record: Mapping[str, Any], register_id: int) -> str | None:
     """Return the first source-listed optional Web attribute."""
 
     first_url: str | None = None
+    found_url = False
     for value in record["values"]:
         if not isinstance(value, dict):
             raise SourceValidationError(
@@ -1030,13 +1031,14 @@ def information_url(record: Mapping[str, Any], register_id: int) -> str | None:
         if raw_url is None:
             continue
         validated_url = validate_information_url(raw_url, register_id)
-        if first_url is None:
+        if not found_url:
             first_url = validated_url
+            found_url = True
     return first_url
 
 
-def validate_information_url(value: Any, register_id: int) -> str:
-    """Validate and return one untouched source information URL."""
+def validate_information_url(value: Any, register_id: int) -> str | None:
+    """Validate one source URL, retaining HTTPS and nulling legacy HTTP."""
 
     if not isinstance(value, str) or not value:
         raise SourceValidationError(
@@ -1093,6 +1095,8 @@ def validate_information_url(value: Any, register_id: int) -> str:
         hostname,
         register_id,
     )
+    if parsed.scheme == "http":
+        return None
     return value
 
 

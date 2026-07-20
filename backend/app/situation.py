@@ -12,7 +12,8 @@ import asyncio
 import logging
 import math
 import unicodedata
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
+from types import MappingProxyType
 from typing import Annotated, Any, Literal, TypeVar
 
 from openai import (
@@ -40,18 +41,23 @@ from pydantic import (
 )
 
 from backend.app.localization import (
+    SUPPORTED_INPUT_LANGUAGES,
     DetectedInputLanguage,
     InputLanguageSource,
     PreferredLanguageValue,
+    SupportedInputLanguage,
     derive_input_language_source,
 )
 from backend.app.openai_runtime import (
     BoundedTaskCapacity,
+    OpenAIDailyBudget,
+    ProviderBudgetExhausted,
     SHARED_OPENAI_CLIENT_CLEANUP_CAPACITY,
     SHARED_OPENAI_PROVIDER_CAPACITY,
     TaskCapacityLease,
     close_reserved_openai_client,
     close_unstarted_awaitable,
+    get_process_openai_budget,
     try_reserve_openai_client,
 )
 
@@ -220,6 +226,396 @@ SYMPTOM_ORDER: tuple[ReportedSymptom, ...] = (
     "chest_pain",
     "repeated_vomiting",
 )
+
+# Each locale entry contains, in SYMPTOM_ORDER, bounded symptom phrases or
+# stems followed by canonical denial prefixes and suffixes. The scan uses all
+# entries rather than trusting model-reported language metadata.
+_SOURCE_GROUNDING_RULES: Mapping[
+    SupportedInputLanguage,
+    tuple[
+        tuple[tuple[str, ...], ...],
+        tuple[str, ...],
+        tuple[str, ...],
+    ],
+] = MappingProxyType(
+    {
+        "en": (
+            (
+                ("confusion", "confused"),
+                (
+                    "fainting",
+                    "fainted",
+                    "lost consciousness",
+                    "loss of consciousness",
+                    "unconscious",
+                ),
+                ("seizure", "convulsion"),
+                (
+                    "difficulty breathing",
+                    "trouble breathing",
+                    "shortness of breath",
+                ),
+                ("chest pain",),
+                (
+                    "repeated vomiting",
+                    "vomiting repeatedly",
+                    "keep vomiting",
+                ),
+            ),
+            (
+                "no",
+                "not",
+                "have no",
+                "has no",
+                "do not have",
+                "does not have",
+                "without",
+                "deny",
+                "denies",
+                "denied",
+            ),
+            ("is absent", "are absent"),
+        ),
+        "es": (
+            (
+                ("confusión", "desorientación"),
+                ("desmayo", "me desmayé", "pérdida de conocimiento"),
+                ("convulsión", "convulsiones"),
+                ("dificultad para respirar", "falta de aire"),
+                ("dolor en el pecho", "dolor de pecho"),
+                ("vómitos repetidos", "vomito repetidamente"),
+            ),
+            (
+                "no",
+                "no tengo",
+                "no tiene",
+                "no presento",
+                "no presenta",
+                "sin",
+                "niego",
+                "niega",
+            ),
+            ("está ausente", "están ausentes"),
+        ),
+        "zh-CN": (
+            (
+                ("意识混乱", "神志不清"),
+                ("晕厥", "失去意识", "昏迷"),
+                ("癫痫发作", "抽搐"),
+                ("呼吸困难",),
+                ("胸痛",),
+                ("反复呕吐",),
+            ),
+            ("没有", "无", "未出现", "不"),
+            ("不存在",),
+        ),
+        "zh-TW": (
+            (
+                ("意識混亂", "神智不清"),
+                ("暈厥", "失去意識", "昏迷"),
+                ("癲癇發作", "抽搐"),
+                ("呼吸困難",),
+                ("胸痛",),
+                ("反覆嘔吐",),
+            ),
+            ("沒有", "無", "未出現", "不"),
+            ("不存在",),
+        ),
+        "hi": (
+            (
+                ("भ्रम", "उलझन"),
+                ("बेहोश", "चेतना खो"),
+                ("दौरा", "ऐंठन"),
+                ("सांस लेने में कठिनाई", "साँस लेने में कठिनाई"),
+                ("सीने में दर्द",),
+                ("बार बार उल्टी",),
+            ),
+            ("कोई नहीं", "बिना"),
+            ("नहीं है", "नहीं हैं", "नहीं"),
+        ),
+        "ar": (
+            (
+                ("ارتباك", "تشوش"),
+                ("إغماء", "فقدان الوعي", "فقدت الوعي"),
+                ("نوبة صرع", "تشنج"),
+                ("صعوبة في التنفس", "ضيق التنفس"),
+                ("ألم في الصدر",),
+                ("قيء متكرر", "تقيؤ متكرر"),
+            ),
+            ("لا أعاني من", "لا يوجد", "ليس لدي", "دون", "بدون"),
+            ("غير موجود",),
+        ),
+        "pt-BR": (
+            (
+                ("confusão", "desorientação"),
+                ("desmaio", "desmaiei", "perda de consciência"),
+                ("convulsão", "convulsões"),
+                ("dificuldade para respirar", "falta de ar"),
+                ("dor no peito",),
+                ("vômitos repetidos", "vomitando repetidamente"),
+            ),
+            (
+                "não",
+                "não tenho",
+                "não tem",
+                "sem",
+                "nego",
+                "nega",
+            ),
+            ("está ausente", "estão ausentes"),
+        ),
+        "bn": (
+            (
+                ("বিভ্রান্তি", "বিভ্রান্ত"),
+                ("অজ্ঞান", "জ্ঞান হার"),
+                ("খিঁচুনি",),
+                ("শ্বাস নিতে কষ্ট", "শ্বাসকষ্ট"),
+                ("বুকে ব্যথা",),
+                ("বারবার বমি",),
+            ),
+            ("কোনো নেই", "ছাড়া"),
+            ("নেই", "না"),
+        ),
+        "ru": (
+            (
+                ("спутанность сознания", "дезориентация"),
+                ("обморок", "потерял сознание", "потеря сознания"),
+                ("судороги", "судорожный приступ"),
+                ("трудно дышать", "одышка"),
+                ("боль в груди", "боли в груди"),
+                ("многократная рвота", "повторная рвота"),
+            ),
+            ("нет", "без", "не испытываю", "не наблюдается"),
+            ("отсутствует", "отсутствуют"),
+        ),
+        "ja": (
+            (
+                ("意識が混乱", "混乱"),
+                ("失神", "意識を失"),
+                ("けいれん", "痙攣", "発作"),
+                ("呼吸が苦しい", "呼吸困難"),
+                ("胸の痛み", "胸痛"),
+                ("繰り返し嘔吐", "何度も吐"),
+            ),
+            ("症状なし",),
+            ("はありません", "がありません", "ありません", "ない", "なし"),
+        ),
+        "fr": (
+            (
+                ("confusion", "désorientation"),
+                ("évanouissement", "évanoui", "perte de connaissance"),
+                ("crise convulsive", "convulsions"),
+                ("difficulté à respirer", "essoufflement"),
+                ("douleur thoracique", "douleur à la poitrine"),
+                ("vomissements répétés",),
+            ),
+            (
+                "non",
+                "pas de",
+                "n ai pas de",
+                "ne présente pas de",
+                "sans",
+                "nie",
+            ),
+            ("est absent", "sont absents"),
+        ),
+        "de": (
+            (
+                ("verwirrung", "desorientierung"),
+                ("ohnmacht", "bewusstsein verloren", "bewusstlos"),
+                ("krampfanfall", "krampfanfälle"),
+                ("atemnot", "schwierigkeiten beim atmen"),
+                ("brustschmerzen", "brustschmerz"),
+                ("wiederholtes erbrechen", "wiederholt erbrochen"),
+            ),
+            (
+                "keine",
+                "keinen",
+                "kein",
+                "habe keine",
+                "hat keine",
+                "ohne",
+                "nicht",
+            ),
+            ("liegt nicht vor", "liegen nicht vor"),
+        ),
+        "ur": (
+            (
+                ("الجھن", "ذہنی الجھن"),
+                ("بے ہوش", "ہوش کھو"),
+                ("دورہ", "جھٹکے"),
+                ("سانس لینے میں دشواری", "سانس پھول"),
+                ("سینے میں درد",),
+                ("بار بار الٹی", "مسلسل قے"),
+            ),
+            ("کوئی نہیں", "بغیر"),
+            ("نہیں ہے", "نہیں ہیں", "نہیں"),
+        ),
+        "id": (
+            (
+                ("kebingungan", "bingung"),
+                ("pingsan", "kehilangan kesadaran"),
+                ("kejang",),
+                ("kesulitan bernapas", "sesak napas"),
+                ("nyeri dada", "sakit dada"),
+                ("muntah berulang", "muntah terus menerus"),
+            ),
+            ("tidak mengalami", "tidak ada", "tanpa", "bukan"),
+            ("tidak terjadi",),
+        ),
+        "tr": (
+            (
+                ("kafa karışıklığı", "bilinç bulanıklığı"),
+                ("bayılma", "bayıldım", "bilinç kaybı"),
+                ("nöbet", "havale"),
+                ("nefes almakta güçlük", "nefes darlığı"),
+                ("göğüs ağrısı",),
+                ("tekrar tekrar kusma", "sürekli kusma"),
+            ),
+            ("hiç", "olmadan"),
+            ("yok", "yaşamıyorum", "çekmiyorum", "değil"),
+        ),
+        "ko": (
+            (
+                ("의식 혼란", "혼란"),
+                ("기절", "의식을 잃"),
+                ("발작", "경련"),
+                ("호흡 곤란", "숨쉬기 어렵"),
+                ("흉통", "가슴 통증"),
+                ("반복적인 구토", "계속 토"),
+            ),
+            ("증상 없음",),
+            ("이 없습니다", "가 없습니다", "없습니다", "없다", "아닙니다"),
+        ),
+        "it": (
+            (
+                ("confusione", "disorientamento"),
+                ("svenimento", "svenuto", "perdita di coscienza"),
+                ("convulsioni", "crisi convulsiva"),
+                ("difficoltà a respirare", "fiato corto"),
+                ("dolore al petto", "dolore toracico"),
+                ("vomito ripetuto", "vomito continuamente"),
+            ),
+            ("non", "non ho", "non ha", "senza", "nego", "nega"),
+            ("è assente", "sono assenti"),
+        ),
+        "uk": (
+            (
+                ("сплутаність свідомості", "дезорієнтація"),
+                ("непритомність", "знепритомнів", "втрата свідомості"),
+                ("судоми", "судомний напад"),
+                ("важко дихати", "задишка"),
+                ("біль у грудях", "болю у грудях"),
+                ("повторне блювання", "багаторазове блювання"),
+            ),
+            ("немає", "без", "не маю", "не відчуваю"),
+            ("відсутній", "відсутня", "відсутні"),
+        ),
+        "pl": (
+            (
+                ("splątanie", "dezorientacja"),
+                ("omdlenie", "zemdlałem", "utrata przytomności"),
+                ("drgawki", "napad drgawkowy"),
+                ("trudności z oddychaniem", "duszność"),
+                ("ból w klatce piersiowej", "bólu w klatce piersiowej"),
+                ("powtarzające się wymioty", "wielokrotne wymioty"),
+            ),
+            ("nie mam", "nie ma", "bez", "brak"),
+            ("nie występuje", "nie występują"),
+        ),
+        "vi": (
+            (
+                ("lú lẫn", "mất phương hướng"),
+                ("ngất xỉu", "mất ý thức"),
+                ("co giật",),
+                ("khó thở",),
+                ("đau ngực",),
+                ("nôn liên tục", "nôn nhiều lần"),
+            ),
+            ("không bị", "không có", "không", "chưa", "không hề"),
+            ("không xảy ra",),
+        ),
+        "th": (
+            (
+                ("สับสน",),
+                ("เป็นลม", "หมดสติ"),
+                ("ชัก",),
+                ("หายใจลำบาก",),
+                ("เจ็บหน้าอก",),
+                ("อาเจียนซ้ำ", "อาเจียนหลายครั้ง"),
+            ),
+            ("ไม่มีอาการ", "ไม่มี", "ไม่ได้มี", "ไม่"),
+            ("ไม่มีอาการ",),
+        ),
+        "fa": (
+            (
+                ("گیجی", "سردرگمی"),
+                ("غش", "از دست دادن هوشیاری"),
+                ("تشنج",),
+                ("مشکل در تنفس", "تنگی نفس"),
+                ("درد قفسه سینه",),
+                ("استفراغ مکرر", "استفراغ پی در پی"),
+            ),
+            ("بدون", "هیچ"),
+            ("ندارم", "وجود ندارد", "نیست", "ندارد"),
+        ),
+        "sw": (
+            (
+                ("kuchanganyikiwa",),
+                ("kuzimia", "kupoteza fahamu"),
+                ("mshtuko wa kifafa", "degedege"),
+                ("ugumu wa kupumua", "upungufu wa pumzi"),
+                ("maumivu ya kifua",),
+                ("kutapika mara kwa mara",),
+            ),
+            ("sina", "hana", "hakuna", "bila"),
+            ("haipo", "hazipo"),
+        ),
+        "he": (
+            (
+                ("בלבול", "חוסר התמצאות"),
+                ("התעלפות", "התעלפתי", "אובדן הכרה"),
+                ("פרכוס", "פרכוסים"),
+                ("קשיי נשימה", "קוצר נשימה"),
+                ("כאבים בחזה", "כאב בחזה"),
+                ("הקאות חוזרות",),
+            ),
+            ("אין לי", "אין", "ללא", "לא סובל", "לא סובלת"),
+            ("אינו קיים", "אינם קיימים"),
+        ),
+        "nl": (
+            (
+                ("verwarring", "desoriëntatie"),
+                ("flauwvallen", "flauwgevallen", "bewustzijn verloren"),
+                ("epileptische aanval", "stuiptrekking"),
+                ("moeite met ademhalen", "kortademigheid"),
+                ("pijn op de borst",),
+                ("herhaaldelijk braken", "blijven overgeven"),
+            ),
+            ("geen", "heb geen", "heeft geen", "zonder", "niet"),
+            ("is afwezig", "zijn afwezig"),
+        ),
+        "ca": (
+            (
+                ("confusió", "desorientació"),
+                ("desmai", "pèrdua de consciència"),
+                ("convulsió", "convulsions"),
+                ("dificultat per respirar", "falta d aire"),
+                ("dolor al pit",),
+                ("vòmits repetits", "vomito repetidament"),
+            ),
+            ("no", "no tinc", "no té", "sense", "nego", "nega"),
+            ("és absent", "són absents"),
+        ),
+    }
+)
+
+if tuple(_SOURCE_GROUNDING_RULES) != SUPPORTED_INPUT_LANGUAGES or any(
+    len(rules[0]) != len(SYMPTOM_ORDER)
+    for rules in _SOURCE_GROUNDING_RULES.values()
+):
+    raise RuntimeError("source symptom grounding rules are incomplete")
+
 MISSING_INFORMATION_ORDER: tuple[MissingInformation, ...] = (
     "preferred_language",
     "vulnerability_factors",
@@ -528,6 +924,92 @@ def validate_situation_extraction_response(
         raise SituationExtractionInvalidResponse() from error
 
 
+def reconcile_source_reported_symptoms(
+    source_text: str,
+    response: SituationExtractionResponse,
+) -> SituationExtractionResponse:
+    """Fail closed when bounded source symptoms are absent from extraction."""
+
+    validated = validate_situation_extraction_response(response)
+
+    def normalize(value: str) -> str:
+        normalized = unicodedata.normalize("NFKC", value).casefold()
+        separated = "".join(
+            " "
+            if character.isspace()
+            or unicodedata.category(character)[0] in {"C", "P", "Z"}
+            else character
+            for character in normalized
+        )
+        return " ".join(separated.split())
+
+    normalized_source = normalize(source_text)
+    denial_prefixes = tuple(
+        normalize(prefix)
+        for _, prefixes, _ in _SOURCE_GROUNDING_RULES.values()
+        for prefix in prefixes
+    )
+    denial_suffixes = tuple(
+        normalize(suffix)
+        for _, _, suffixes in _SOURCE_GROUNDING_RULES.values()
+        for suffix in suffixes
+    )
+    grounded: set[ReportedSymptom] = set()
+    for symptom_phrases, _, _ in _SOURCE_GROUNDING_RULES.values():
+        for symptom, phrases in zip(SYMPTOM_ORDER, symptom_phrases, strict=True):
+            for phrase in phrases:
+                normalized_phrase = normalize(phrase)
+                search_from = 0
+                while True:
+                    found_at = normalized_source.find(
+                        normalized_phrase,
+                        search_from,
+                    )
+                    if found_at < 0:
+                        break
+                    found_end = found_at + len(normalized_phrase)
+                    before = normalized_source[:found_at].rstrip()
+                    after = normalized_source[found_end:].lstrip()
+                    denied = any(
+                        before.endswith(prefix) for prefix in denial_prefixes
+                    ) or any(
+                        after.startswith(suffix) for suffix in denial_suffixes
+                    )
+                    if not denied:
+                        grounded.add(symptom)
+                        break
+                    search_from = found_end
+                if symptom in grounded:
+                    break
+
+    if not grounded:
+        return SituationExtractionResponse.model_validate_json(
+            validated.model_dump_json()
+        )
+
+    existing = (
+        set(validated.reported_symptoms.values)
+        if validated.reported_symptoms.status == "reported"
+        else set()
+    )
+    merged = [
+        symptom
+        for symptom in SYMPTOM_ORDER
+        if symptom in existing or symptom in grounded
+    ]
+    payload = validated.model_dump(mode="json")
+    payload["reported_symptoms"] = {
+        "status": "reported",
+        "values": merged,
+    }
+    payload["missing_information"] = [
+        field
+        for field in validated.missing_information
+        if field != "reported_symptoms"
+    ]
+    return SituationExtractionResponse.model_validate(payload)
+
+
 class SituationExtractionNotConfigured(SituationExtractionFailure):
     status_code = 503
     code = NOT_CONFIGURED_CODE
@@ -538,6 +1020,12 @@ class SituationExtractionUnavailable(SituationExtractionFailure):
     status_code = 503
     code = UNAVAILABLE_CODE
     message = UNAVAILABLE_MESSAGE
+
+
+class SituationExtractionBudgetExhausted(SituationExtractionFailure):
+    status_code = 503
+    code = "provider_budget_exhausted"
+    message = "Provider capacity is temporarily unavailable."
 
 
 class SituationExtractionTimeout(SituationExtractionFailure):
@@ -731,6 +1219,7 @@ class SituationExtractionService:
         cleanup_capacity: BoundedTaskCapacity = (
             SHARED_OPENAI_CLIENT_CLEANUP_CAPACITY
         ),
+        provider_budget: OpenAIDailyBudget | None = None,
     ) -> None:
         if not math.isfinite(sdk_timeout_seconds) or sdk_timeout_seconds <= 0:
             raise ValueError("sdk_timeout_seconds must be positive and finite")
@@ -745,6 +1234,7 @@ class SituationExtractionService:
         self._cleanup_timeout_seconds = cleanup_timeout_seconds
         self._provider_capacity = provider_capacity
         self._cleanup_capacity = cleanup_capacity
+        self._provider_budget = provider_budget or get_process_openai_budget()
 
     def _create_client(self) -> Any:
         return self._client_factory(
@@ -761,10 +1251,14 @@ class SituationExtractionService:
         if self._api_key is None or not self._api_key.strip():
             raise SituationExtractionNotConfigured()
 
-        reservations = try_reserve_openai_client(
-            self._provider_capacity,
-            self._cleanup_capacity,
-        )
+        try:
+            reservations = try_reserve_openai_client(
+                self._provider_capacity,
+                self._cleanup_capacity,
+                self._provider_budget,
+            )
+        except ProviderBudgetExhausted as error:
+            raise SituationExtractionBudgetExhausted() from error
         if reservations is None:
             raise SituationExtractionUnavailable()
 
@@ -848,6 +1342,9 @@ class SituationExtractionService:
                 reservations.cleanup.release()
 
         extraction = _validated_parsed_output(response)
-        public_response = build_public_response(extraction)
+        public_response = reconcile_source_reported_symptoms(
+            request.situation_text,
+            build_public_response(extraction),
+        )
         _log_safe_usage(response)
         return public_response

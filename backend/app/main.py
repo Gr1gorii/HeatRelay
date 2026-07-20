@@ -164,6 +164,16 @@ def health() -> dict[str, str]:
     return {"status": "ok", "service": "heatrelay-api"}
 
 
+@app.get("/api/ready")
+def development_readiness() -> JSONResponse:
+    """Fail closed outside the validated production application wrapper."""
+
+    return JSONResponse(
+        status_code=503,
+        content={"status": "not_ready", "service": "heatrelay-api"},
+    )
+
+
 @app.post(
     "/api/v1/weather/context",
     response_model=WeatherContextResponse,

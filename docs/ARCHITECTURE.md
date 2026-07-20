@@ -10,9 +10,10 @@ request browser geolocation or call the situation, weather, or places
 endpoints separately. Vite proxies `/api` to `http://127.0.0.1:8000` during
 local development.
 
-The FastAPI backend exposes five application contracts:
+The FastAPI backend exposes six application contracts:
 
 - `GET /api/health` — stable service health.
+- `GET /api/ready` — production traffic readiness; development fails closed.
 - `POST /api/v1/weather/context` — normalized Open-Meteo weather context.
 - `POST /api/v1/places/candidates` — deterministic candidates from the
   committed Barcelona snapshot.
@@ -239,9 +240,9 @@ ETA, permanent emergency strip, and unverified third initial safety instruction
 remain intentional deviations because no approved behavioral or verified-data
 contract exists. M7 adds no Web Speech integration, maps SDK, geolocation,
 routing service, external font, or new API. The implementation remains
-uncommitted and unpublished. Its bounded offline and loopback-browser
-verification establishes neither complete design fidelity nor release
-readiness.
+published at `6866b4c31649751ecea665c8045d028e228796fb`. Its bounded offline
+and loopback-browser verification establishes neither complete design fidelity
+nor release readiness.
 
 Enhanced Visibility is a CSS-token presentation layer over the same DOM, not
 a duplicated route or component tree and not a browser-zoom simulation. It
@@ -262,6 +263,54 @@ availability without relying on color alone.
 Milestone 5 changes no backend behavior, API contract, GPT workflow,
 place/weather data, dependency, or Vite proxy configuration.
 
+## Milestone 8.2 production boundary
+
+`backend.app.production` wraps the existing FastAPI application as one
+single-worker ASGI process. It serves the built SPA and hashed assets from
+`frontend/dist`, routes every `/api/*` path to FastAPI, refuses missing assets
+and traversal without HTML fallback, and uses the SPA index only for unknown
+non-API GET/HEAD application routes. Production disables FastAPI documentation
+routes. The index is no-cache; successful hashed assets are long-lived and
+immutable. A restrictive CSP, content-type, referrer, permissions, framing,
+and conditional HSTS policy is applied at the outer response boundary.
+
+Before FastAPI parses JSON, a pure ASGI middleware validates both declared
+Content-Length and actual streamed bytes for every `/api/v1/*` POST. The
+default maximum is 16 KiB. One bounded process-local fixed-window limiter
+defaults to 10 requests per 60 seconds per effective client with at most 4,096
+tracked entries. It ignores arbitrary forwarded headers; a forwarded source is
+usable only through a configured trusted proxy network. HTTP 413/429 responses
+are stable and sanitized, with `Retry-After` on 429. This perimeter is not
+authentication and does not become global when replicas are added; multiple
+instances require a host-level shared limiter.
+
+The existing provider and cleanup capacities remain the only OpenAI task
+semaphores. A separate process-shared, lock-protected UTC-day budget stores
+operator-configured money as integer microdollars. Both extraction and grounded
+planning reserve the same conservative per-call amount before client
+construction or provider scheduling. Atomic reservations cannot exceed the
+daily bound, do not release on failure/timeout/cancellation, and reset only
+when the UTC date changes. Production refuses absent or invalid budget values;
+tests may inject an isolated budget. Exhaustion uses the existing sanitized
+503 boundary with internal code `provider_budget_exhausted` and does not log
+source text or the exact remaining amount.
+
+`/api/health` remains liveness. The production wrapper returns readiness only
+after strictly validated backend-only key/configuration, built frontend assets,
+and the approved committed Barcelona snapshot and manifest are present and
+valid. Readiness errors disclose no variable name, path, hash, key, or
+exception detail. Full environment, proxy, shutdown, secret-rotation, and
+rollback requirements are in [Deployment](DEPLOYMENT.md).
+
+The multi-stage Docker definition builds the frontend separately and installs
+the exact Python production closure from the direct requirements plus a pinned
+constraints file. The runtime copies only backend application code, committed
+data, and built frontend assets and runs as a non-root user. No image build or
+provider deployment was performed in this offline milestone. The release
+safeguards in this section are published through the repository commit
+containing this revision; deployment, online CVE review, legal review, and
+deployed verification remain pending.
+
 ## Implemented backend separation
 
 1. **Weather retrieval and normalization** uses a bounded HTTPX request for
@@ -279,9 +328,10 @@ place/weather data, dependency, or Vite proxy configuration.
    reviewed snapshot and manifest retain source, hash, license, retrieval,
    and modification provenance; the large raw source file is not committed.
    Refresh validation rejects hidden reviewed addresses and validates raw
-   information URLs without cleanup: accepted values remain unchanged, while
+   information URLs without cleanup: valid HTTPS values remain unchanged,
+   legacy HTTP values normalize deterministically to `null`, while
    whitespace or control/format artifacts, malformed percent escapes, invalid
-   hosts or ports, credentials, and non-HTTP(S) URLs fail closed. It also
+   hosts or ports, credentials, and unsafe schemes fail closed. It also
    rejects source-backed place coordinates outside the inclusive Barcelona
    place-record validation bounds: latitude `41.2`–`41.6`, longitude
    `1.9`–`2.4`.
@@ -371,7 +421,7 @@ place/weather data, dependency, or Vite proxy configuration.
 10. **Candidate and provenance defense in depth** revalidates the complete
    repository response before truncation or planning. Canonical paired IDs,
    nonblank fields, finite Barcelona place coordinates, aware timestamps,
-   lowercase SHA-256 values, and absolute credential-free HTTP(S) URLs are
+   lowercase SHA-256 values, and absolute credential-free HTTPS URLs are
    mandatory. The complete immutable snapshot identity is derived from the
    validated committed snapshot and manifest: schema and snapshot IDs,
    publisher, dataset and distribution URLs, retrieval and upstream-modified

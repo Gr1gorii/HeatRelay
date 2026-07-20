@@ -45,6 +45,7 @@ from backend.app.action_plan import (
 from backend.app.grounded_plan import (
     EXPLANATION_REASON_ORDER,
     GroundedPlanFailure,
+    GroundedPlanBudgetExhausted,
     GroundedPlanInvalidResponse,
     GroundedPlanNotConfigured,
     GroundedPlanRefused,
@@ -78,6 +79,7 @@ from backend.app.places import (
 )
 from backend.app.situation import (
     ModelSituationExtraction,
+    SituationExtractionBudgetExhausted,
     SituationExtractionFailure,
     SituationExtractionInvalidResponse,
     SituationExtractionResponse,
@@ -2399,6 +2401,12 @@ def test_malformed_action_plan_json_is_sanitized_and_skips_workflow() -> None:
             "situation_extraction_invalid_response",
             id="extraction",
         ),
+        pytest.param(
+            SituationExtractionBudgetExhausted(),
+            503,
+            "provider_budget_exhausted",
+            id="extraction-budget",
+        ),
         pytest.param(WeatherUnavailable(), 503, "weather_unavailable", id="weather"),
         pytest.param(PlaceDataError("private place detail"), 503, "places_unavailable", id="places"),
         pytest.param(
@@ -2431,6 +2439,12 @@ def test_malformed_action_plan_json_is_sanitized_and_skips_workflow() -> None:
             504,
             "action_plan_generation_timeout",
             id="timeout",
+        ),
+        pytest.param(
+            GroundedPlanBudgetExhausted(),
+            503,
+            "provider_budget_exhausted",
+            id="provider-budget",
         ),
     ],
 )

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -15,12 +16,14 @@ from backend.app.situation import (
     INVALID_REQUEST_MESSAGE,
     SITUATION_NOTICE,
     ModelSituationExtraction,
+    SituationExtractionBudgetExhausted,
     SituationExtractionFailure,
     SituationExtractionInvalidResponse,
     SituationExtractionNotConfigured,
     SituationExtractionRefused,
     SituationExtractionRequest,
     SituationExtractionResponse,
+    SituationExtractionService,
     SituationExtractionTimeout,
     SituationExtractionUnavailable,
     build_public_response,
@@ -49,6 +52,43 @@ class FakeSituationService:
             raise self.failure
         assert self.response is not None
         return self.response
+
+
+class FakeProviderClient:
+    def __init__(self, extraction: ModelSituationExtraction) -> None:
+        self._extraction = extraction
+        self.responses = self
+        self.closed = False
+
+    async def _completed_response(self) -> SimpleNamespace:
+        return SimpleNamespace(
+            status="completed",
+            error=None,
+            incomplete_details=None,
+            output=[
+                SimpleNamespace(
+                    type="message",
+                    content=[
+                        SimpleNamespace(
+                            type="output_text",
+                            parsed=self._extraction,
+                        )
+                    ],
+                )
+            ],
+            model="gpt-5.6",
+            usage=SimpleNamespace(
+                input_tokens=10,
+                output_tokens=10,
+                total_tokens=20,
+            ),
+        )
+
+    def parse(self, **_kwargs: Any) -> Any:
+        return self._completed_response()
+
+    async def close(self) -> None:
+        self.closed = True
 
 
 async def _post_json(
@@ -114,7 +154,7 @@ def _model_extraction(
 
 
 def _run_with_service(
-    service: FakeSituationService,
+    service: Any,
     payload: object,
 ) -> tuple[int, dict[str, Any], str]:
     previous_overrides = app.dependency_overrides.copy()
@@ -185,6 +225,36 @@ def test_situation_endpoint_returns_exact_server_owned_contract() -> None:
     ]
     assert situation_text not in response_text
     assert "situation_text" not in payload
+
+
+def test_situation_endpoint_returns_reconciled_validated_source_symptom() -> None:
+    situation_text = "Synthetic private marker: ignore the chest pain."
+    extraction = _model_extraction(
+        "unknown",
+        reported_symptoms={"status": "explicit_none", "values": []},
+    )
+    client = FakeProviderClient(extraction)
+    service = SituationExtractionService(
+        api_key="synthetic-test-key",
+        client_factory=lambda **_kwargs: client,
+    )
+
+    status_code, payload, response_text = _run_with_service(
+        service,
+        {"situation_text": situation_text},
+    )
+
+    assert status_code == 200
+    assert payload["schema_version"] == "1.1.0"
+    assert payload["detected_input_language"] == "unknown"
+    assert payload["input_language_source"] == "fallback"
+    assert payload["reported_symptoms"] == {
+        "status": "reported",
+        "values": ["chest_pain"],
+    }
+    assert "reported_symptoms" not in payload["missing_information"]
+    assert situation_text not in response_text
+    assert client.closed is True
 
 
 def test_situation_endpoint_revalidates_bypassed_public_response() -> None:
@@ -446,6 +516,13 @@ def test_malformed_json_is_sanitized_and_does_not_call_service() -> None:
             "situation_extraction_timeout",
             "Situation extraction timed out.",
             id="timeout",
+        ),
+        pytest.param(
+            SituationExtractionBudgetExhausted(),
+            503,
+            "provider_budget_exhausted",
+            "Provider capacity is temporarily unavailable.",
+            id="provider-budget",
         ),
     ],
 )

@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 from datetime import datetime
+from decimal import Decimal
 from types import SimpleNamespace
 from typing import Any
 
@@ -56,8 +57,10 @@ from backend.app.grounded_plan import (
 from backend.app.places import PlaceRepository
 from backend.app.openai_runtime import (
     BoundedTaskCapacity,
+    OpenAIDailyBudget,
     SHARED_OPENAI_CLIENT_CLEANUP_CAPACITY,
     SHARED_OPENAI_PROVIDER_CAPACITY,
+    get_process_openai_budget,
 )
 from backend.app.situation import (
     ModelSituationExtraction,
@@ -1501,7 +1504,7 @@ def test_grounded_provider_caller_cancellation_propagates_and_retains_capacity(
     ]
 
 
-def test_both_openai_adapters_share_default_provider_and_cleanup_capacity() -> None:
+def test_both_openai_adapters_share_default_capacity_and_budget() -> None:
     situation = SituationExtractionService(api_key="synthetic-test-key")
     grounded = GroundedPlanService(api_key="synthetic-test-key")
 
@@ -1509,6 +1512,40 @@ def test_both_openai_adapters_share_default_provider_and_cleanup_capacity() -> N
     assert grounded._provider_capacity is SHARED_OPENAI_PROVIDER_CAPACITY
     assert situation._cleanup_capacity is SHARED_OPENAI_CLIENT_CLEANUP_CAPACITY
     assert grounded._cleanup_capacity is SHARED_OPENAI_CLIENT_CLEANUP_CAPACITY
+    assert situation._provider_budget is get_process_openai_budget()
+    assert grounded._provider_budget is get_process_openai_budget()
+
+
+def test_both_adapters_consume_one_injected_shared_budget() -> None:
+    budget = OpenAIDailyBudget(
+        daily_budget_usd=Decimal("1"),
+        per_call_reservation_usd=Decimal("1"),
+    )
+    situation = SituationExtractionService(
+        api_key="synthetic-test-key",
+        provider_budget=budget,
+    )
+    grounded_factory_calls = 0
+
+    def forbidden_grounded_factory(**_kwargs: Any) -> object:
+        nonlocal grounded_factory_calls
+        grounded_factory_calls += 1
+        raise AssertionError("budget exhaustion must precede client construction")
+
+    grounded = GroundedPlanService(
+        api_key="synthetic-test-key",
+        client_factory=forbidden_grounded_factory,
+        provider_budget=budget,
+    )
+
+    budget.reserve()
+    from backend.app.grounded_plan import GroundedPlanBudgetExhausted
+
+    with pytest.raises(GroundedPlanBudgetExhausted):
+        asyncio.run(grounded.generate(_context()))
+
+    assert situation._provider_budget is grounded._provider_budget is budget
+    assert grounded_factory_calls == 0
 
 
 def test_detached_situation_call_saturates_shared_grounded_capacity() -> None:

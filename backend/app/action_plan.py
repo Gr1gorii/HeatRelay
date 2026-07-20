@@ -79,6 +79,7 @@ from backend.app.situation import (
     SituationExtractionRequest,
     SituationExtractionResponse,
     SituationExtractionService,
+    reconcile_source_reported_symptoms,
 )
 from backend.app.weather import (
     WEATHER_TIMEOUT_SECONDS,
@@ -1624,6 +1625,10 @@ class ActionPlanWorkflow:
             raise ActionPlanWorkflowUnavailable() from error
         situation = await self._situation_service.extract(
             SituationExtractionRequest(situation_text=request.situation_text)
+        )
+        situation = reconcile_source_reported_symptoms(
+            request.situation_text,
+            situation,
         )
         evaluation_time = self._evaluation_time()
         urgent_priority = (

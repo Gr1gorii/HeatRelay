@@ -302,7 +302,7 @@ def test_committed_provenance_is_derived_from_validated_manifest() -> None:
     assert provenance == get_place_repository().provenance
     assert provenance.snapshot_id == "barcelona-climate-shelters-v1-2026-07-16"
     assert provenance.normalized_sha256 == (
-        "c958b7ba10b133132d9f1c8b98d84cd1b53644d27cbbd225b5b46bb98d89202b"
+        "b7ee112ce2e272894865a07111e40430d5d25a73b923de6cb5c0d78b16495ce5"
     )
 
 
@@ -446,6 +446,7 @@ def test_repository_retains_valid_information_url_without_rewriting(
 @pytest.mark.parametrize(
     "invalid_url",
     [
+        "http://example.test/place",
         " https://example.test/place",
         "https://example.test/place ",
         "https://example.test/\tplace",
@@ -546,10 +547,12 @@ def test_candidate_contract_reuses_strict_nonblank_address_fields(
 @pytest.mark.parametrize(
     ("field_name", "invalid_url"),
     [
+        ("information_url", "http://example.test/place"),
         ("information_url", "javascript:alert(1)"),
         ("information_url", "file:///tmp/place"),
         ("information_url", "https://user:password@example.test/place"),
         ("information_url", "https://example.test/%zz"),
+        ("source_url", "http://example.test/place"),
         ("source_url", "javascript:alert(1)"),
         ("source_url", "file:///tmp/place"),
         ("source_url", "https://user:password@example.test/place"),
@@ -614,6 +617,7 @@ def test_snapshot_provenance_rejects_weak_fields(
 @pytest.mark.parametrize(
     "invalid_url",
     [
+        "http://example.test/provenance",
         "javascript:alert(1)",
         "file:///tmp/provenance",
         "https://user:password@example.test/data",

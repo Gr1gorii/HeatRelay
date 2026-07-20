@@ -161,10 +161,10 @@ def _validate_http_url(value: str) -> str:
         hostname = parsed.hostname
         port = parsed.port
     except (UnicodeError, ValueError) as error:
-        raise ValueError("must be a valid absolute HTTP(S) URL") from error
+        raise ValueError("must be a valid absolute HTTPS URL") from error
 
-    if parsed.scheme not in {"http", "https"} or not parsed.netloc or hostname is None:
-        raise ValueError("must be an absolute HTTP(S) URL")
+    if parsed.scheme != "https" or not parsed.netloc or hostname is None:
+        raise ValueError("must be an absolute HTTPS URL")
     if parsed.username is not None or parsed.password is not None:
         raise ValueError("must not contain credentials")
 

@@ -11,6 +11,7 @@ import copy
 import gc
 import json
 import time
+from decimal import Decimal
 from types import SimpleNamespace
 from typing import Any
 
@@ -29,6 +30,7 @@ from openai import (
 from openai._base_client import AsyncHttpxClientWrapper
 from pydantic import TypeAdapter, ValidationError
 
+import backend.app.situation as situation_module
 from backend.app.localization import (
     SUPPORTED_INPUT_LANGUAGES,
     DetectedInputLanguage,
@@ -37,7 +39,7 @@ from backend.app.localization import (
     SupportedInputLanguage,
     derive_input_language_source,
 )
-from backend.app.openai_runtime import BoundedTaskCapacity
+from backend.app.openai_runtime import BoundedTaskCapacity, OpenAIDailyBudget
 from backend.app.situation import (
     CoolingAccess,
     DEVELOPER_INSTRUCTION,
@@ -46,6 +48,7 @@ from backend.app.situation import (
     ModelSituationExtraction,
     OPENAI_API_BASE_URL,
     SituationExtractionInvalidResponse,
+    SituationExtractionBudgetExhausted,
     SituationExtractionNotConfigured,
     SituationExtractionRefused,
     SituationExtractionRequest,
@@ -54,6 +57,7 @@ from backend.app.situation import (
     SituationExtractionTimeout,
     SituationExtractionUnavailable,
     build_public_response,
+    reconcile_source_reported_symptoms,
 )
 
 
@@ -97,6 +101,53 @@ EXPECTED_PREFERRED_LANGUAGE_VALUES = (
     *EXPECTED_SUPPORTED_INPUT_LANGUAGES,
     "other",
 )
+
+SOURCE_GROUNDING_LOCALE_FIXTURES = {
+    "en": ("I have chest pain.", "I do not have chest pain."),
+    "es": ("Tengo dolor en el pecho.", "No tengo dolor en el pecho."),
+    "zh-CN": ("我有胸痛。", "我没有胸痛。"),
+    "zh-TW": ("我有胸痛。", "我沒有胸痛。"),
+    "hi": ("मुझे सीने में दर्द है।", "मुझे सीने में दर्द नहीं है।"),
+    "ar": ("أعاني من ألم في الصدر.", "لا أعاني من ألم في الصدر."),
+    "pt-BR": ("Tenho dor no peito.", "Não tenho dor no peito."),
+    "bn": ("আমার বুকে ব্যথা হচ্ছে।", "আমার বুকে ব্যথা নেই।"),
+    "ru": ("У меня боль в груди.", "У меня нет боли в груди."),
+    "ja": ("胸の痛みがあります。", "胸の痛みはありません。"),
+    "fr": ("J’ai une douleur thoracique.", "Je n’ai pas de douleur thoracique."),
+    "de": ("Ich habe Brustschmerzen.", "Ich habe keine Brustschmerzen."),
+    "ur": ("مجھے سینے میں درد ہے۔", "مجھے سینے میں درد نہیں ہے۔"),
+    "id": ("Saya mengalami nyeri dada.", "Saya tidak mengalami nyeri dada."),
+    "tr": ("Göğüs ağrısı yaşıyorum.", "Göğüs ağrısı yaşamıyorum."),
+    "ko": ("가슴 통증이 있습니다.", "가슴 통증이 없습니다."),
+    "it": ("Ho dolore al petto.", "Non ho dolore al petto."),
+    "uk": ("У мене біль у грудях.", "У мене немає болю у грудях."),
+    "pl": (
+        "Mam ból w klatce piersiowej.",
+        "Nie mam bólu w klatce piersiowej.",
+    ),
+    "vi": ("Tôi bị đau ngực.", "Tôi không bị đau ngực."),
+    "th": ("ฉันเจ็บหน้าอก", "ฉันไม่มีอาการเจ็บหน้าอก"),
+    "fa": ("درد قفسه سینه دارم.", "درد قفسه سینه ندارم."),
+    "sw": ("Nina maumivu ya kifua.", "Sina maumivu ya kifua."),
+    "he": ("יש לי כאבים בחזה.", "אין לי כאבים בחזה."),
+    "nl": ("Ik heb pijn op de borst.", "Ik heb geen pijn op de borst."),
+    "ca": ("Tinc dolor al pit.", "No tinc dolor al pit."),
+}
+
+
+def test_source_grounding_table_is_complete_bounded_and_immutable() -> None:
+    rules = situation_module._SOURCE_GROUNDING_RULES
+
+    assert tuple(rules) == SUPPORTED_INPUT_LANGUAGES
+    assert all(len(symptom_phrases) == 6 for symptom_phrases, _, _ in rules.values())
+    assert all(
+        phrases
+        for symptom_phrases, _, _ in rules.values()
+        for phrases in symptom_phrases
+    )
+    assert all(isinstance(value, tuple) for value in rules.values())
+    with pytest.raises(TypeError):
+        rules["en"] = rules["en"]  # type: ignore[index]
 
 
 def _real_sdk_response_payload() -> dict[str, Any]:
@@ -706,6 +757,165 @@ def test_values_are_canonicalized_in_backend_defined_order() -> None:
     ]
 
 
+@pytest.mark.parametrize(
+    ("language", "positive_text", "negative_text"),
+    [
+        pytest.param(language, *texts, id=language)
+        for language, texts in SOURCE_GROUNDING_LOCALE_FIXTURES.items()
+    ],
+)
+def test_source_grounding_covers_each_supported_language_and_canonical_denial(
+    language: str,
+    positive_text: str,
+    negative_text: str,
+) -> None:
+    assert tuple(SOURCE_GROUNDING_LOCALE_FIXTURES) == SUPPORTED_INPUT_LANGUAGES
+    extracted = build_public_response(
+        _validated_profile(
+            _profile_with(
+                language=language,
+                reported_symptoms={"status": "explicit_none", "values": []},
+            )
+        )
+    )
+
+    positive = reconcile_source_reported_symptoms(positive_text, extracted)
+    negative = reconcile_source_reported_symptoms(negative_text, extracted)
+
+    assert positive.reported_symptoms.status == "reported"
+    assert positive.reported_symptoms.values == ["chest_pain"]
+    assert "reported_symptoms" not in positive.missing_information
+    assert negative.reported_symptoms.status == "explicit_none"
+    assert negative.reported_symptoms.values == []
+    assert negative.missing_information == extracted.missing_information
+
+
+@pytest.mark.parametrize(
+    ("symptom", "source_text"),
+    [
+        pytest.param("confusion", "I am confused.", id="confusion"),
+        pytest.param(
+            "fainting_or_loss_of_consciousness",
+            "I fainted.",
+            id="fainting",
+        ),
+        pytest.param("seizure", "I had a seizure.", id="seizure"),
+        pytest.param(
+            "difficulty_breathing",
+            "I have difficulty breathing.",
+            id="difficulty-breathing",
+        ),
+        pytest.param("chest_pain", "I have chest pain.", id="chest-pain"),
+        pytest.param(
+            "repeated_vomiting",
+            "I have repeated vomiting.",
+            id="repeated-vomiting",
+        ),
+    ],
+)
+def test_source_grounding_covers_every_closed_symptom(
+    symptom: str,
+    source_text: str,
+) -> None:
+    extracted = build_public_response(_validated_profile())
+
+    grounded = reconcile_source_reported_symptoms(source_text, extracted)
+
+    assert grounded.reported_symptoms.status == "reported"
+    assert grounded.reported_symptoms.values == [symptom]
+
+
+def test_source_grounding_merges_canonically_without_mutation_or_fact_loss() -> None:
+    extracted = build_public_response(
+        _validated_profile(
+            _profile_with(
+                language="ja",
+                preferred_language={"status": "reported", "value": "ca"},
+                cooling_access={"status": "reported", "value": "fan_only"},
+                reported_symptoms={
+                    "status": "reported",
+                    "values": ["repeated_vomiting", "confusion"],
+                },
+            )
+        )
+    )
+    original_json = extracted.model_dump_json()
+
+    grounded = reconcile_source_reported_symptoms(
+        "I am confused, have chest pain, and keep vomiting.",
+        extracted,
+    )
+
+    assert grounded is not extracted
+    assert extracted.model_dump_json() == original_json
+    assert grounded.reported_symptoms.values == [
+        "confusion",
+        "chest_pain",
+        "repeated_vomiting",
+    ]
+    assert grounded.detected_input_language == "ja"
+    assert grounded.input_language_source == "automatically_detected"
+    assert grounded.preferred_language == extracted.preferred_language
+    assert grounded.cooling_access == extracted.cooling_access
+    assert grounded.notice == extracted.notice
+
+
+def test_source_grounding_scans_independently_of_detected_language_metadata() -> None:
+    extracted = build_public_response(_validated_profile(_base_profile("ja")))
+
+    grounded = reconcile_source_reported_symptoms(
+        "Tengo dolor en el pecho.",
+        extracted,
+    )
+
+    assert grounded.detected_input_language == "ja"
+    assert grounded.reported_symptoms.values == ["chest_pain"]
+
+
+def test_uncertain_non_denied_source_match_fails_closed() -> None:
+    extracted = build_public_response(
+        _validated_profile(
+            _profile_with(
+                reported_symptoms={"status": "unknown", "values": []}
+            )
+        )
+    )
+
+    grounded = reconcile_source_reported_symptoms(
+        "I am not sure, but this might be chest pain.",
+        extracted,
+    )
+
+    assert grounded.reported_symptoms.status == "reported"
+    assert grounded.reported_symptoms.values == ["chest_pain"]
+
+
+def test_source_grounding_preserves_reported_symptoms_and_legitimate_normal_text() -> None:
+    reported = build_public_response(
+        _validated_profile(
+            _profile_with(
+                reported_symptoms={"status": "reported", "values": ["seizure"]}
+            )
+        )
+    )
+    ordinary = build_public_response(_validated_profile())
+
+    preserved = reconcile_source_reported_symptoms(
+        "I need a cooler place for the next two hours.",
+        reported,
+    )
+    unchanged_normal = reconcile_source_reported_symptoms(
+        "I am hot and need water and a cooler place.",
+        ordinary,
+    )
+
+    assert preserved.reported_symptoms.status == "reported"
+    assert preserved.reported_symptoms.values == ["seizure"]
+    assert unchanged_normal.reported_symptoms.status == "not_stated"
+    assert unchanged_normal.reported_symptoms.values == []
+    assert "reported_symptoms" in unchanged_normal.missing_information
+
+
 def test_missing_information_is_server_owned_and_deterministic() -> None:
     extraction = _validated_profile(
         _profile_with(
@@ -893,6 +1103,32 @@ def test_adapter_sends_exact_bounded_arguments_and_separate_untrusted_input() ->
     assert "advice" in public.notice
 
 
+def test_adapter_reconciles_omitted_source_symptom_without_logging_source(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    private_text = "synthetic-private-marker: I have chest pain."
+    parsed = _validated_profile(
+        _profile_with(
+            language="unknown",
+            reported_symptoms={"status": "explicit_none", "values": []},
+        )
+    )
+    service, _, _ = _service_for_response(_response(parsed=parsed))
+
+    with caplog.at_level("INFO", logger=USAGE_LOGGER_NAME):
+        public = asyncio.run(
+            service.extract(SituationExtractionRequest(situation_text=private_text))
+        )
+
+    assert public.detected_input_language == "unknown"
+    assert public.input_language_source == "fallback"
+    assert public.reported_symptoms.status == "reported"
+    assert public.reported_symptoms.values == ["chest_pain"]
+    assert "reported_symptoms" not in public.missing_information
+    assert private_text not in caplog.text
+    assert "synthetic-private-marker" not in caplog.text
+
+
 def test_default_client_pins_official_base_url_despite_ambient_override(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1014,6 +1250,34 @@ def test_missing_key_fails_before_client_construction() -> None:
         )
 
 
+def test_exhausted_budget_fails_before_client_construction() -> None:
+    budget = OpenAIDailyBudget(
+        daily_budget_usd=Decimal("1"),
+        per_call_reservation_usd=Decimal("1"),
+    )
+    budget.reserve()
+    client_calls = 0
+
+    def forbidden_factory(**_kwargs: Any) -> object:
+        nonlocal client_calls
+        client_calls += 1
+        raise AssertionError("a provider client must not be constructed")
+
+    service = SituationExtractionService(
+        api_key="synthetic-test-key",
+        client_factory=forbidden_factory,
+        provider_budget=budget,
+    )
+    with pytest.raises(SituationExtractionBudgetExhausted) as caught:
+        asyncio.run(
+            service.extract(SituationExtractionRequest(situation_text="Synthetic text"))
+        )
+
+    assert caught.value.code == "provider_budget_exhausted"
+    assert caught.value.status_code == 503
+    assert client_calls == 0
+
+
 def test_overall_deadline_is_enforced_and_client_is_closed() -> None:
     class SlowResponses:
         async def parse(self, **_kwargs: Any) -> object:
@@ -1021,16 +1285,22 @@ def test_overall_deadline_is_enforced_and_client_is_closed() -> None:
             raise AssertionError("deadline did not cancel the request")
 
     client = FakeClient(SlowResponses())  # type: ignore[arg-type]
+    budget = OpenAIDailyBudget(
+        daily_budget_usd=Decimal("1"),
+        per_call_reservation_usd=Decimal("1"),
+    )
     service = SituationExtractionService(
         api_key="synthetic-test-key",
         client_factory=lambda **_kwargs: client,
         overall_timeout_seconds=0.01,
+        provider_budget=budget,
     )
     with pytest.raises(SituationExtractionTimeout):
         asyncio.run(
             service.extract(SituationExtractionRequest(situation_text="Synthetic text"))
         )
     assert client.closed is True
+    assert budget.reserved_microdollars == 1_000_000
 
 
 def test_expired_budget_does_not_start_provider_after_slow_client_factory() -> None:

@@ -160,7 +160,7 @@
         "potable_water": true,
         "toilets": true
       },
-      "information_url": "http://www.barcelona.cat/bibvaporvell",
+      "information_url": null,
       "last_checked": "2026-07-16",
       "latitude": 41.37692859666653,
       "longitude": 2.134751788846474,
@@ -297,7 +297,7 @@
         "potable_water": true,
         "toilets": true
       },
-      "information_url": "http://www.cccanfelipa.cat",
+      "information_url": null,
       "last_checked": "2026-07-16",
       "latitude": 41.40367975860696,
       "longitude": 2.20050971216533,
@@ -561,7 +561,7 @@
         "potable_water": true,
         "toilets": true
       },
-      "information_url": "http://ajuntament.barcelona.cat/lafabricadelsol",
+      "information_url": null,
       "last_checked": "2026-07-16",
       "latitude": 41.383031580266,
       "longitude": 2.1912801963845494,
@@ -615,7 +615,7 @@
         "potable_water": true,
         "toilets": true
       },
-      "information_url": "http://www.barcelona.cat/bibbonpastor",
+      "information_url": null,
       "last_checked": "2026-07-16",
       "latitude": 41.43519522535179,
       "longitude": 2.204676708689729,
@@ -693,7 +693,7 @@
         "potable_water": true,
         "toilets": true
       },
-      "information_url": "http://www.barcelona.cat/bibzonanord",
+      "information_url": null,
       "last_checked": "2026-07-16",
       "latitude": 41.46126807109291,
       "longitude": 2.17989262234208,
@@ -761,7 +761,7 @@
         "potable_water": true,
         "toilets": true
       },
-      "information_url": "http://www.barcelona.cat/bibcentelles",
+      "information_url": null,
       "last_checked": "2026-07-16",
       "latitude": 41.38689535147527,
       "longitude": 2.152049712385728,
@@ -840,7 +840,7 @@
         "potable_water": true,
         "toilets": true
       },
-      "information_url": "http://www.barcelona.cat/bibtrinitatvella",
+      "information_url": null,
       "last_checked": "2026-07-16",
       "latitude": 41.44931398700405,
       "longitude": 2.1907655514008186,

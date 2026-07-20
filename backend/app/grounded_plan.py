@@ -42,11 +42,14 @@ from pydantic import (
 
 from backend.app.openai_runtime import (
     BoundedTaskCapacity,
+    OpenAIDailyBudget,
+    ProviderBudgetExhausted,
     SHARED_OPENAI_CLIENT_CLEANUP_CAPACITY,
     SHARED_OPENAI_PROVIDER_CAPACITY,
     TaskCapacityLease,
     close_reserved_openai_client,
     close_unstarted_awaitable,
+    get_process_openai_budget,
     try_reserve_openai_client,
 )
 from backend.app.situation import (
@@ -708,6 +711,12 @@ class GroundedPlanUnavailable(GroundedPlanFailure):
     message = PLAN_UNAVAILABLE_MESSAGE
 
 
+class GroundedPlanBudgetExhausted(GroundedPlanFailure):
+    status_code = 503
+    code = "provider_budget_exhausted"
+    message = "Provider capacity is temporarily unavailable."
+
+
 class GroundedPlanTimeout(GroundedPlanFailure):
     status_code = 504
     code = PLAN_TIMEOUT_CODE
@@ -1078,6 +1087,7 @@ class GroundedPlanService:
         cleanup_capacity: BoundedTaskCapacity = (
             SHARED_OPENAI_CLIENT_CLEANUP_CAPACITY
         ),
+        provider_budget: OpenAIDailyBudget | None = None,
     ) -> None:
         for name, value in (
             ("sdk_timeout_seconds", sdk_timeout_seconds),
@@ -1098,6 +1108,7 @@ class GroundedPlanService:
         self._max_payload_bytes = max_payload_bytes
         self._provider_capacity = provider_capacity
         self._cleanup_capacity = cleanup_capacity
+        self._provider_budget = provider_budget or get_process_openai_budget()
 
     def _create_client(self) -> Any:
         return self._client_factory(
@@ -1126,10 +1137,14 @@ class GroundedPlanService:
             raise GroundedPlanInvalidResponse()
         model_input = grounded_model_input(context)
 
-        reservations = try_reserve_openai_client(
-            self._provider_capacity,
-            self._cleanup_capacity,
-        )
+        try:
+            reservations = try_reserve_openai_client(
+                self._provider_capacity,
+                self._cleanup_capacity,
+                self._provider_budget,
+            )
+        except ProviderBudgetExhausted as error:
+            raise GroundedPlanBudgetExhausted() from error
         if reservations is None:
             raise GroundedPlanUnavailable()
 

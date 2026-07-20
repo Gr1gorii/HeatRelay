@@ -1532,7 +1532,116 @@ comparison confirmed that the implemented red-and-white structure is retained
 while the documented Listen control, embedded map, route/ETA, permanent
 emergency strip, and unverified third initial instruction remain omitted.
 
-Milestone 7 is implemented and verified within this bounded scope, but remains
-uncommitted and unpublished. No formal WCAG conformance, complete design
-fidelity, native-speaker review, cross-browser support, medical approval, or
-release readiness is claimed.
+At the time this verification record was written, Milestone 7 was implemented
+and verified within this bounded scope but was uncommitted and unpublished. No
+formal WCAG conformance, complete design fidelity, native-speaker review,
+cross-browser support, medical approval, or release readiness is claimed.
+
+## Milestone 8.1 offline release-readiness audit — 2026-07-20
+
+The read-only audit started from published Milestone 7 commit
+`6866b4c31649751ecea665c8045d028e228796fb`, a clean index and worktree, and
+preserved all 51 ignored local QA artifacts. It found evidence-backed release
+blockers rather than implementing speculative hardening:
+
+- a schema-valid extraction could omit an explicitly reported bounded urgent
+  symptom and enter the normal workflow;
+- production had no pre-parse body bound, per-source rate bound, hard shared
+  provider budget, trusted-host/proxy contract, readiness policy, or disabled
+  documentation policy;
+- no one-process package served the built SPA and API with production headers;
+- seven reviewed optional information links remained HTTP;
+- the direct Python declarations lacked an exact transitive production
+  constraints file; and
+- deployment, security reporting, incident, dependency notice, and operational
+  documentation were incomplete.
+
+The audit used no live backend/browser path, provider call, online advisory
+database, package download, deployment, or Git remote. It did not establish
+current CVE status or legal sufficiency.
+
+## Milestone 8.2A bounded urgent source grounding — 2026-07-20
+
+The correction reproduced the real workflow failure with a schema-valid fake
+provider extraction that omitted an explicit source symptom. A compact,
+immutable Unicode-normalized phrase/stem and canonical-denial table now covers
+all 26 supported input tags independently of model-reported language metadata.
+Deterministic positive matches merge into a newly validated response in
+canonical symptom order before priority selection, never remove a model
+symptom, and route through the fixed localized `112` branch. Genuine source
+denials and ordinary heat text remain normal. The urgent path makes zero
+weather, place, or grounded-plan calls. This remains closed-code grounding,
+not diagnosis or general multilingual NLP.
+
+## Milestone 8.2 B–D release-blocker correction — 2026-07-20
+
+This offline pass adds one production ASGI perimeter without authentication or
+API-shape changes:
+
+- every production `/api/v1/*` POST is pre-read with a default 16 KiB declared
+  and actual body bound and a bounded default 10-per-60-second process-local
+  client limiter;
+- forwarded source addresses are ignored unless the immediate proxy belongs to
+  the configured canonical allowlist;
+- both OpenAI adapters share one lock-protected integer-microdollar UTC-day
+  budget and the existing provider/cleanup capacity. Conservative per-call
+  reservations occur before client construction and remain consumed after a
+  failure or timeout;
+- one-worker `backend.app.production` serves the SPA, real hashed assets and
+  FastAPI with API precedence, readiness/liveness separation, production docs
+  disabled, cache policy, traversal rejection, trusted hosts and security
+  headers;
+- a multi-stage Docker definition and safe context install the exact pinned
+  Python production closure and omit secrets, tests, caches, Node modules and
+  development servers from the runtime;
+- legacy HTTP information links normalize to `null`, and backend/public/
+  frontend validation is HTTPS-only; exactly seven snapshot leaves changed;
+  and
+- security reporting, deployment, incident/rollback/rotation, and complete
+  installed production dependency/license records were added.
+
+The local raw source used for regeneration retained SHA-256
+`37939392d6e2ca6d905eb291d9bded958e188d7d552354d2baa98407032adadd`.
+The new normalized snapshot is
+`b7ee112ce2e272894865a07111e40430d5d25a73b923de6cb5c0d78b16495ce5`;
+the new manifest file is
+`969097c05ed478d98b16db9a3020c6efce008314497d34256c9202fc44bb0a1f`.
+A structural comparison against published M7 showed only the seven expected
+`information_url: http://...` to `null` changes.
+
+| Focused verification | Exit | Evidence |
+| --- | ---: | --- |
+| Abuse, readiness, production routing, packaging, budget, M8.2A, URL, snapshot and API suites | 0 | 2,449 tests passed. |
+| Frontend HTTPS/null parser regression | 0 | 1 test passed; 662 unrelated tests were filtered. |
+
+No container image was built and no live service, browser, OpenAI, Open-Meteo,
+download, vulnerability database, deployment, or Git remote was used. The
+incremental provider cost was `$0.00`.
+
+### Final M8.2 B–D offline verification
+
+| Verification | Exit | Result |
+| --- | ---: | --- |
+| Final focused production/action-plan rerun | 0 | 984 tests passed. |
+| `make test` | 0 | 2,661 backend and 1,330 frontend tests passed. |
+| `make build` | 0 | TypeScript and Vite production build passed; the existing informational large-chunk warning remained. |
+| `.venv/bin/python -m pip check` | 0 | No broken requirements. |
+| Installed requirements/constraints comparison | 0 | All 5 direct declarations matched the exact installed 22-package production closure. |
+| `npm --prefix frontend ls --depth=0` | 0 | Installed direct frontend dependency tree was consistent. |
+| Offline production ASGI smoke | 0 | `/`, one hashed asset, liveness, readiness, three disabled docs paths, and an unknown SPA route returned the expected status/cache contracts using a synthetic key and no provider call. |
+| Snapshot structural comparison | 0 | Exactly seven `information_url` leaves changed from legacy HTTP to `null`; no unrelated field or ordering changed. |
+| Markdown links, credential candidates, frontend environment, whitespace and Docker-context checks | 0 | Relative links resolved; only one approved synthetic secret-shaped test filename was found; no production credential or frontend OpenAI variable was present; context/runtime copies exclude forbidden development and secret material. |
+| `git diff --check` and cached-diff check | 0 | No whitespace error and the index remained empty. |
+
+The production smoke was in-process and loopback-free through the ASGI
+transport; it did not start Uvicorn or invoke extraction, weather, places, or
+grounded planning. Docker was inspected but not built because base-layer and
+package resolution could require downloads. Current online CVE status,
+third-party notice legal sufficiency, host-level distributed limiting, hosting
+selection, deployment, and post-deployment verification remain for a later
+authorized milestone.
+
+At the time this verification record was written, Milestone 8.2 A–D was
+uncommitted and unpublished. The verified release safeguards were later
+published through the repository commit containing this revision. Deployment,
+online CVE review, legal review, and deployed verification remain pending.

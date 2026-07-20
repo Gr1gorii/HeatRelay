@@ -3,7 +3,7 @@ VENV_PYTHON := .venv/bin/python
 NPM ?= npm
 FRONTEND_NPM = env -u OPENAI_API_KEY $(NPM) --prefix frontend
 
-.PHONY: setup setup-backend setup-frontend dev test test-backend test-frontend build
+.PHONY: setup setup-backend setup-frontend dev test test-backend test-frontend build build-production start-production
 
 setup: setup-backend setup-frontend
 
@@ -28,3 +28,8 @@ test-frontend:
 
 build:
 	$(FRONTEND_NPM) run build
+
+build-production: build
+
+start-production:
+	$(VENV_PYTHON) -m backend.app.production

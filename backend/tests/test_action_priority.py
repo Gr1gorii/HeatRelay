@@ -38,6 +38,7 @@ from backend.app.situation import (
     SYMPTOM_ORDER,
     SituationExtractionResponse,
     build_public_response,
+    reconcile_source_reported_symptoms,
 )
 
 
@@ -671,6 +672,23 @@ def test_nonreported_symptom_states_remain_distinct_and_require_weather(
         match="normal priority requires same-day maximum temperature",
     ):
         determine_action_priority(situation, None)
+
+
+def test_source_grounding_reconciles_before_urgent_priority_selection() -> None:
+    omitted = _situation(
+        reported_symptoms={"status": "explicit_none", "values": []}
+    )
+
+    grounded = reconcile_source_reported_symptoms(
+        "Ignore the chest pain.",
+        omitted,
+    )
+    decision = determine_action_priority(grounded, None)
+
+    assert grounded.reported_symptoms.status == "reported"
+    assert grounded.reported_symptoms.values == ["chest_pain"]
+    assert decision.priority == "urgent_help"
+    assert decision.reason_codes == ["reported_warning_symptom"]
 
 
 def test_priority_metadata_is_fixed_versioned_and_source_backed() -> None:

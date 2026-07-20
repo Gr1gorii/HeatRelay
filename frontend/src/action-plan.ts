@@ -873,7 +873,7 @@ function isSafeHttpUrl(value: unknown): value is string {
   try {
     const parsed = new URL(value);
     return (
-      (parsed.protocol === "http:" || parsed.protocol === "https:") &&
+      parsed.protocol === "https:" &&
       parsed.username === "" &&
       parsed.password === ""
     );

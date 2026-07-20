@@ -10,12 +10,123 @@ from __future__ import annotations
 import asyncio
 import inspect
 import logging
+import re
 from dataclasses import dataclass
+from datetime import date, datetime, timezone
+from decimal import Decimal, InvalidOperation
 from threading import Lock
-from typing import Any
+from typing import Any, Callable
 
 OPENAI_PROVIDER_TASK_LIMIT = 4
 OPENAI_CLIENT_CLEANUP_TASK_LIMIT = 4
+MICRODOLLARS_PER_DOLLAR = 1_000_000
+_USD_PATTERN = re.compile(r"^(?:0|[1-9][0-9]*)(?:\.[0-9]{1,6})?$")
+
+
+class ProviderBudgetExhausted(RuntimeError):
+    """Raised before provider work when the process daily bound is exhausted."""
+
+
+class OpenAIDailyBudget:
+    """One concurrency-safe UTC-day budget expressed in integer microdollars."""
+
+    def __init__(
+        self,
+        *,
+        daily_budget_usd: Decimal,
+        per_call_reservation_usd: Decimal,
+        utc_now: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
+    ) -> None:
+        self._daily_microdollars = self._to_microdollars(
+            daily_budget_usd,
+            "daily_budget_usd",
+        )
+        self._reservation_microdollars = self._to_microdollars(
+            per_call_reservation_usd,
+            "per_call_reservation_usd",
+        )
+        if self._reservation_microdollars > self._daily_microdollars:
+            raise ValueError("per-call reservation must not exceed daily budget")
+        self._utc_now = utc_now
+        self._lock = Lock()
+        self._date: date | None = None
+        self._reserved_microdollars = 0
+
+    @staticmethod
+    def parse_usd(value: str, name: str) -> Decimal:
+        if not value or value != value.strip() or _USD_PATTERN.fullmatch(value) is None:
+            raise ValueError(f"{name} must be a canonical decimal")
+        try:
+            parsed = Decimal(value)
+        except InvalidOperation as error:
+            raise ValueError(f"{name} must be a canonical decimal") from error
+        OpenAIDailyBudget._to_microdollars(parsed, name)
+        return parsed
+
+    @staticmethod
+    def _to_microdollars(value: Decimal, name: str) -> int:
+        if not isinstance(value, Decimal) or not value.is_finite() or value <= 0:
+            raise ValueError(f"{name} must be positive and finite")
+        microdollars = value * MICRODOLLARS_PER_DOLLAR
+        integral = microdollars.to_integral_value()
+        if microdollars != integral:
+            raise ValueError(f"{name} supports at most six decimal places")
+        return int(integral)
+
+    @property
+    def daily_microdollars(self) -> int:
+        return self._daily_microdollars
+
+    @property
+    def reservation_microdollars(self) -> int:
+        return self._reservation_microdollars
+
+    @property
+    def reserved_microdollars(self) -> int:
+        with self._lock:
+            return self._reserved_microdollars
+
+    def reserve(self) -> None:
+        now = self._utc_now()
+        if (
+            not isinstance(now, datetime)
+            or now.tzinfo is None
+            or now.utcoffset() != timezone.utc.utcoffset(now)
+        ):
+            raise RuntimeError("provider budget clock must return UTC")
+        today = now.date()
+        with self._lock:
+            if self._date != today:
+                self._date = today
+                self._reserved_microdollars = 0
+            if (
+                self._reserved_microdollars + self._reservation_microdollars
+                > self._daily_microdollars
+            ):
+                raise ProviderBudgetExhausted()
+            self._reserved_microdollars += self._reservation_microdollars
+
+
+_process_openai_budget = OpenAIDailyBudget(
+    daily_budget_usd=Decimal("1000000"),
+    per_call_reservation_usd=Decimal("1"),
+)
+_process_openai_budget_lock = Lock()
+
+
+def configure_process_openai_budget(budget: OpenAIDailyBudget) -> None:
+    """Install the one production budget before serving requests."""
+
+    if not isinstance(budget, OpenAIDailyBudget):
+        raise TypeError("budget must be an OpenAIDailyBudget")
+    global _process_openai_budget
+    with _process_openai_budget_lock:
+        _process_openai_budget = budget
+
+
+def get_process_openai_budget() -> OpenAIDailyBudget:
+    with _process_openai_budget_lock:
+        return _process_openai_budget
 
 
 class BoundedTaskCapacity:
@@ -150,6 +261,7 @@ class OpenAIClientReservations:
 def try_reserve_openai_client(
     provider_capacity: BoundedTaskCapacity,
     cleanup_capacity: BoundedTaskCapacity,
+    provider_budget: OpenAIDailyBudget | None = None,
 ) -> OpenAIClientReservations | None:
     """Atomically enough reserve provider and cleanup work without waiting.
 
@@ -165,6 +277,12 @@ def try_reserve_openai_client(
     if cleanup_lease is None:
         provider_lease.release()
         return None
+    try:
+        (provider_budget or get_process_openai_budget()).reserve()
+    except BaseException:
+        cleanup_lease.release()
+        provider_lease.release()
+        raise
     return OpenAIClientReservations(
         provider=provider_lease,
         cleanup=cleanup_lease,

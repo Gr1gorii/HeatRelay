@@ -18,8 +18,17 @@ EXPECTED_RAW_SHA256 = (
     "37939392d6e2ca6d905eb291d9bded958e188d7d552354d2baa98407032adadd"
 )
 EXPECTED_NORMALIZED_SHA256 = (
-    "c958b7ba10b133132d9f1c8b98d84cd1b53644d27cbbd225b5b46bb98d89202b"
+    "b7ee112ce2e272894865a07111e40430d5d25a73b923de6cb5c0d78b16495ce5"
 )
+EXPECTED_LEGACY_HTTP_NULL_IDS = {
+    "bcn-249121118",
+    "bcn-92086035490",
+    "bcn-99117135915",
+    "bcn-99400098833",
+    "bcn-99400236720",
+    "bcn-99400270325",
+    "bcn-99400287783",
+}
 EXPECTED_PLACE_IDS = {
     "bcn-2011131453",
     "bcn-249121118",
@@ -84,6 +93,17 @@ def test_committed_places_are_unique_bounded_and_source_backed() -> None:
     assert sum(
         place.schedule_verification_status == "unknown" for place in places
     ) == 3
+    assert {
+        place.place_id
+        for place in places
+        if place.information_url is None
+        and place.place_id != "bcn-99400766080"
+    } == EXPECTED_LEGACY_HTTP_NULL_IDS
+    assert all(
+        place.information_url is None
+        or place.information_url.startswith("https://")
+        for place in places
+    )
 
     for place in places:
         assert place.place_id == f"bcn-{place.source_record_id}"

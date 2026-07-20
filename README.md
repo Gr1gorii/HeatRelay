@@ -23,8 +23,11 @@ implementation is verified within the explicitly tested scope and published
 through the repository commit containing this revision. Milestone 7 implements
 the approved red-and-white redesign and adds High Contrast as the third visual
 mode while preserving the M5/M6 contracts. It is verified within the bounded
-offline and loopback-browser scope recorded in the build log, but remains
-uncommitted and unpublished.
+offline and loopback-browser scope recorded in the build log and is published
+at `6866b4c31649751ecea665c8045d028e228796fb`. Milestone 8.2 adds the bounded
+single-instance production perimeter described below. These release safeguards
+are published through the repository commit containing this revision;
+deployment and release approval remain separate work.
 
 ## Implemented scope through Milestone 7
 
@@ -96,7 +99,7 @@ and does not call the situation, weather, or places endpoints separately.
 Official heat-warning retrieval, medical diagnosis or risk scoring, free-form
 medical or emergency decision logic, embedded maps, route calculation, ETAs, browser
 geolocation, runtime machine translation, authentication, analytics,
-deployment, and additional cities remain **unimplemented**.
+provider deployment, and additional cities remain **unimplemented**.
 
 For a backend-verified selected place only, the result may expose one HTTPS
 Google Maps link in a new tab. Its destination contains only the verified
@@ -331,6 +334,31 @@ make build
 This type-checks the frontend and writes the production bundle to
 `frontend/dist/`.
 
+## Production package
+
+HeatRelay has one validated single-process production entrypoint. Build the
+frontend and start exactly one Uvicorn worker per instance with:
+
+```sh
+make build-production
+make start-production
+```
+
+The production process serves the SPA and `/api/*` from one origin, applies a
+16 KiB pre-parse request-body limit and a process-local default rate limit of
+10 `/api/v1/*` POSTs per 60 seconds per effective client, and reserves every
+OpenAI call against one process-shared operator-configured UTC-day hard budget.
+It serves only existing `/assets/*` files, uses no-cache for `index.html`, and
+adds production security headers. It runs with one worker; multiple replicas
+require host-level shared rate limiting because process-local state is not
+global.
+
+Production configuration, trusted-proxy rules, health/readiness behavior,
+secret rotation, rollback, logging, and the Docker boundary are documented in
+[Deployment](docs/DEPLOYMENT.md). The package does not select a provider or
+claim deployment or release readiness. See also the [security reporting
+policy](SECURITY.md) and [third-party notices](THIRD_PARTY_NOTICES.md).
+
 ## API contracts
 
 All request models reject undocumented fields. Invalid coordinates, a naive
@@ -344,6 +372,13 @@ Response, HTTP 200:
 ```json
 {"status":"ok","service":"heatrelay-api"}
 ```
+
+This endpoint is liveness. The production wrapper also provides
+`GET /api/ready`, which returns the same stable service identifier with status
+`ready` and HTTP 200 only when required production configuration, committed
+Barcelona data, and built frontend assets are valid; otherwise it returns
+sanitized HTTP 503. Development fails readiness closed. Production returns 404
+for `/docs`, `/redoc`, and `/openapi.json`.
 
 ### `POST /api/v1/weather/context`
 
@@ -761,7 +796,7 @@ closed rather than bypassing workflow checks.
 Before planning, the workflow revalidates every candidate and snapshot field,
 including canonical paired IDs, nonblank text, finite Barcelona place
 coordinates, aware timestamps, lowercase SHA-256 values, and absolute
-credential-free HTTP(S) URLs. The authoritative immutable snapshot identity is
+credential-free HTTPS URLs. The authoritative immutable snapshot identity is
 derived from the validated committed snapshot and manifest: schema and
 snapshot IDs, publisher, dataset and distribution URLs, retrieval and upstream
 modification timestamps, license and URL, attribution, and normalized SHA-256
@@ -959,12 +994,15 @@ These bounds apply only to official place records: weather coordinates and a
 place-search origin remain valid at their global WGS84 ranges. Refreshes also
 fail closed if a reviewed address is hidden or a raw information URL contains
 whitespace or control/format artifacts, malformed percent escapes, invalid
-host or port syntax, credentials, or is not absolute HTTP(S). Accepted URLs
-are retained exactly as supplied.
+host or port syntax, credentials, or is not absolute HTTP(S). Valid HTTPS URLs
+are retained exactly as supplied; legacy source HTTP information links are
+deterministically normalized to `null` rather than guessed or upgraded.
 
-This correction does not change the snapshot or manifest bytes. The normalized
-snapshot SHA-256 remains
-`c958b7ba10b133132d9f1c8b98d84cd1b53644d27cbbd225b5b46bb98d89202b`.
+The HTTPS-only correction changed exactly seven legacy information-link fields
+to `null` and no other place fact or ordering. The normalized snapshot SHA-256
+is `b7ee112ce2e272894865a07111e40430d5d25a73b923de6cb5c0d78b16495ce5`;
+the manifest file SHA-256 is
+`969097c05ed478d98b16db9a3020c6efce008314497d34256c9202fc44bb0a1f`.
 
 The approximately 42 MB upstream file is not committed. See
 [data/barcelona/README.md](data/barcelona/README.md) for the review rules and
@@ -999,8 +1037,8 @@ changed.
 The backend:
 
 1. Loads and validates the snapshot and manifest, including IDs, provenance,
-   counts, normalized SHA-256, strict raw HTTP(S) URL syntax, and the
-   Barcelona-only bounds for source-backed place coordinates.
+   counts, normalized SHA-256, strict raw URL syntax, HTTPS-only public links,
+   and the Barcelona-only bounds for source-backed place coordinates.
 2. Excludes places beyond `maximum_distance_m`.
 3. Excludes missing, unknown, ambiguous, expired, or otherwise unverified
    schedules.

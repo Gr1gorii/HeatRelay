@@ -46,6 +46,7 @@ supplied publication reports, not inferred from Git author metadata.
 | Milestone 3 commit and push | **Confirmed; primary Codex build thread performed** | The supplied publication report records commit `b7c5190ca1c07c111b4d9e79587a75255f0bc67d` (`feat: add grounded Barcelona action planning`) pushed normally to `origin/main`. |
 | Milestone 4 commit and push | **Confirmed; primary Codex build thread performed** | The supplied publication report records commit `88f56a25f1f9dd372809010721ce5733701e0033` (`feat: add Barcelona action-plan frontend`) pushed normally to `origin/main`. |
 | Milestone 5 commit and push | **Confirmed; primary Codex build thread performed** | The supplied publication report records commit `5f5d23c4ba3af9c318e8427ed717f7b5b7656a00` (`feat: add accessibility and low-vision mode`) pushed normally to `origin/main`. |
+| Milestone 7 commit and push | **Confirmed; primary Codex build thread performed** | The verified redesign was published at `6866b4c31649751ecea665c8045d028e228796fb`. |
 | Codex access | **Confirmed for this build context** | Milestones 0 through the Milestone 6 implementation use the designated primary Codex build thread. |
 | Separate OpenAI API access and billing for GPT-5.6 runtime use | **Author confirmed** | The author confirmed separate API access and billing; no balance amount is published. |
 | Live GPT-5.6 extraction access | **Verified for one bounded Milestone 2 smoke on 2026-07-17** | One synthetic extraction request through the documented local backend returned HTTP 200, passed the strict public schema, and matched its expected explicit facts on the first OpenAI network attempt. No broader accuracy claim is made. |
@@ -53,7 +54,7 @@ supplied publication reports, not inferred from Git author metadata.
 | Corrected-contract grounded-plan access | **Verified by one separately authorized final smoke on 2026-07-17** | Exactly one direct `GroundedPlanService` request with zero retries passed strict Pydantic, allowed-code, safe-model-metadata, and exact candidate-whitelist validation. It used 1,326 input and 171 output tokens; this single scenario is not a general accuracy evaluation. |
 | Live Milestone 4 browser workflow | **Verified for one bounded smoke on 2026-07-18** | One Chrome submission produced one observed action-plan POST and HTTP 200, rendering the normal `Prepare now` no-place result with zero retries. Extraction, Open-Meteo, and grounded-plan calls were inferred rather than independently provider-logged. Model metadata and token usage were unavailable; `$0.25` was a conservative authorized upper bound, not the actual measured charge. |
 | Milestone 5 accessibility and low-vision foundation | **Verified within the explicitly tested scope on 2026-07-18** | Offline automated tests and the production build passed. An isolated loopback harness verified corrected 320px reflow; actual Chrome verified 200% page zoom; runtime macOS Reduce Motion was exercised and restored; and one actual VoiceOver session was manually confirmed by the author. This is platform- and scenario-bounded evidence, not formal accessibility certification or a claim of complete conformance. |
-| Milestone 7 redesign | **Implemented and verified within the bounded offline/browser scope; uncommitted and unpublished** | The approved red-and-white presentation, M7 High Contrast mode, urgent-first hierarchy, permanent form guidance, non-interactive scenario examples, accessible weather facts, and mobile Settings focus correction preserve the M5/M6 contracts. No release-readiness or complete-design-fidelity claim is made. |
+| Milestone 7 redesign | **Published and verified within the bounded offline/browser scope** | The approved red-and-white presentation, M7 High Contrast mode, urgent-first hierarchy, permanent form guidance, non-interactive scenario examples, accessible weather facts, and mobile Settings focus correction preserve the M5/M6 contracts. No release-readiness or complete-design-fidelity claim is made. |
 
 The Milestone 3 adversarial correction implementations and ordinary
 verification were deliberately offline. The later final smoke was a separate,
@@ -337,7 +338,7 @@ repaired.
 
 Candidate and snapshot responses are strictly revalidated before planning:
 canonical paired IDs, nonblank fields, finite Barcelona coordinates, aware
-timestamps, lowercase SHA-256 values, credential-free HTTP(S) URLs, and the
+timestamps, lowercase SHA-256 values, credential-free HTTPS URLs, and the
 complete immutable identity derived from the validated committed snapshot and
 manifest are mandatory. That identity includes schema and snapshot IDs,
 publisher, dataset and distribution URLs, retrieval and upstream-modified
@@ -437,15 +438,17 @@ Snapshot `barcelona-climate-shelters-v1-2026-07-16` uses schema
 records, 15 selected records, 520 rejected records, raw SHA-256
 `37939392d6e2ca6d905eb291d9bded958e188d7d552354d2baa98407032adadd`,
 and normalized SHA-256
-`c958b7ba10b133132d9f1c8b98d84cd1b53644d27cbbd225b5b46bb98d89202b`.
-The coordinate-local weather correction left both snapshot and manifest
-bytes unchanged.
+`b7ee112ce2e272894865a07111e40430d5d25a73b923de6cb5c0d78b16495ce5`.
+The HTTPS-only correction deterministically set exactly seven legacy HTTP
+information URLs to `null`; every unrelated place fact and ordering remained
+unchanged.
 
 Future refreshes fail closed when a reviewed address is marked hidden, when a
 raw information URL would require cleanup or contains malformed percent
-escapes, invalid host or port syntax, credentials, or a non-HTTP(S) scheme, or
+escapes, invalid host or port syntax, credentials, or an unsafe scheme, or
 when an official place coordinate falls outside the documented Barcelona
-place-record validation bounds. Accepted URLs are retained unchanged. These
+place-record validation bounds. Valid HTTPS URLs are retained unchanged and
+legacy HTTP values are not guessed or upgraded. These
 data checks do not restrict global weather coordinates or place-search origins.
 
 ### Open-Meteo weather context
@@ -474,6 +477,7 @@ license does not relicense third-party code.
 
 | Dependency | Version | Purpose | Declared license |
 | --- | ---: | --- | --- |
+| [@phosphor-icons/react](https://www.npmjs.com/package/@phosphor-icons/react) | 2.1.10 | Bundled interface icons | MIT |
 | [react](https://www.npmjs.com/package/react) | 19.2.7 | Component UI runtime | MIT |
 | [react-dom](https://www.npmjs.com/package/react-dom) | 19.2.7 | Browser rendering | MIT |
 | [i18next](https://www.npmjs.com/package/i18next) | 26.3.6 | Bundled interface-catalog runtime | MIT |
@@ -545,3 +549,48 @@ Speech API, map SDK, geolocation, routing, external font, dependency, backend,
 schema, catalog, or new API is added. This bounded correction does not establish
 formal WCAG conformance, complete design fidelity, native-speaker review,
 cross-browser support, medical approval, or release readiness.
+
+## Milestone 8 offline release audit and correction boundary
+
+The read-only M8.1 audit found evidence-backed release blockers: deterministic
+urgent routing could fail open when a valid model extraction omitted a bounded
+symptom explicitly present in source text; public POSTs lacked a production
+body/rate/cost perimeter; there was no single-process static/API production
+package or readiness policy; seven optional official information links were
+legacy HTTP; the Python transitive production closure was not pinned; and
+security, deployment, incident, third-party, and release-state records were
+incomplete. The audit made no online CVE claim.
+
+M8.2A reconciles a bounded multilingual source phrase/denial table with the
+validated extraction before priority selection. Positive deterministic matches
+merge in canonical order and can only upgrade urgency; genuine canonical
+denials remain non-urgent. This is closed symptom grounding, not general NLP,
+diagnosis, or free-form medical interpretation.
+
+M8.2 B–D adds a production-only 16 KiB declared/actual body limit, a bounded
+process-local default 10-per-60-second source limiter, strict trusted proxy and
+host configuration, and one integer-microdollar UTC-day budget shared by both
+OpenAI adapters. Budget is reserved before client construction and retained on
+failure or timeout. The process uses one Uvicorn worker and the existing shared
+provider concurrency controls; replicas require shared host-level limiting.
+Liveness remains `/api/health`; sanitized production readiness is `/api/ready`.
+Production documentation routes are absent, and the combined SPA/API package
+adds CSP, HSTS when expected, nosniff, referrer, permissions, and framing
+headers.
+
+The reviewed snapshot correction converted exactly seven HTTP information URL
+fields to `null`, changed no other snapshot field, and made backend, public
+response, and frontend validation HTTPS-only. Exact production Python versions
+and declared licenses are recorded in
+[Third-party notices](../THIRD_PARTY_NOTICES.md). Successful usage logs retain
+only allowlisted model and aggregate counts (plus grounded payload bytes), never
+submitted text, model output, credentials, IDs, response bodies, or exact
+remaining budget.
+
+This offline correction did not build a container, query a vulnerability
+database, deploy, choose a provider, or establish legal sufficiency, current
+CVE status, security certification, medical approval, or release readiness.
+At the time this verification record was written, Milestone 8.2 A–D was
+uncommitted and unpublished. The verified release safeguards were later
+published through the repository commit containing this revision. Deployment,
+online CVE review, legal review, and deployed verification remain pending.

@@ -4684,6 +4684,38 @@ describe("Barcelona action-plan flow", () => {
     );
   });
 
+  it("accepts null or HTTPS place links and rejects legacy HTTP links", () => {
+    const nullLinkResponse = {
+      ...normalResponse,
+      selected_place: normalResponse.selected_place
+        ? { ...normalResponse.selected_place, information_url: null }
+        : null,
+    };
+    const httpLinkResponse = {
+      ...normalResponse,
+      selected_place: normalResponse.selected_place
+        ? {
+            ...normalResponse.selected_place,
+            information_url: "http://example.test/legacy-place",
+          }
+        : null,
+    };
+    const httpSourceResponse = {
+      ...normalResponse,
+      selected_place: normalResponse.selected_place
+        ? {
+            ...normalResponse.selected_place,
+            source_url: "http://example.test/legacy-source",
+          }
+        : null,
+    };
+
+    expect(parseActionPlanResponse(nullLinkResponse)).toEqual(nullLinkResponse);
+    expect(parseActionPlanResponse(normalResponse)).toEqual(normalResponse);
+    expect(parseActionPlanResponse(httpLinkResponse)).toBeNull();
+    expect(parseActionPlanResponse(httpSourceResponse)).toBeNull();
+  });
+
   it("accepts independently valid Spanish normal and urgent response contracts", () => {
     expect(parseActionPlanResponse(spanishNormalResponse)).toEqual(
       spanishNormalResponse,

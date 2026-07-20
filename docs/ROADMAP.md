@@ -5,8 +5,11 @@ This is HeatRelay's authoritative forward-looking development sequence as of
 published at `5f5d23c4ba3af9c318e8427ed717f7b5b7656a00`. Milestone 6 is
 implemented, verified within the explicitly tested scope, and published
 through the repository commit containing this roadmap revision. Milestone 7 is
-implemented but remains uncommitted, unpublished, and pending final
-verification; Milestone 8 remains deferred. This roadmap does not claim
+published at `6866b4c31649751ecea665c8045d028e228796fb`. Milestone 8.1's
+offline audit and the bounded M8.2 corrections are implemented and verified
+offline, and the release safeguards are published through the repository
+commit containing this roadmap revision; deployment remains deferred. This
+roadmap does not claim
 accessibility certification, complete standards conformance, deployment
 readiness, or release status.
 
@@ -154,8 +157,8 @@ output-locale fields remain separate concepts.
 
 ## Milestone 7 — Complete UI Redesign
 
-**Status:** Implemented and verified within the bounded offline/browser scope;
-uncommitted and unpublished.
+**Status:** Implemented, verified within the bounded offline/browser scope, and
+published at `6866b4c31649751ecea665c8045d028e228796fb`.
 
 - The approved red-and-white mockup is implemented through the existing React
   flow without changing the four-field request, backend, catalogs, or safety
@@ -179,21 +182,30 @@ uncommitted and unpublished.
   intentional omissions because no approved behavioral or verified-data
   contract exists.
 
-The ordered offline and loopback-only M7 verification is complete; publication
-remains a separate task. The evidence does not establish complete design
+The ordered offline and loopback-only M7 verification and publication are
+complete. The evidence does not establish complete design
 fidelity, formal WCAG conformance, native-speaker review, cross-browser
 support, medical approval, or release readiness.
 
 ## Milestone 8 — Release Verification
 
-**Status:** Deferred until after Milestone 7 publication.
+**Status:** M8.1 offline audit completed. M8.2A and the bounded M8.2 B–D
+corrections are implemented, verified offline, and published through the
+repository commit containing this roadmap revision; hosting selection,
+deployment, online CVE review, legal review, and deployed verification remain
+pending.
 
 All release work moves to this milestone:
 
-1. Audit security, privacy, cost abuse, dependencies, vulnerabilities, and
-   licenses.
-2. Make bounded corrections supported by that audit.
-3. Add single-process production packaging and verify secret exclusion.
+1. **Completed offline:** audit security, privacy, cost abuse, dependencies,
+   packaging, documentation, and licenses. Current online CVEs remain
+   unverified.
+2. **Implemented and verified offline:** bounded corrections supported by the
+   audit, including source-grounded urgent symptoms, abuse controls, a shared
+   hard provider budget, HTTPS-only official links, and operational records.
+3. **Implemented and verified offline:** single-process production packaging,
+   deterministic constraints, readiness, security headers, and secret/context
+   exclusion.
 4. Select a hosting provider and deploy.
 5. Verify HTTPS, headers, health, static assets, logs, and secret exposure.
 6. Run one separately authorized deployed browser golden-path smoke.
@@ -201,5 +213,5 @@ All release work moves to this milestone:
 8. Prepare the Devpost description, video script and storyboard, submission
    checklist, and the primary build thread's `/feedback` Session ID.
 
-Planning these gates does not establish compliance or authorize deployment,
-network calls, paid verification, publication, or submission activity.
+Planning the remaining gates does not establish compliance or authorize
+deployment, network calls, paid verification, or submission activity.
