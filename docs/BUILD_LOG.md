@@ -1645,3 +1645,38 @@ At the time this verification record was written, Milestone 8.2 A–D was
 uncommitted and unpublished. The verified release safeguards were later
 published through the repository commit containing this revision. Deployment,
 online CVE review, legal review, and deployed verification remain pending.
+
+## Milestone 8.4A hosting selection — 2026-07-20
+
+The separately authorized current-source comparison selected Fly.io Pay As You
+Go for the bounded HeatRelay release-candidate topology: one Amsterdam
+`shared-cpu-1x`, 512 MB Machine with an approximate `$3.32` monthly base charge
+plus usage and a possible temporary card authorization below `$10`. No account,
+billing, repository, or infrastructure state changed during that selection.
+The online dependency-advisory evidence is point-in-time and does not replace a
+release-time refresh or legal review.
+
+## Milestone 8.4B Fly correction and offline gate — 2026-07-20
+
+Before any Fly resource creation, this bounded correction added an explicit
+Fly Proxy identity mode, deterministic production license bundle, OCI image
+labels, and `fly.toml` for one always-running Amsterdam Machine. In Fly mode,
+only one canonical `Fly-Client-IP` is accepted; malformed or multiple values
+fall back to the immediate peer, `X-Forwarded-For` cannot override it, and the
+generic trusted-CIDR mode is mutually exclusive. The license generator reads
+the exact Python constraints and npm lock/install production closure and
+preserves upstream license and notice texts in a stable runtime bundle.
+
+| Offline verification | Exit | Result |
+| --- | ---: | --- |
+| Focused proxy, production, packaging, and license-bundle tests | 0 | 38 tests passed. |
+| `make test` | 0 | 2,673 backend and 1,330 frontend tests passed. |
+| `make build` | 0 | TypeScript and Vite production build passed; the existing informational large-chunk warning remained. |
+| `.venv/bin/python -m pip check` | 0 | No broken requirements. |
+| `npm --prefix frontend ls --depth=0` | 0 | Installed direct frontend dependency tree was consistent. |
+| `git diff --check` | 0 | No whitespace error. |
+
+No provider call, application service, Fly app, Machine, secret, deployment, or
+billing change occurred during the offline gate. `flyctl` was not installed at
+that point, so CLI configuration validation was deferred until the separately
+gated official-CLI step. The incremental API/provider cost was `$0.00`.

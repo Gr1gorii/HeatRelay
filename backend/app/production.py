@@ -71,6 +71,17 @@ def _required_bool(environ: Mapping[str, str], name: str) -> bool:
     raise ProductionConfigurationError("Production configuration is invalid.")
 
 
+def _optional_bool(
+    environ: Mapping[str, str],
+    name: str,
+    *,
+    default: bool,
+) -> bool:
+    if name not in environ:
+        return default
+    return _required_bool(environ, name)
+
+
 def _allowed_hosts(environ: Mapping[str, str]) -> tuple[str, ...]:
     raw = environ.get("HEATRELAY_ALLOWED_HOSTS")
     if raw is None or not raw:
@@ -101,6 +112,7 @@ class ProductionSettings:
     port: int
     allowed_hosts: tuple[str, ...]
     trusted_proxy_cidrs: tuple[str, ...]
+    fly_proxy_mode: bool
     max_request_body_bytes: int
     rate_limit_requests: int
     rate_limit_window_seconds: int
@@ -129,6 +141,15 @@ class ProductionSettings:
             trusted = parse_trusted_proxy_cidrs(
                 environ.get("HEATRELAY_TRUSTED_PROXY_CIDRS", "")
             )
+            fly_proxy_mode = _optional_bool(
+                environ,
+                "HEATRELAY_FLY_PROXY_MODE",
+                default=False,
+            )
+            if fly_proxy_mode and trusted:
+                raise ValueError(
+                    "Fly and generic proxy modes are mutually exclusive"
+                )
             daily = OpenAIDailyBudget.parse_usd(
                 environ["HEATRELAY_OPENAI_DAILY_BUDGET_USD"],
                 "HEATRELAY_OPENAI_DAILY_BUDGET_USD",
@@ -150,6 +171,7 @@ class ProductionSettings:
             port=port,
             allowed_hosts=_allowed_hosts(environ),
             trusted_proxy_cidrs=trusted,
+            fly_proxy_mode=fly_proxy_mode,
             max_request_body_bytes=_bounded_int(
                 environ,
                 "HEATRELAY_MAX_REQUEST_BODY_BYTES",
@@ -326,6 +348,7 @@ def create_production_app(
             max_clients=settings.rate_limit_max_clients,
         ),
         trusted_proxy_cidrs=settings.trusted_proxy_cidrs,
+        fly_proxy_mode=settings.fly_proxy_mode,
     )
     return _SecurityHeadersMiddleware(
         routed,

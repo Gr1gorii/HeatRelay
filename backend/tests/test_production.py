@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import subprocess
+import sys
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
@@ -31,12 +33,17 @@ def _restore_process_budget() -> Any:
         configure_process_openai_budget(original)
 
 
-def _settings(*, https_expected: bool = True) -> ProductionSettings:
+def _settings(
+    *,
+    https_expected: bool = True,
+    fly_proxy_mode: bool = False,
+) -> ProductionSettings:
     return ProductionSettings(
         host="127.0.0.1",
         port=8000,
         allowed_hosts=("testserver",),
         trusted_proxy_cidrs=(),
+        fly_proxy_mode=fly_proxy_mode,
         max_request_body_bytes=16 * 1024,
         rate_limit_requests=10,
         rate_limit_window_seconds=60,
@@ -232,6 +239,21 @@ def test_production_environment_is_strict_and_requires_budget() -> None:
     assert settings.max_request_body_bytes == 16 * 1024
     assert settings.rate_limit_requests == 10
     assert settings.rate_limit_window_seconds == 60
+    assert settings.fly_proxy_mode is False
+
+    fly = dict(valid)
+    fly["HEATRELAY_FLY_PROXY_MODE"] = "true"
+    assert ProductionSettings.from_environ(fly).fly_proxy_mode is True
+
+    mutually_exclusive = dict(fly)
+    mutually_exclusive["HEATRELAY_TRUSTED_PROXY_CIDRS"] = "192.0.2.0/24"
+    with pytest.raises(ProductionConfigurationError):
+        ProductionSettings.from_environ(mutually_exclusive)
+
+    invalid_fly_mode = dict(valid)
+    invalid_fly_mode["HEATRELAY_FLY_PROXY_MODE"] = "TRUE"
+    with pytest.raises(ProductionConfigurationError):
+        ProductionSettings.from_environ(invalid_fly_mode)
 
     for missing in (
         "OPENAI_API_KEY",
@@ -284,3 +306,72 @@ def test_readiness_fails_closed_for_invalid_committed_data(
     assert response.status_code == 503
     assert response.json() == {"status": "not_ready", "service": "heatrelay-api"}
     assert "private path" not in response.text
+
+
+def test_license_bundle_is_reproducible_and_runtime_packaged(
+    tmp_path: Path,
+) -> None:
+    root = Path(__file__).resolve().parents[2]
+    generator = root / "scripts/build_third_party_license_bundle.py"
+    first = tmp_path / "first.txt"
+    second = tmp_path / "second.txt"
+    for output in (first, second):
+        subprocess.run(
+            [
+                sys.executable,
+                str(generator),
+                "--root",
+                str(root),
+                "--output",
+                str(output),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+
+    assert first.read_bytes() == second.read_bytes()
+    text = first.read_text(encoding="utf-8")
+    for identity in (
+        "HeatRelay project license",
+        "HeatRelay third-party inventory",
+        "Python package: certifi 2026.6.17",
+        "Python package: openai 2.46.0",
+        "Python package: typing_extensions 4.16.0",
+        "Frontend package: @phosphor-icons/react 2.1.10",
+        "Frontend package: html-parse-stringify 3.0.1",
+        "Frontend package: typescript 6.0.3",
+    ):
+        assert identity in text
+    for development_only in ("pytest 9.0.2", "vite 8.1.5", "vitest 4.1.10"):
+        assert development_only not in text
+
+    dockerfile = (root / "Dockerfile").read_text(encoding="utf-8")
+    assert "/usr/share/licenses/heatrelay/THIRD_PARTY_LICENSES.txt" in dockerfile
+    assert 'org.opencontainers.image.source="https://github.com/Gr1gorii/HeatRelay"' in dockerfile
+    assert 'org.opencontainers.image.licenses="MIT"' in dockerfile
+
+
+def test_fly_configuration_pins_the_single_machine_contract() -> None:
+    root = Path(__file__).resolve().parents[2]
+    config = (root / "fly.toml").read_text(encoding="utf-8")
+
+    for expected in (
+        'app = "heatrelay-gr1gorii"',
+        'primary_region = "ams"',
+        'HEATRELAY_ALLOWED_HOSTS = "heatrelay-gr1gorii.fly.dev"',
+        'HEATRELAY_FLY_PROXY_MODE = "true"',
+        'HEATRELAY_OPENAI_DAILY_BUDGET_USD = "1.50"',
+        'HEATRELAY_OPENAI_PER_CALL_RESERVATION_USD = "0.15"',
+        "internal_port = 8000",
+        "force_https = true",
+        'auto_stop_machines = "off"',
+        "auto_start_machines = true",
+        "min_machines_running = 1",
+        'path = "/api/ready"',
+        'size = "shared-cpu-1x"',
+        'memory = "512mb"',
+        'policy = "on-failure"',
+    ):
+        assert expected in config
+    assert "HEATRELAY_TRUSTED_PROXY_CIDRS" not in config

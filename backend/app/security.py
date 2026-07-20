@@ -106,12 +106,18 @@ class ApiPostAbuseMiddleware:
         max_body_bytes: int = DEFAULT_MAX_REQUEST_BODY_BYTES,
         rate_limiter: InMemoryRateLimiter | None = None,
         trusted_proxy_cidrs: tuple[str, ...] = (),
+        fly_proxy_mode: bool = False,
     ) -> None:
         if type(max_body_bytes) is not int or max_body_bytes < 1:
             raise ValueError("max_body_bytes must be a positive integer")
+        if type(fly_proxy_mode) is not bool:
+            raise ValueError("fly_proxy_mode must be a boolean")
+        if fly_proxy_mode and trusted_proxy_cidrs:
+            raise ValueError("Fly and generic proxy modes are mutually exclusive")
         self._app = app
         self._max_body_bytes = max_body_bytes
         self._rate_limiter = rate_limiter or InMemoryRateLimiter()
+        self._fly_proxy_mode = fly_proxy_mode
         try:
             self._trusted_proxies = tuple(
                 ipaddress.ip_network(value, strict=True)
@@ -134,6 +140,21 @@ class ApiPostAbuseMiddleware:
             peer = ipaddress.ip_address(peer_text)
         except ValueError:
             return "unavailable"
+
+        if self._fly_proxy_mode:
+            fly_values = self._headers(scope).get(b"fly-client-ip", [])
+            if len(fly_values) != 1:
+                return peer.compressed
+            try:
+                fly_text = fly_values[0].decode("ascii")
+                if "%" in fly_text:
+                    return peer.compressed
+                fly_client = ipaddress.ip_address(fly_text)
+            except (UnicodeDecodeError, ValueError):
+                return peer.compressed
+            if fly_client.compressed != fly_text:
+                return peer.compressed
+            return fly_client.compressed
 
         if not any(peer in network for network in self._trusted_proxies):
             return peer.compressed

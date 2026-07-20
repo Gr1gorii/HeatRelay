@@ -211,3 +211,151 @@ def test_forwarded_address_requires_trusted_immediate_proxy() -> None:
         )
     )
     assert (first[0], second[0]) == (204, 204)
+
+
+def test_fly_client_ip_is_ignored_outside_explicit_fly_mode() -> None:
+    async def inner(_scope: Any, _receive: Any, send: Any) -> None:
+        await send({"type": "http.response.start", "status": 204, "headers": []})
+        await send({"type": "http.response.body", "body": b""})
+
+    app = ApiPostAbuseMiddleware(
+        inner,
+        rate_limiter=InMemoryRateLimiter(requests=1),
+    )
+    first = asyncio.run(
+        _exchange(
+            app,
+            headers=[(b"fly-client-ip", b"198.51.100.1")],
+            body_messages=[_body(b"")],
+            client=("192.0.2.10", 40000),
+        )
+    )
+    second = asyncio.run(
+        _exchange(
+            app,
+            headers=[(b"fly-client-ip", b"198.51.100.2")],
+            body_messages=[_body(b"")],
+            client=("192.0.2.10", 40000),
+        )
+    )
+
+    assert (first[0], second[0]) == (204, 429)
+
+
+def test_canonical_fly_client_ips_receive_separate_rate_limit_buckets() -> None:
+    async def inner(_scope: Any, _receive: Any, send: Any) -> None:
+        await send({"type": "http.response.start", "status": 204, "headers": []})
+        await send({"type": "http.response.body", "body": b""})
+
+    app = ApiPostAbuseMiddleware(
+        inner,
+        rate_limiter=InMemoryRateLimiter(requests=1),
+        fly_proxy_mode=True,
+    )
+    statuses = [
+        asyncio.run(
+            _exchange(
+                app,
+                headers=[(b"fly-client-ip", address)],
+                body_messages=[_body(b"")],
+                client=("192.0.2.10", 40000),
+            )
+        )[0]
+        for address in (b"198.51.100.1", b"198.51.100.2", b"198.51.100.1")
+    ]
+
+    assert statuses == [204, 204, 429]
+
+
+@pytest.mark.parametrize(
+    "headers",
+    [
+        [],
+        [(b"fly-client-ip", b"not-an-ip")],
+        [(b"fly-client-ip", b"198.51.100.1, 198.51.100.2")],
+        [(b"fly-client-ip", b"fe80::1%eth0")],
+        [(b"fly-client-ip", b"2001:0db8:0:0:0:0:0:1")],
+        [
+            (b"fly-client-ip", b"198.51.100.1"),
+            (b"fly-client-ip", b"198.51.100.2"),
+        ],
+    ],
+)
+def test_invalid_fly_identity_falls_back_to_immediate_peer(
+    headers: list[tuple[bytes, bytes]],
+) -> None:
+    seen: list[str] = []
+
+    class RecordingLimiter:
+        def check(self, address: str) -> tuple[bool, int]:
+            seen.append(address)
+            return True, 0
+
+    async def inner(_scope: Any, _receive: Any, send: Any) -> None:
+        await send({"type": "http.response.start", "status": 204, "headers": []})
+        await send({"type": "http.response.body", "body": b""})
+
+    app = ApiPostAbuseMiddleware(
+        inner,
+        rate_limiter=RecordingLimiter(),  # type: ignore[arg-type]
+        fly_proxy_mode=True,
+    )
+    response = asyncio.run(
+        _exchange(
+            app,
+            headers=headers,
+            body_messages=[_body(b"")],
+            client=("192.0.2.10", 40000),
+        )
+    )
+
+    assert response[0] == 204
+    assert seen == ["192.0.2.10"]
+
+
+def test_x_forwarded_for_cannot_override_fly_client_ip() -> None:
+    async def inner(_scope: Any, _receive: Any, send: Any) -> None:
+        await send({"type": "http.response.start", "status": 204, "headers": []})
+        await send({"type": "http.response.body", "body": b""})
+
+    app = ApiPostAbuseMiddleware(
+        inner,
+        rate_limiter=InMemoryRateLimiter(requests=1),
+        fly_proxy_mode=True,
+    )
+    first = asyncio.run(
+        _exchange(
+            app,
+            headers=[
+                (b"fly-client-ip", b"198.51.100.1"),
+                (b"x-forwarded-for", b"203.0.113.1"),
+            ],
+            body_messages=[_body(b"")],
+            client=("192.0.2.10", 40000),
+        )
+    )
+    second = asyncio.run(
+        _exchange(
+            app,
+            headers=[
+                (b"fly-client-ip", b"198.51.100.1"),
+                (b"x-forwarded-for", b"203.0.113.2"),
+            ],
+            body_messages=[_body(b"")],
+            client=("192.0.2.10", 40000),
+        )
+    )
+
+    assert (first[0], second[0]) == (204, 429)
+
+
+def test_fly_and_generic_proxy_modes_are_mutually_exclusive() -> None:
+    async def inner(_scope: Any, _receive: Any, _send: Any) -> None:
+        raise AssertionError("application must not run")
+
+    with pytest.raises(ValueError, match="mutually exclusive"):
+        ApiPostAbuseMiddleware(
+            inner,
+            trusted_proxy_cidrs=("192.0.2.0/24",),
+            fly_proxy_mode=True,
+        )

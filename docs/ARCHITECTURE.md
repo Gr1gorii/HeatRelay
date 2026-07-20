@@ -284,6 +284,15 @@ are stable and sanitized, with `Retry-After` on 429. This perimeter is not
 authentication and does not become global when replicas are added; multiple
 instances require a host-level shared limiter.
 
+The Fly.io production profile is an explicit alternative to the generic
+trusted-CIDR path. Only in that mode does the middleware consider
+`Fly-Client-IP`, and it accepts exactly one canonical IP literal. A missing,
+duplicated, comma-separated, zone-qualified, malformed, or noncanonical value
+falls back to the immediate peer. `X-Forwarded-For` is never consulted in Fly
+mode, Fly headers are ignored outside it, and startup rejects configuration
+that combines Fly mode with generic trusted CIDRs. Client addresses are not
+logged.
+
 The existing provider and cleanup capacities remain the only OpenAI task
 semaphores. A separate process-shared, lock-protected UTC-day budget stores
 operator-configured money as integer microdollars. Both extraction and grounded
@@ -304,12 +313,22 @@ rollback requirements are in [Deployment](DEPLOYMENT.md).
 
 The multi-stage Docker definition builds the frontend separately and installs
 the exact Python production closure from the direct requirements plus a pinned
-constraints file. The runtime copies only backend application code, committed
-data, and built frontend assets and runs as a non-root user. No image build or
-provider deployment was performed in this offline milestone. The release
+constraints file. A deterministic intermediate stage collects the project
+license, third-party inventory, and exact upstream license/notice files from
+the pinned production closures. The runtime copies those texts under
+`/usr/share/licenses/heatrelay/` together with only backend application code,
+committed data, and built frontend assets, and runs as a non-root user. The
+image carries OCI source, description, and MIT project-license labels. No image
+build or provider deployment was performed in the M8.2 offline milestone. The release
 safeguards in this section are published through the repository commit
 containing this revision; deployment, online CVE review, legal review, and
-deployed verification remain pending.
+deployed verification remain distinct gates.
+
+The M8.4 Fly configuration selects one `shared-cpu-1x`, 512 MB Machine in
+`ams`, with autostop disabled, one process, one Uvicorn worker, HTTPS enforced,
+and `/api/ready` as the service check. The process-local rate limit and daily
+budget are intentionally single-instance controls; adding a replica requires
+an independently approved shared abuse and budget boundary.
 
 ## Implemented backend separation
 

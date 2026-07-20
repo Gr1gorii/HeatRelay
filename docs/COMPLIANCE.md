@@ -594,3 +594,24 @@ At the time this verification record was written, Milestone 8.2 A–D was
 uncommitted and unpublished. The verified release safeguards were later
 published through the repository commit containing this revision. Deployment,
 online CVE review, legal review, and deployed verification remain pending.
+
+## Milestone 8.4 deployment preparation boundary
+
+The separately authorized M8.4 selection chose Fly.io Pay As You Go for one
+Amsterdam `shared-cpu-1x`, 512 MB Machine. The production correction adds an
+explicit Fly identity mode: a single canonical provider-authenticated
+`Fly-Client-IP` may identify the process-local rate-limit bucket only in that
+mode; `X-Forwarded-For` cannot override it, malformed identity falls back to
+the immediate peer, and generic trusted CIDRs cannot be enabled concurrently.
+This boundary does not make a process-local limiter global and does not
+authorize a second replica.
+
+The Docker build now assembles a deterministic redistribution bundle from the
+exact constrained Python and locked npm production closures. It contains the
+project license, the third-party inventory, and upstream license/copyright or
+notice files under `/usr/share/licenses/heatrelay/`; the one reviewed npm
+package lacking a separate license file contributes its exact package author
+metadata and README MIT declaration. This is engineering notice packaging,
+not legal approval. Dependency CVEs, license/notice sufficiency, deployed
+behavior, provider suitability, medical approval, and release readiness remain
+separate review boundaries.

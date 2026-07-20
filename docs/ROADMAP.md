@@ -191,23 +191,26 @@ support, medical approval, or release readiness.
 
 **Status:** M8.1 offline audit completed. M8.2A and the bounded M8.2 B–D
 corrections are implemented, verified offline, and published through the
-repository commit containing this roadmap revision; hosting selection,
-deployment, online CVE review, legal review, and deployed verification remain
-pending.
+repository commit containing this roadmap revision. M8.4A selected Fly.io Pay
+As You Go; M8.4B adds the bounded single-Machine Fly configuration, proxy
+identity contract, and deterministic license bundle. Deployment, legal review,
+golden-path verification, and release approval remain separately gated.
 
 All release work moves to this milestone:
 
-1. **Completed offline:** audit security, privacy, cost abuse, dependencies,
-   packaging, documentation, and licenses. Current online CVEs remain
-   unverified.
+1. **Completed:** audit security, privacy, cost abuse, dependencies, packaging,
+   documentation, and licenses offline; M8.4A added a point-in-time online
+   advisory review that must still be refreshed at release.
 2. **Implemented and verified offline:** bounded corrections supported by the
    audit, including source-grounded urgent symptoms, abuse controls, a shared
    hard provider budget, HTTPS-only official links, and operational records.
 3. **Implemented and verified offline:** single-process production packaging,
    deterministic constraints, readiness, security headers, and secret/context
    exclusion.
-4. Select a hosting provider and deploy.
-5. Verify HTTPS, headers, health, static assets, logs, and secret exposure.
+4. **Selected/configured:** Fly.io Pay As You Go, one `shared-cpu-1x`, 512 MB
+   Machine in `ams`, autostop off, readiness at `/api/ready`.
+5. Deploy once and verify HTTPS, headers, health, static assets, logs, proxy
+   identity, bundled notices, and secret exposure without a provider call.
 6. Run one separately authorized deployed browser golden-path smoke.
 7. Finalize documentation and release evidence.
 8. Prepare the Devpost description, video script and storyboard, submission

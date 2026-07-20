@@ -6,6 +6,14 @@ installed and inspected offline for this revision. Package names, versions,
 and licenses come from installed package metadata. This summary is not a
 replacement for upstream license texts or legal review.
 
+The production image includes the project license, this inventory, and the
+verbatim license and notice files available in the exact production closures
+at `/usr/share/licenses/heatrelay/`. The deterministic generator treats the
+locked `html-parse-stringify` 3.0.1 package specially because its published
+package contains only an MIT declaration in its README rather than a separate
+license file; the bundle preserves that declaration and its package author
+metadata without supplying invented text.
+
 ## Python production closure
 
 | Package | Version | Declared license |

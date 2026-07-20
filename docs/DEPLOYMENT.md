@@ -1,11 +1,12 @@
 # Production deployment contract
 
-HeatRelay now has a single-process production package, but no hosting provider
-has been selected and no deployment is authorized or claimed. This document is
-an operator contract for a later, separately approved deployment. The verified
-release safeguards are published through the repository commit containing this
-revision; deployment, online CVE review, legal review, and deployed verification
-remain pending.
+HeatRelay has a single-process production package and a selected Fly.io Pay As
+You Go target. The checked-in configuration names app `heatrelay-gr1gorii`,
+region `ams`, and one always-running `shared-cpu-1x` Machine with 512 MB. The
+expected Fly hostname is `heatrelay-gr1gorii.fly.dev`. Repository configuration
+or a successful deploy does not establish release readiness; refreshed online
+advisory, legal, golden-path, and ongoing operational review remain separate
+gates.
 
 ## Topology
 
@@ -28,7 +29,10 @@ shared.
 The multi-stage `Dockerfile` builds the frontend, installs the exact production
 Python closure using `backend/requirements.txt` plus
 `backend/constraints-production.txt`, and copies only backend runtime code,
-committed data, and built frontend assets into the non-root runtime image.
+committed data, built frontend assets, and a deterministic production license
+bundle into the non-root runtime image. Project and dependency license/notice
+texts are available under `/usr/share/licenses/heatrelay/`; the image has OCI
+source, description, and project-license labels.
 The safe context excludes local environments, `.git`, tests, caches,
 `node_modules`, documentation captures, and development servers. Building the
 image may require registry/package network access and was intentionally not run
@@ -44,7 +48,8 @@ Never place values in source control or a frontend `VITE_` variable.
 | `HEATRELAY_HOST` | Optional IP literal; default `0.0.0.0`. |
 | `HEATRELAY_PORT` | Optional integer `1..65535`; default `8000`. |
 | `HEATRELAY_ALLOWED_HOSTS` | Required comma-separated exact host allowlist with no padding. |
-| `HEATRELAY_TRUSTED_PROXY_CIDRS` | Optional comma-separated canonical CIDRs with no padding. Empty means no trusted proxy. |
+| `HEATRELAY_FLY_PROXY_MODE` | Optional exact `true` or `false`; use `true` only behind Fly Proxy. Default `false`. |
+| `HEATRELAY_TRUSTED_PROXY_CIDRS` | Optional comma-separated canonical CIDRs with no padding for non-Fly reverse proxies. Empty means no generic trusted proxy. Mutually exclusive with Fly mode. |
 | `HEATRELAY_MAX_REQUEST_BODY_BYTES` | Optional integer `1..1048576`; default `16384`. |
 | `HEATRELAY_RATE_LIMIT_REQUESTS` | Optional integer `1..1000`; default `10`. |
 | `HEATRELAY_RATE_LIMIT_WINDOW_SECONDS` | Optional integer `1..86400`; default `60`. |
@@ -65,8 +70,12 @@ Terminate HTTPS at the instance or a trusted reverse proxy. When HTTPS is
 expected the app emits HSTS. It also emits a restrictive same-origin CSP,
 `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer`, a restrictive
 Permissions Policy, and framing protection. The proxy must preserve the Host
-header and may supply a client address only when its immediate network is in
-`HEATRELAY_TRUSTED_PROXY_CIDRS`. Arbitrary forwarded headers are not trusted.
+header. A non-Fly proxy may supply a client address only when its immediate
+network is in `HEATRELAY_TRUSTED_PROXY_CIDRS`. In explicit Fly mode, only one
+canonical provider-authenticated `Fly-Client-IP` is accepted; malformed,
+duplicate, comma-separated, zone-qualified, or non-IP values fall back to the
+immediate peer, and `X-Forwarded-For` cannot override it. Arbitrary forwarded
+headers are not trusted, and client addresses are not logged.
 No permissive CORS middleware is installed; the supported production topology
 serves the SPA and API from the same origin.
 
@@ -112,3 +121,25 @@ secret.
 This package does not establish provider suitability, availability, backups,
 disaster recovery, deployment readiness, current-CVE status, formal security
 certification, or release readiness.
+
+## Fly.io release-candidate profile
+
+`fly.toml` defines one Docker process and one Machine in `ams`, with HTTPS
+forced at Fly Proxy, autostop off, automatic start enabled, minimum running
+count one, restart on failure, and `/api/ready` checked after a bounded grace
+period. Non-secret environment values in the file retain the 16 KiB body cap,
+10-per-60-second per-source rate limit, 4,096-client bound, `$1.50` UTC-day
+budget, and `$0.15` conservative per-call reservation. Only
+`OPENAI_API_KEY` belongs in Fly's secret store.
+
+Deploy with one Machine only; do not add `--ha` capacity or a second replica.
+Before traffic admission, verify Machine count/region/size, readiness, HTTPS,
+headers, cache behavior, disabled docs, static routing, the runtime license
+path, sanitized logs, and the secret name without exposing its value. A proxy
+spoof check must use invalid request schemas so it cannot schedule OpenAI or
+Open-Meteo. If a security, secret, HTTPS, readiness, or proxy boundary fails,
+scale the existing app to zero and preserve it for diagnosis.
+
+The selected approximate base cost is `$3.32` per month plus usage; Fly may
+place a temporary card authorization below `$10`. These are planning figures,
+not an invoice or a guarantee of future pricing.

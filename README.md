@@ -27,7 +27,9 @@ offline and loopback-browser scope recorded in the build log and is published
 at `6866b4c31649751ecea665c8045d028e228796fb`. Milestone 8.2 adds the bounded
 single-instance production perimeter described below. These release safeguards
 are published through the repository commit containing this revision;
-deployment and release approval remain separate work.
+Milestone 8.4 selects a single-machine Fly.io target and adds its explicit
+proxy, licensing, and deployment configuration. Deployed verification and
+release approval remain separate gates.
 
 ## Implemented scope through Milestone 7
 
@@ -99,7 +101,7 @@ and does not call the situation, weather, or places endpoints separately.
 Official heat-warning retrieval, medical diagnosis or risk scoring, free-form
 medical or emergency decision logic, embedded maps, route calculation, ETAs, browser
 geolocation, runtime machine translation, authentication, analytics,
-provider deployment, and additional cities remain **unimplemented**.
+multi-instance deployment, and additional cities remain **unimplemented**.
 
 For a backend-verified selected place only, the result may expose one HTTPS
 Google Maps link in a new tab. Its destination contains only the verified
@@ -353,10 +355,22 @@ adds production security headers. It runs with one worker; multiple replicas
 require host-level shared rate limiting because process-local state is not
 global.
 
+The checked-in Fly.io target is `heatrelay-gr1gorii` in Amsterdam (`ams`): one
+always-running `shared-cpu-1x` Machine with 512 MB, one Uvicorn worker, and
+`/api/ready` admission checks. In explicit Fly mode, rate limiting accepts only
+a single canonical provider-authenticated `Fly-Client-IP`; malformed or
+missing identity falls back to the immediate peer and `X-Forwarded-For` is
+ignored. Fly mode cannot be combined with generic trusted proxy CIDRs.
+
+The runtime image carries the project license, third-party inventory, and the
+deterministically collected upstream production license/notice texts at
+`/usr/share/licenses/heatrelay/`. This engineering bundle does not replace
+independent legal review.
+
 Production configuration, trusted-proxy rules, health/readiness behavior,
 secret rotation, rollback, logging, and the Docker boundary are documented in
-[Deployment](docs/DEPLOYMENT.md). The package does not select a provider or
-claim deployment or release readiness. See also the [security reporting
+[Deployment](docs/DEPLOYMENT.md). Repository configuration or deployment does
+not itself establish release readiness. See also the [security reporting
 policy](SECURITY.md) and [third-party notices](THIRD_PARTY_NOTICES.md).
 
 ## API contracts
