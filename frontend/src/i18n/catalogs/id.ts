@@ -72,13 +72,13 @@ export const INDONESIAN_CATALOG = {
   "form.privacyDescription":
     "Deskripsi Anda dikirim dari sisi server ke OpenAI untuk diproses oleh GPT-5.6. HeatRelay tidak dengan sengaja menyimpan atau mencatat teks mentah tersebut; kebijakan penanganan data penyedia mungkin tetap berlaku.",
   "form.identityWarning":
-    "Teks dikirim ke OpenAI; HeatRelay tidak dengan sengaja menyimpan atau mencatat teks asli. Jangan sertakan nama, kontak, atau alamat. Koordinat demo Barcelona yang tetap. Bukan saran medis atau bantuan darurat.",
+    "OpenAI memproses teks ini. Jangan masukkan nama, kontak, atau alamat. Titik demo Barcelona yang tetap; bukan bantuan darurat.",
   "form.situationLabel": "Jelaskan situasi panas",
   "form.characterCount": "{{currentCount}} / {{limit}} karakter",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} karakter — kurangi {{overLimitCount}}",
   "form.situationHint":
-    "Jelaskan secara singkat usia, akses ke tempat sejuk, mobilitas, waktu, dan gejala jika relevan.",
+    "Usia · akses ke tempat sejuk · mobilitas · gejala",
   "form.demoButton": "Muat demo Barcelona",
   "form.submitButton": "Buat rencana tindakan panas saya",
   "form.submittingButton": "Membuat rencana Anda…",
@@ -92,10 +92,29 @@ export const INDONESIAN_CATALOG = {
   "scenario.selfDescription": "Buat rencana tindakan pribadi",
   "scenario.someoneTitle": "Bantu orang terdekat",
   "scenario.someoneDescription": "Buat rencana untuk orang lain",
-  "scenario.placeTitle": "Cari tempat sejuk di dekat sini",
-  "scenario.placeDescription": "Tampilkan bantuan terverifikasi terdekat",
-  "scenario.nearestHelp": "Bantuan terdekat",
+  "scenario.placeTitle": "Cari tempat sejuk di area demo Barcelona",
+  "scenario.placeDescription": "Cari informasi faktual tentang tempat",
+  "scenario.nearestHelp": "Informasi tempat Barcelona",
   "scenario.importantNow": "Penting sekarang",
+  "scenario.initialTipCoolestSpot":
+    "Pindahlah ke tempat tersejuk yang tersedia di lokasi Anda saat ini.",
+  "scenario.initialTipReduceEffort": "Kurangi aktivitas fisik untuk saat ini.",
+  "scenario.initialTipDrinkWater":
+    "Minum air secara teratur jika aman bagi Anda.",
+
+  "placeLookup.searchAction": "Cari tempat demo Barcelona",
+  "placeLookup.loading": "Mencari data tempat terverifikasi…",
+  "placeLookup.resultsTitle": "Hasil tempat Barcelona",
+  "placeLookup.emptyTitle": "Tidak ada tempat yang cocok",
+  "placeLookup.emptyMessage":
+    "Tidak ada tempat yang cocok dengan titik demo tetap, waktu perangkat saat ini, dan batas pencarian.",
+  "placeLookup.errorTitle": "Informasi tempat tidak tersedia",
+  "placeLookup.errorMessage":
+    "Informasi tempat tidak dapat ditampilkan dengan aman. Coba lagi hanya jika Anda memilihnya.",
+  "placeLookup.compactBoundary":
+    "Titik demo Barcelona yang tetap · Jarak garis lurus · Periksa jam buka dan aksesibilitas",
+  "placeLookup.boundary":
+    "Menggunakan titik demo tetap Barcelona, bukan lokasi Anda. Jarak adalah garis lurus, bukan rute atau perkiraan waktu tiba. Jam buka dievaluasi menggunakan waktu perangkat Anda. Periksa jam buka dan aksesibilitas sebelum bepergian. Ini bukan bantuan medis atau darurat.",
 
   "validation.empty": "Jelaskan situasinya sebelum membuat rencana.",
   "validation.overLimit": "Deskripsi terlalu panjang. Pendekkan teks.",
@@ -147,7 +166,7 @@ export const INDONESIAN_CATALOG = {
   "place.linksAccessibleName": "Tautan resmi tempat",
   "place.informationLink": "Informasi resmi",
   "place.sourceLink": "Sumber resmi",
-  "place.mapLink": "Buka rute di Google Maps",
+  "place.mapLink": "Buka di Google Maps",
   "place.cautionsAccessibleName": "Perhatian mengenai tempat",
   "place.addressUnavailable": "Alamat tidak tersedia",
   "place.accessibilityConfirmed": "Aksesibilitas dikonfirmasi oleh sumber",

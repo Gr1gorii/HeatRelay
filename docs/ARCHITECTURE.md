@@ -2,13 +2,17 @@
 
 ## Current application boundary
 
-The React, Vite, and TypeScript frontend implements one localized Barcelona
-demo flow for `POST /api/v1/action-plan`. It sends exactly the user's trimmed
-situation text, fixed origin latitude `41.3874` and longitude `2.1686`, maximum
-distance `3000` metres, and the exact selected `output_locale`. It does not
-request browser geolocation or call the situation, weather, or places
-endpoints separately. Vite proxies `/api` to `http://127.0.0.1:8000` during
-local development.
+The React, Vite, and TypeScript frontend implements two bounded localized
+Barcelona-demo request paths. The self/someone action-plan form sends exactly
+the user's trimmed situation text, fixed origin latitude `41.3874` and
+longitude `2.1686`, maximum distance `3000` metres, and the exact selected
+`output_locale` to `POST /api/v1/action-plan`. The standalone place panel sends
+only the same fixed origin, a device-time ISO timestamp, empty required
+features, maximum distance `3000`, and limit `3` to
+`POST /api/v1/places/candidates`. It never sends situation text, scenario,
+locale, preferences, or a user/device origin. Neither path requests browser
+geolocation or calls the situation or weather endpoints directly. Vite proxies
+`/api` to `http://127.0.0.1:8000` during local development.
 
 The FastAPI backend exposes six application contracts:
 
@@ -41,7 +45,7 @@ projection remains schema `1.1.0`.
 
 ## Implemented frontend integration
 
-The single-page form keeps situation text only in React memory, validates its
+The single-page action-plan form keeps situation text only in React memory, validates its
 trimmed value with a 2,000-Unicode-code-point limit, and can populate a
 synthetic Barcelona example without submitting it. A valid submit starts at
 most one `fetch`, disables duplicate submission while it is pending, and makes
@@ -233,9 +237,12 @@ request noninterference, state preservation, Standard 48px and Enhanced 56px
 targets, logical properties, and RTL behavior.
 
 The task region owns one `h1` before focused normal, urgent, and error `h2`
-headings. The three localized scenario headers are native buttons that select
-where the same form is rendered; the selection is not stored, does not change
-or prefix the text, makes no request, and creates no scenario request field. A
+headings. The three localized scenario headers are native buttons. Self and
+someone select where the same action-plan form is rendered; place selects a
+dedicated standalone search panel. Scenario selection is not stored, does not
+change or prefix text, makes no request, and creates no request field. Only the
+place panel's explicit native search button sends one strict request to the
+existing deterministic places endpoint, without retry or polling. A
 compact essential privacy, identity, fixed-origin, server-side OpenAI-processing,
 and demo-boundary notice remains visible before submission, while the existing
 long explanations are available in a closed native disclosure. Normal weather
@@ -244,6 +251,16 @@ weather disclosure stays within its assigned grid area when expanded. Enhanced
 Visibility uses a control-boundary color above the 3:1 adjacent-background
 target and automatic programmatic scrolling.
 
+The visible pre-submit hint is a four-item age/cooling/mobility/symptom prompt,
+and the compact notice covers OpenAI processing, identifying-data exclusion,
+the fixed Barcelona point, and the emergency boundary. The initial normal-plan
+preview has exactly three concise actions and is replaced by backend-authored
+actions after a normal response; urgent output never renders it. Standalone
+candidate cards expose only core facts, confirmed-feature chips, and outbound
+actions. One initially closed result-set disclosure owns non-confirmed
+features, per-candidate last-checked/source facts, one shared attribution,
+device-time and route limitations, and the three English backend notices.
+
 Urgent output places the one complete fixed `112` alert first after the page
 heading and before the resubmission form. It does not put the ordinary scenario
 dashboard, generic advice, empty place pane, weather, or normal-plan content in
@@ -251,11 +268,12 @@ front of the alert. The normal-result language action opens a closed mobile
 Settings disclosure before focusing the native output select and performs no
 fetch or result rewrite.
 
-The only Google Maps integration is an HTTPS new-tab outbound link for a
-backend-verified selected place. It contains the verified address only, uses
-`noopener noreferrer`, and includes neither submitted text nor a user/device
-origin. It is not an embedded map, geolocation feature, route engine, ETA, or
-navigation implementation.
+The only Google Maps integrations are HTTPS new-tab outbound links built from
+backend-verified addresses: the existing selected action-plan place link and a
+search link for each standalone factual candidate. They use `noopener
+noreferrer` and include neither submitted text nor a user/device origin. They
+are not embedded maps, geolocation features, route engines, ETAs, or navigation
+implementations.
 
 The mockup's Listen/speech control, embedded map preview, calculated route or
 ETA, permanent emergency strip, and unverified third initial safety instruction

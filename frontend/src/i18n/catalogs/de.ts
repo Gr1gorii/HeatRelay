@@ -72,13 +72,13 @@ export const GERMAN_CATALOG = {
   "form.privacyDescription":
     "Deine Beschreibung wird serverseitig an OpenAI zur Verarbeitung mit GPT-5.6 gesendet. HeatRelay speichert oder protokolliert den Rohtext nicht absichtlich; die Richtlinien des Anbieters zur Datenverarbeitung können dennoch gelten.",
   "form.identityWarning":
-    "Der Text wird an OpenAI gesendet; HeatRelay speichert oder protokolliert den Originaltext nicht absichtlich. Gib keine Namen, Kontaktdaten oder Adressen an. Feste Demo-Koordinaten für Barcelona. Keine medizinische Beratung oder Notfallhilfe.",
+    "OpenAI verarbeitet diesen Text. Keine Namen, Kontaktdaten oder Adressen eingeben. Fester Barcelona-Demopunkt; keine Notfallhilfe.",
   "form.situationLabel": "Beschreibe die Hitzesituation",
   "form.characterCount": "{{currentCount}} / {{limit}} Zeichen",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} Zeichen — um {{overLimitCount}} kürzen",
   "form.situationHint":
-    "Beschreibe kurz Alter, Zugang zu Kühlung, Mobilität, Zeitpunkt und gegebenenfalls Symptome.",
+    "Alter · Zugang zu Kühlung · Mobilität · Symptome",
   "form.demoButton": "Barcelona-Demo laden",
   "form.submitButton": "Meinen Hitze-Aktionsplan erstellen",
   "form.submittingButton": "Dein Plan wird erstellt…",
@@ -92,10 +92,30 @@ export const GERMAN_CATALOG = {
   "scenario.selfDescription": "Persönlichen Aktionsplan erstellen",
   "scenario.someoneTitle": "Einer nahestehenden Person helfen",
   "scenario.someoneDescription": "Plan für eine andere Person erstellen",
-  "scenario.placeTitle": "Einen kühlen Ort in der Nähe finden",
-  "scenario.placeDescription": "Die nächste bestätigte Hilfe anzeigen",
-  "scenario.nearestHelp": "Nächste Hilfe",
+  "scenario.placeTitle": "Einen kühlen Ort im Barcelona-Demogebiet finden",
+  "scenario.placeDescription": "Sachliche Ortsinformationen suchen",
+  "scenario.nearestHelp": "Ortsinformationen für Barcelona",
   "scenario.importantNow": "Jetzt wichtig",
+  "scenario.initialTipCoolestSpot":
+    "Gehe an den kühlsten verfügbaren Ort, an dem du bereits bist.",
+  "scenario.initialTipReduceEffort":
+    "Verringere vorerst körperliche Anstrengung.",
+  "scenario.initialTipDrinkWater":
+    "Trinke regelmäßig Wasser, wenn du das sicher tun kannst.",
+
+  "placeLookup.searchAction": "Orte im Barcelona-Demogebiet suchen",
+  "placeLookup.loading": "Verifizierte Ortsdaten werden durchsucht…",
+  "placeLookup.resultsTitle": "Ergebnisse für Orte in Barcelona",
+  "placeLookup.emptyTitle": "Kein passender Ort gefunden",
+  "placeLookup.emptyMessage":
+    "Kein Ort entsprach dem festen Demopunkt, der aktuellen Gerätezeit und den Suchgrenzen.",
+  "placeLookup.errorTitle": "Ortsinformationen nicht verfügbar",
+  "placeLookup.errorMessage":
+    "Die Ortsinformationen konnten nicht sicher angezeigt werden. Versuchen Sie es nur erneut, wenn Sie dies möchten.",
+  "placeLookup.compactBoundary":
+    "Fester Barcelona-Demopunkt · Luftlinienentfernung · Öffnungszeiten und Barrierefreiheit prüfen",
+  "placeLookup.boundary":
+    "Verwendet den festen Barcelona-Demopunkt, nicht Ihren Standort. Entfernungen sind Luftlinie, keine Routen oder Ankunftszeiten. Öffnungszeiten werden anhand Ihrer Gerätezeit bewertet. Prüfen Sie Öffnungszeiten und Barrierefreiheit vor der Fahrt. Dies ist keine medizinische Hilfe oder Notfallhilfe.",
 
   "validation.empty": "Beschreibe die Situation, bevor du einen Plan erstellst.",
   "validation.overLimit": "Die Beschreibung ist zu lang. Kürze den Text.",
@@ -147,7 +167,7 @@ export const GERMAN_CATALOG = {
   "place.linksAccessibleName": "Offizielle Links zum Ort",
   "place.informationLink": "Offizielle Informationen",
   "place.sourceLink": "Offizielle Quelle",
-  "place.mapLink": "Route in Google Maps öffnen",
+  "place.mapLink": "In Google Maps öffnen",
   "place.cautionsAccessibleName": "Hinweise zum Ort",
   "place.addressUnavailable": "Adresse nicht verfügbar",
   "place.accessibilityConfirmed": "Barrierefreiheit von der Quelle bestätigt",

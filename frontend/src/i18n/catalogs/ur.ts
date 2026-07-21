@@ -72,13 +72,13 @@ export const URDU_CATALOG = {
   "form.privacyDescription":
     "آپ کی تفصیل سرور کی جانب سے GPT-5.6 کے ذریعے کارروائی کے لیے OpenAI کو بھیجی جاتی ہے۔ HeatRelay خام متن کو جان بوجھ کر محفوظ یا لاگ نہیں کرتا؛ تاہم فراہم کنندہ کی ڈیٹا سنبھالنے کی پالیسیاں لاگو ہو سکتی ہیں۔",
   "form.identityWarning":
-    "متن OpenAI کو بھیجا جاتا ہے؛ HeatRelay اصل متن کو جان بوجھ کر محفوظ یا لاگ نہیں کرتا۔ نام، رابطے کی معلومات یا پتے شامل نہ کریں۔ Barcelona کے مقررہ ڈیمو نقاط۔ یہ طبی مشورہ یا ہنگامی مدد نہیں ہے۔",
+    "OpenAI اس متن پر کارروائی کرتا ہے۔ نام، رابطے کی معلومات یا پتے درج نہ کریں۔ Barcelona کا مقررہ ڈیمو نقطہ؛ یہ ہنگامی مدد نہیں ہے۔",
   "form.situationLabel": "گرمی کی صورت حال بیان کریں",
   "form.characterCount": "{{currentCount}} / {{limit}} حروف",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} حروف — {{overLimitCount}} کم کریں",
   "form.situationHint":
-    "عمر، ٹھنڈک کی سہولت تک رسائی، نقل و حرکت، وقت اور متعلقہ علامات مختصراً بیان کریں۔",
+    "عمر · ٹھنڈک تک رسائی · نقل و حرکت · علامات",
   "form.demoButton": "Barcelona ڈیمو لوڈ کریں",
   "form.submitButton": "گرمی سے نمٹنے کا میرا عملی منصوبہ بنائیں",
   "form.submittingButton": "آپ کا منصوبہ بنایا جا رہا ہے…",
@@ -92,10 +92,29 @@ export const URDU_CATALOG = {
   "scenario.selfDescription": "ذاتی عملی منصوبہ بنائیں",
   "scenario.someoneTitle": "کسی قریبی شخص کی مدد کریں",
   "scenario.someoneDescription": "کسی دوسرے شخص کے لیے منصوبہ بنائیں",
-  "scenario.placeTitle": "قریب کوئی ٹھنڈی جگہ تلاش کریں",
-  "scenario.placeDescription": "قریب ترین تصدیق شدہ مدد دکھائیں",
-  "scenario.nearestHelp": "قریب ترین مدد",
+  "scenario.placeTitle": "Barcelona ڈیمو علاقے میں ٹھنڈی جگہ تلاش کریں",
+  "scenario.placeDescription": "مقامات کے بارے میں حقائق پر مبنی معلومات تلاش کریں",
+  "scenario.nearestHelp": "Barcelona کے مقامات کی معلومات",
   "scenario.importantNow": "ابھی اہم",
+  "scenario.initialTipCoolestSpot":
+    "جہاں آپ ابھی ہیں وہاں دستیاب سب سے ٹھنڈی جگہ پر جائیں۔",
+  "scenario.initialTipReduceEffort": "فی الحال جسمانی مشقت کم کریں۔",
+  "scenario.initialTipDrinkWater":
+    "اگر محفوظ ہو تو باقاعدگی سے پانی پئیں۔",
+
+  "placeLookup.searchAction": "Barcelona ڈیمو کے مقامات تلاش کریں",
+  "placeLookup.loading": "تصدیق شدہ مقامات کا ڈیٹا تلاش کیا جا رہا ہے…",
+  "placeLookup.resultsTitle": "Barcelona کے مقامات کے نتائج",
+  "placeLookup.emptyTitle": "کوئی مماثل مقام نہیں ملا",
+  "placeLookup.emptyMessage":
+    "کوئی مقام مقررہ ڈیمو نقطے، آلے کے موجودہ وقت اور تلاش کی حدود سے مماثل نہیں تھا۔",
+  "placeLookup.errorTitle": "مقام کی تلاش دستیاب نہیں",
+  "placeLookup.errorMessage":
+    "مقام کی معلومات محفوظ طریقے سے نہیں دکھائی جا سکیں۔ براہ کرم بعد میں دوبارہ تلاش کریں۔",
+  "placeLookup.compactBoundary":
+    "Barcelona کا مقررہ ڈیمو نقطہ · سیدھی لکیر کا فاصلہ · اوقات اور رسائی کی تصدیق کریں",
+  "placeLookup.boundary":
+    "تلاش آپ کے مقام کے بجائے Barcelona کے مقررہ ڈیمو نقطے کو استعمال کرتی ہے۔ فاصلے سیدھی لکیر میں ہیں، راستے یا پہنچنے کے اندازے نہیں۔ اوقات آلے کے موجودہ وقت کے مطابق جانچے جاتے ہیں۔ سفر سے پہلے اوقات اور رسائی کی تصدیق کریں۔ یہ طبی یا ہنگامی مدد نہیں ہے۔ راستے، سفر اور ذاتی رسائی کی مطابقت کی تصدیق نہیں ہوئی۔",
 
   "validation.empty": "منصوبہ بنانے سے پہلے صورت حال بیان کریں۔",
   "validation.overLimit": "تفصیل بہت طویل ہے۔ متن مختصر کریں۔",
@@ -147,7 +166,7 @@ export const URDU_CATALOG = {
   "place.linksAccessibleName": "مقام کے سرکاری لنکس",
   "place.informationLink": "سرکاری معلومات",
   "place.sourceLink": "سرکاری ماخذ",
-  "place.mapLink": "Google Maps میں راستہ کھولیں",
+  "place.mapLink": "Google Maps میں کھولیں",
   "place.cautionsAccessibleName": "مقام سے متعلق احتیاطیں",
   "place.addressUnavailable": "پتہ دستیاب نہیں",
   "place.accessibilityConfirmed": "ماخذ نے رسائی پذیری کی تصدیق کی ہے",

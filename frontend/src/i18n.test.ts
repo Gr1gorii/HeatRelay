@@ -1561,14 +1561,68 @@ describe("canonical catalogs and bundled runtime", () => {
     ).toBe(false);
   });
 
-  it("keeps every catalog at the exact canonical 124-key boundary", () => {
+  it("keeps every catalog at the exact canonical 151-key boundary", () => {
     const canonicalKeys = Object.keys(ENGLISH_CATALOG).sort();
 
-    expect(canonicalKeys).toHaveLength(139);
+    expect(canonicalKeys).toHaveLength(151);
     for (const locale of SUPPORTED_INTERFACE_LOCALES) {
       const localeKeys = Object.keys(LOCALE_REGISTRY[locale].catalog).sort();
-      expect(localeKeys).toHaveLength(139);
+      expect(localeKeys).toHaveLength(151);
       expect(localeKeys).toEqual(canonicalKeys);
+    }
+  });
+
+  it("keeps standalone Barcelona place-search copy complete without nearby-location implications", () => {
+    const placeLookupKeys = [
+      "placeLookup.searchAction",
+      "placeLookup.loading",
+      "placeLookup.resultsTitle",
+      "placeLookup.emptyTitle",
+      "placeLookup.emptyMessage",
+      "placeLookup.errorTitle",
+      "placeLookup.errorMessage",
+      "placeLookup.compactBoundary",
+      "placeLookup.boundary",
+    ] as const satisfies ReadonlyArray<MessageKey>;
+
+    expect(ENGLISH_CATALOG["scenario.placeTitle"]).toBe(
+      "Find a cool place in the Barcelona demo area",
+    );
+    expect(ENGLISH_CATALOG["scenario.placeDescription"]).toBe(
+      "Search factual place information",
+    );
+    expect(ENGLISH_CATALOG["scenario.nearestHelp"]).toBe(
+      "Barcelona place information",
+    );
+    expect(ENGLISH_CATALOG["placeLookup.boundary"]).toContain(
+      "fixed Barcelona demo point",
+    );
+    expect(ENGLISH_CATALOG["placeLookup.boundary"]).toContain(
+      "straight-line",
+    );
+    expect(ENGLISH_CATALOG["placeLookup.boundary"]).toContain(
+      "device time",
+    );
+    expect(ENGLISH_CATALOG["placeLookup.boundary"]).toContain(
+      "Not medical or emergency help",
+    );
+    expect(ENGLISH_CATALOG["placeLookup.compactBoundary"]).toBe(
+      "Fixed Barcelona demo point · Straight-line distance · Verify hours and accessibility",
+    );
+
+    for (const locale of SUPPORTED_INTERFACE_LOCALES) {
+      const catalog = LOCALE_REGISTRY[locale].catalog;
+      for (const key of placeLookupKeys) {
+        expect(catalog[key].trim(), `${locale}:${key}`).not.toBe("");
+      }
+      expect(catalog["scenario.placeTitle"], locale).toContain("Barcelona");
+      expect(catalog["scenario.nearestHelp"], locale).toContain("Barcelona");
+      expect(catalog["scenario.placeTitle"].toLocaleLowerCase("en"), locale).not.toContain(
+        "nearby",
+      );
+      expect(catalog["scenario.placeDescription"].toLocaleLowerCase("en"), locale).not.toContain(
+        "nearby",
+      );
     }
   });
 
@@ -1587,19 +1641,19 @@ describe("canonical catalogs and bundled runtime", () => {
     ).toEqual({
       "form.privacyTitle": "Privacy and demo details",
       "form.identityWarning":
-        "Sent to OpenAI; HeatRelay does not intentionally save or log the original text. Do not include names, contacts, or addresses. Fixed Barcelona demo coordinates. Not medical or emergency advice.",
+        "OpenAI processes this text. Do not enter names, contacts or addresses. Fixed Barcelona demo point; not emergency help.",
       "form.characterCount": "{{currentCount}} / {{limit}} characters",
       "form.characterCountOverLimit":
         "{{currentCount}} / {{limit}} characters — shorten by {{overLimitCount}}",
       "form.situationHint":
-        "Briefly describe age, access to cooling, mobility, timing, and symptoms if relevant.",
+        "Age · cooling access · mobility · symptoms",
       "validation.overLimit": "The description is too long. Shorten the text.",
     });
     expect(RUSSIAN_CATALOG["form.privacyTitle"]).toBe(
       "Конфиденциальность и условия демоверсии",
     );
     expect(RUSSIAN_CATALOG["form.identityWarning"]).toBe(
-      "Текст передаётся в OpenAI; HeatRelay намеренно не сохраняет и не журналирует исходный текст. Не указывайте имена, контакты или адреса. Фиксированные координаты Barcelona. Это не медицинская или экстренная помощь.",
+      "OpenAI обрабатывает этот текст. Не указывайте имена, контакты или адреса. Фиксированная демоточка Barcelona; это не экстренная помощь.",
     );
     expect(RUSSIAN_CATALOG["form.characterCount"]).toBe(
       "{{currentCount}} / {{limit}} символов",
@@ -1608,7 +1662,7 @@ describe("canonical catalogs and bundled runtime", () => {
       "{{currentCount}} / {{limit}} символов — сократите на {{overLimitCount}}",
     );
     expect(RUSSIAN_CATALOG["form.situationHint"]).toBe(
-      "Кратко укажите возраст, возможность охладиться, подвижность, время и симптомы, если они есть.",
+      "Возраст · доступ к охлаждению · подвижность · симптомы",
     );
     expect(RUSSIAN_CATALOG["validation.overLimit"]).toBe(
       "Описание слишком длинное. Сократите текст.",
@@ -1635,11 +1689,30 @@ describe("canonical catalogs and bundled runtime", () => {
         "OpenAI",
       );
       expect(LOCALE_REGISTRY[locale].catalog["form.identityWarning"]).toContain(
-        "HeatRelay",
-      );
-      expect(LOCALE_REGISTRY[locale].catalog["form.identityWarning"]).toContain(
         "Barcelona",
       );
+    }
+  });
+
+  it("keeps the three initial cooling tips concise and localized in every catalog", () => {
+    const tipKeys = [
+      "scenario.initialTipCoolestSpot",
+      "scenario.initialTipReduceEffort",
+      "scenario.initialTipDrinkWater",
+    ] as const satisfies ReadonlyArray<MessageKey>;
+
+    expect(tipKeys.map((key) => ENGLISH_CATALOG[key])).toEqual([
+      "Move to the coolest available spot where you already are.",
+      "Reduce physical effort for now.",
+      "Drink water regularly if you can do so safely.",
+    ]);
+    for (const locale of SUPPORTED_INTERFACE_LOCALES) {
+      for (const key of tipKeys) {
+        const value = LOCALE_REGISTRY[locale].catalog[key];
+        expect(value.trim(), `${locale}:${key}`).not.toBe("");
+        expect(value, `${locale}:${key}`).not.toBe(key);
+        expect(interpolationNames(value), `${locale}:${key}`).toEqual([]);
+      }
     }
   });
 

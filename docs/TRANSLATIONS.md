@@ -160,6 +160,23 @@ remain backend-owned. Selecting a different language does not
 rewrite an existing result, and deterministic language-context information is
 passive rather than alerting.
 
+The localized place scenario identifies the fixed Barcelona demo area without
+“nearby” or device-location implications. Each of the 25 interface catalogs
+carries exact-parity labels for explicit search, loading, success, empty,
+safe-error, and compact boundary states. Scenario selection itself makes no
+request; the standalone response parser keeps backend-owned candidate facts
+and English backend warnings separate from action-plan output. These new and
+revised translations remain AI-assisted drafts under the same human-review
+limitations as the rest of each catalog.
+
+The current catalogs also share exact-parity concise pre-submit copy: a
+four-item age/cooling/mobility/symptom hint, one OpenAI/identity/fixed-point/
+emergency notice, and three initial cooling actions. The longer disclosure
+copy remains unchanged and available. Standalone results use one localized
+compact boundary, confirmed-feature chips, and a single closed verification
+disclosure; backend-authored notices remain English with explicit LTR
+ownership.
+
 Adding a future locale requires all of the following:
 
 1. Add one complete interface catalog with exact key and interpolation parity,

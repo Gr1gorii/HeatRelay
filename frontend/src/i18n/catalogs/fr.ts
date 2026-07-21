@@ -72,13 +72,13 @@ export const FRENCH_CATALOG = {
   "form.privacyDescription":
     "Votre description est envoyée côté serveur à OpenAI pour être traitée par GPT-5.6. HeatRelay ne stocke ni ne journalise intentionnellement le texte brut ; les politiques de traitement des données du fournisseur peuvent néanmoins s’appliquer.",
   "form.identityWarning":
-    "Le texte est envoyé à OpenAI ; HeatRelay ne sauvegarde ni ne journalise intentionnellement le texte original. N’indiquez aucun nom, aucune coordonnée ni aucune adresse. Coordonnées fixes de démonstration à Barcelona. Ceci ne constitue ni un conseil médical ni une aide d’urgence.",
+    "OpenAI traite ce texte. N’indiquez aucun nom, aucune coordonnée ni aucune adresse. Point de démonstration fixe à Barcelona ; ce n’est pas une aide d’urgence.",
   "form.situationLabel": "Décrivez la situation liée à la chaleur",
   "form.characterCount": "{{currentCount}} / {{limit}} caractères",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} caractères — réduisez de {{overLimitCount}}",
   "form.situationHint":
-    "Décrivez brièvement l’âge, l’accès à un lieu frais, la mobilité, le moment concerné et les symptômes pertinents.",
+    "Âge · accès à un lieu frais · mobilité · symptômes",
   "form.demoButton": "Charger la démonstration Barcelona",
   "form.submitButton": "Créer mon plan d’action contre la chaleur",
   "form.submittingButton": "Création de votre plan…",
@@ -92,10 +92,30 @@ export const FRENCH_CATALOG = {
   "scenario.selfDescription": "Créer un plan d’action personnel",
   "scenario.someoneTitle": "Aider une personne proche",
   "scenario.someoneDescription": "Créer un plan pour une autre personne",
-  "scenario.placeTitle": "Trouver un endroit frais à proximité",
-  "scenario.placeDescription": "Afficher l’aide vérifiée la plus proche",
-  "scenario.nearestHelp": "Aide la plus proche",
+  "scenario.placeTitle": "Trouver un endroit frais dans la zone de démonstration de Barcelona",
+  "scenario.placeDescription": "Rechercher des informations factuelles sur les lieux",
+  "scenario.nearestHelp": "Informations sur les lieux de Barcelona",
   "scenario.importantNow": "Important maintenant",
+  "scenario.initialTipCoolestSpot":
+    "Allez à l’endroit disponible le plus frais là où vous êtes déjà.",
+  "scenario.initialTipReduceEffort":
+    "Réduisez l’effort physique pour le moment.",
+  "scenario.initialTipDrinkWater":
+    "Buvez de l’eau régulièrement si vous pouvez le faire sans danger.",
+
+  "placeLookup.searchAction": "Rechercher les lieux de démonstration de Barcelona",
+  "placeLookup.loading": "Recherche des données de lieux vérifiées…",
+  "placeLookup.resultsTitle": "Résultats des lieux de Barcelona",
+  "placeLookup.emptyTitle": "Aucun lieu correspondant trouvé",
+  "placeLookup.emptyMessage":
+    "Aucun lieu ne correspondait au point de démonstration fixe, à l’heure actuelle de l’appareil et aux limites de recherche.",
+  "placeLookup.errorTitle": "Informations sur les lieux indisponibles",
+  "placeLookup.errorMessage":
+    "Les informations sur les lieux n’ont pas pu être affichées en toute sécurité. Réessayez uniquement si vous le décidez.",
+  "placeLookup.compactBoundary":
+    "Point de démonstration fixe à Barcelona · Distance à vol d’oiseau · Vérifiez horaires et accessibilité",
+  "placeLookup.boundary":
+    "Utilise le point de démonstration fixe de Barcelona, et non votre position. Les distances sont à vol d’oiseau, pas des itinéraires ni des heures d’arrivée estimées. Les horaires sont évalués avec l’heure de votre appareil. Vérifiez les horaires et l’accessibilité avant de vous déplacer. Ce n’est pas une aide médicale ou d’urgence.",
 
   "validation.empty": "Décrivez la situation avant de créer un plan.",
   "validation.overLimit": "La description est trop longue. Raccourcissez le texte.",
@@ -147,7 +167,7 @@ export const FRENCH_CATALOG = {
   "place.linksAccessibleName": "Liens officiels du lieu",
   "place.informationLink": "Informations officielles",
   "place.sourceLink": "Source officielle",
-  "place.mapLink": "Ouvrir l’itinéraire dans Google Maps",
+  "place.mapLink": "Ouvrir dans Google Maps",
   "place.cautionsAccessibleName": "Précautions concernant le lieu",
   "place.addressUnavailable": "Adresse indisponible",
   "place.accessibilityConfirmed": "Accessibilité confirmée par la source",

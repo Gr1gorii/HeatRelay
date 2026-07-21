@@ -72,13 +72,13 @@ export const RUSSIAN_CATALOG = {
   "form.privacyDescription":
     "Ваше описание отправляется на сервер и передаётся OpenAI для обработки GPT-5.6. HeatRelay намеренно не сохраняет и не журналирует исходный текст; при этом могут применяться правила поставщика по обработке данных.",
   "form.identityWarning":
-    "Текст передаётся в OpenAI; HeatRelay намеренно не сохраняет и не журналирует исходный текст. Не указывайте имена, контакты или адреса. Фиксированные координаты Barcelona. Это не медицинская или экстренная помощь.",
+    "OpenAI обрабатывает этот текст. Не указывайте имена, контакты или адреса. Фиксированная демоточка Barcelona; это не экстренная помощь.",
   "form.situationLabel": "Опишите ситуацию, связанную с жарой",
   "form.characterCount": "{{currentCount}} / {{limit}} символов",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} символов — сократите на {{overLimitCount}}",
   "form.situationHint":
-    "Кратко укажите возраст, возможность охладиться, подвижность, время и симптомы, если они есть.",
+    "Возраст · доступ к охлаждению · подвижность · симптомы",
   "form.demoButton": "Загрузить пример Barcelona",
   "form.submitButton": "Создать мой план действий при жаре",
   "form.submittingButton": "Создаём ваш план…",
@@ -92,10 +92,29 @@ export const RUSSIAN_CATALOG = {
   "scenario.selfDescription": "Получить личный план действий",
   "scenario.someoneTitle": "Помочь близкому человеку",
   "scenario.someoneDescription": "Составить план для другого человека",
-  "scenario.placeTitle": "Найти прохладное место рядом",
-  "scenario.placeDescription": "Показать ближайшую проверенную помощь",
-  "scenario.nearestHelp": "Ближайшая помощь",
+  "scenario.placeTitle": "Найти прохладное место в демозоне Barcelona",
+  "scenario.placeDescription": "Найти фактическую информацию о местах",
+  "scenario.nearestHelp": "Информация о местах Barcelona",
   "scenario.importantNow": "Сейчас важно",
+  "scenario.initialTipCoolestSpot":
+    "Перейдите в самое прохладное доступное место там, где вы уже находитесь.",
+  "scenario.initialTipReduceEffort": "Пока снизьте физическую нагрузку.",
+  "scenario.initialTipDrinkWater":
+    "Регулярно пейте воду, если это безопасно.",
+
+  "placeLookup.searchAction": "Найти места в демозоне Barcelona",
+  "placeLookup.loading": "Поиск в проверенных данных о местах…",
+  "placeLookup.resultsTitle": "Результаты поиска мест в Barcelona",
+  "placeLookup.emptyTitle": "Подходящее место не найдено",
+  "placeLookup.emptyMessage":
+    "Ни одно место не соответствовало фиксированной демоточке, текущему времени устройства и ограничениям поиска.",
+  "placeLookup.errorTitle": "Информация о местах недоступна",
+  "placeLookup.errorMessage":
+    "Информацию о местах не удалось безопасно отобразить. Повторите попытку, только если сами решите это сделать.",
+  "placeLookup.compactBoundary":
+    "Фиксированная демоточка Barcelona · Расстояние по прямой · Проверьте часы работы и доступность",
+  "placeLookup.boundary":
+    "Используется фиксированная демоточка Barcelona, а не ваше местоположение. Расстояния указаны по прямой, это не маршруты и не расчётное время прибытия. Часы работы оцениваются по времени устройства. Перед поездкой проверьте часы работы и доступность. Это не медицинская и не экстренная помощь.",
 
   "validation.empty": "Опишите ситуацию перед созданием плана.",
   "validation.overLimit": "Описание слишком длинное. Сократите текст.",
@@ -147,7 +166,7 @@ export const RUSSIAN_CATALOG = {
   "place.linksAccessibleName": "Официальные ссылки о месте",
   "place.informationLink": "Официальная информация",
   "place.sourceLink": "Официальный источник",
-  "place.mapLink": "Открыть маршрут в Google Maps",
+  "place.mapLink": "Открыть в Google Maps",
   "place.cautionsAccessibleName": "Предупреждения о месте",
   "place.addressUnavailable": "Адрес недоступен",
   "place.accessibilityConfirmed": "Источник подтверждает доступность",

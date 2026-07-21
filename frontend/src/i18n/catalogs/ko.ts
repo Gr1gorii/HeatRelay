@@ -72,13 +72,13 @@ export const KOREAN_CATALOG = {
   "form.privacyDescription":
     "사용자의 설명은 GPT-5.6 처리를 위해 서버를 통해 OpenAI로 전송됩니다. HeatRelay는 원문을 의도적으로 저장하거나 기록하지 않지만, 제공업체의 데이터 처리 정책이 적용될 수 있습니다.",
   "form.identityWarning":
-    "텍스트는 OpenAI로 전송됩니다. HeatRelay는 원문을 의도적으로 저장하거나 기록하지 않습니다. 이름, 연락처 또는 주소를 포함하지 마세요. Barcelona의 고정 데모 좌표를 사용합니다. 의료 조언이나 응급 지원이 아닙니다.",
+    "OpenAI가 이 텍스트를 처리합니다. 이름, 연락처 또는 주소를 입력하지 마세요. Barcelona 고정 데모 지점이며 응급 지원이 아닙니다.",
   "form.situationLabel": "폭염 상황 설명",
   "form.characterCount": "{{currentCount}} / {{limit}}자",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}}자 — {{overLimitCount}}자 줄이세요",
   "form.situationHint":
-    "나이, 냉방 이용 가능 여부, 이동 능력, 시간 및 관련 증상을 간단히 설명하세요.",
+    "나이 · 냉방 이용 가능 여부 · 이동 능력 · 증상",
   "form.demoButton": "Barcelona 데모 불러오기",
   "form.submitButton": "내 폭염 행동 계획 만들기",
   "form.submittingButton": "계획을 만드는 중…",
@@ -92,10 +92,29 @@ export const KOREAN_CATALOG = {
   "scenario.selfDescription": "개인 행동 계획 만들기",
   "scenario.someoneTitle": "가까운 사람 돕기",
   "scenario.someoneDescription": "다른 사람을 위한 계획 만들기",
-  "scenario.placeTitle": "가까운 시원한 장소 찾기",
-  "scenario.placeDescription": "가장 가까운 확인된 도움 보기",
-  "scenario.nearestHelp": "가장 가까운 도움",
+  "scenario.placeTitle": "Barcelona 데모 지역에서 시원한 장소 찾기",
+  "scenario.placeDescription": "장소에 관한 사실 정보 검색",
+  "scenario.nearestHelp": "Barcelona 장소 정보",
   "scenario.importantNow": "지금 중요한 일",
+  "scenario.initialTipCoolestSpot":
+    "현재 있는 곳에서 이용할 수 있는 가장 시원한 장소로 이동하세요.",
+  "scenario.initialTipReduceEffort": "지금은 신체 활동을 줄이세요.",
+  "scenario.initialTipDrinkWater":
+    "안전하게 마실 수 있다면 물을 규칙적으로 마시세요.",
+
+  "placeLookup.searchAction": "Barcelona 데모 장소 검색",
+  "placeLookup.loading": "확인된 장소 데이터를 검색하는 중…",
+  "placeLookup.resultsTitle": "Barcelona 장소 검색 결과",
+  "placeLookup.emptyTitle": "일치하는 장소를 찾지 못했습니다",
+  "placeLookup.emptyMessage":
+    "고정 데모 지점, 현재 기기 시간 및 검색 한도와 일치하는 장소가 없습니다.",
+  "placeLookup.errorTitle": "장소 정보를 사용할 수 없습니다",
+  "placeLookup.errorMessage":
+    "장소 정보를 안전하게 표시할 수 없습니다. 직접 선택한 경우에만 다시 시도하세요.",
+  "placeLookup.compactBoundary":
+    "Barcelona 고정 데모 지점 · 직선거리 · 운영 시간과 접근성을 확인하세요",
+  "placeLookup.boundary":
+    "현재 위치가 아닌 Barcelona 고정 데모 지점을 사용합니다. 거리는 직선거리이며 경로나 예상 도착 시간이 아닙니다. 운영 시간은 기기 시간을 사용해 평가합니다. 이동 전에 운영 시간과 접근성을 확인하세요. 의료 또는 긴급 지원이 아닙니다.",
 
   "validation.empty": "계획을 만들기 전에 상황을 설명해 주세요.",
   "validation.overLimit": "설명이 너무 깁니다. 텍스트를 줄이세요.",
@@ -147,7 +166,7 @@ export const KOREAN_CATALOG = {
   "place.linksAccessibleName": "공식 장소 링크",
   "place.informationLink": "공식 정보",
   "place.sourceLink": "공식 출처",
-  "place.mapLink": "Google 지도에서 경로 열기",
+  "place.mapLink": "Google 지도에서 열기",
   "place.cautionsAccessibleName": "장소 주의사항",
   "place.addressUnavailable": "주소를 사용할 수 없음",
   "place.accessibilityConfirmed": "출처에서 접근 가능한 장소임을 확인함",

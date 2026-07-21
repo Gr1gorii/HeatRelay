@@ -72,13 +72,13 @@ export const TURKISH_CATALOG = {
   "form.privacyDescription":
     "Açıklamanız, GPT-5.6 tarafından işlenmek üzere sunucu tarafında OpenAI’a gönderilir. HeatRelay ham metni bilerek saklamaz veya günlüğe kaydetmez; sağlayıcının veri işleme politikaları yine de geçerli olabilir.",
   "form.identityWarning":
-    "Metin OpenAI’a gönderilir; HeatRelay özgün metni bilerek kaydetmez veya günlüğe almaz. Ad, iletişim bilgileri veya adres eklemeyin. Sabit Barcelona demo koordinatları. Tıbbi tavsiye veya acil yardım değildir.",
+    "OpenAI bu metni işler. Ad, iletişim bilgileri veya adres girmeyin. Sabit Barcelona demo noktası; acil yardım değildir.",
   "form.situationLabel": "Sıcak hava durumunu açıklayın",
   "form.characterCount": "{{currentCount}} / {{limit}} karakter",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} karakter — {{overLimitCount}} karakter kısaltın",
   "form.situationHint":
-    "Yaşı, serinleme imkânını, hareket kabiliyetini, zamanı ve ilgili belirtileri kısaca açıklayın.",
+    "Yaş · serinleme imkânı · hareket kabiliyeti · belirtiler",
   "form.demoButton": "Barcelona demosunu yükle",
   "form.submitButton": "Sıcak hava eylem planımı oluştur",
   "form.submittingButton": "Planınız oluşturuluyor…",
@@ -92,10 +92,29 @@ export const TURKISH_CATALOG = {
   "scenario.selfDescription": "Kişisel eylem planı oluştur",
   "scenario.someoneTitle": "Yakınınızdaki birine yardım edin",
   "scenario.someoneDescription": "Başka biri için plan oluştur",
-  "scenario.placeTitle": "Yakında serin bir yer bulun",
-  "scenario.placeDescription": "En yakın doğrulanmış yardımı göster",
-  "scenario.nearestHelp": "En yakın yardım",
+  "scenario.placeTitle": "Barcelona demo alanında serin bir yer bulun",
+  "scenario.placeDescription": "Yerler hakkında olgusal bilgi arayın",
+  "scenario.nearestHelp": "Barcelona yer bilgileri",
   "scenario.importantNow": "Şimdi önemli",
+  "scenario.initialTipCoolestSpot":
+    "Bulunduğunuz yerdeki en serin uygun noktaya geçin.",
+  "scenario.initialTipReduceEffort": "Şimdilik fiziksel çabayı azaltın.",
+  "scenario.initialTipDrinkWater":
+    "Güvenliyse düzenli olarak su için.",
+
+  "placeLookup.searchAction": "Barcelona demo yerlerini ara",
+  "placeLookup.loading": "Doğrulanmış yer verileri aranıyor…",
+  "placeLookup.resultsTitle": "Barcelona yer sonuçları",
+  "placeLookup.emptyTitle": "Eşleşen yer bulunamadı",
+  "placeLookup.emptyMessage":
+    "Sabit demo noktası, mevcut cihaz saati ve arama sınırlarıyla eşleşen bir yer yoktu.",
+  "placeLookup.errorTitle": "Yer bilgileri kullanılamıyor",
+  "placeLookup.errorMessage":
+    "Yer bilgileri güvenli şekilde görüntülenemedi. Yalnızca siz seçerseniz tekrar deneyin.",
+  "placeLookup.compactBoundary":
+    "Sabit Barcelona demo noktası · Kuş uçuşu mesafe · Saatleri ve erişilebilirliği doğrulayın",
+  "placeLookup.boundary":
+    "Konumunuzu değil, sabit Barcelona demo noktasını kullanır. Mesafeler kuş uçuşudur; rota veya tahmini varış süresi değildir. Açılış saatleri cihaz saatinizle değerlendirilir. Gitmeden önce saatleri ve erişilebilirliği doğrulayın. Bu tıbbi veya acil yardım değildir.",
 
   "validation.empty": "Plan oluşturmadan önce durumu açıklayın.",
   "validation.overLimit": "Açıklama çok uzun. Metni kısaltın.",
@@ -147,7 +166,7 @@ export const TURKISH_CATALOG = {
   "place.linksAccessibleName": "Resmî yer bağlantıları",
   "place.informationLink": "Resmî bilgiler",
   "place.sourceLink": "Resmî kaynak",
-  "place.mapLink": "Rotayı Google Maps'te aç",
+  "place.mapLink": "Google Maps'te aç",
   "place.cautionsAccessibleName": "Yerle ilgili uyarılar",
   "place.addressUnavailable": "Adres kullanılamıyor",
   "place.accessibilityConfirmed": "Erişilebilirlik kaynak tarafından doğrulandı",

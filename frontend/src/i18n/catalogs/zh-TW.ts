@@ -72,13 +72,13 @@ export const TRADITIONAL_CHINESE_CATALOG = {
   "form.privacyDescription":
     "您的描述會傳送至伺服器端，由 OpenAI 使用 GPT-5.6 處理。HeatRelay 不會刻意儲存或記錄原始文字；但服務提供者的資料處理政策仍可能適用。",
   "form.identityWarning":
-    "文字會傳送至 OpenAI；HeatRelay 不會刻意儲存或記錄原始文字。請勿包含姓名、聯絡資料或地址。使用固定的 Barcelona 示範座標。這不是醫療建議或緊急協助。",
+    "OpenAI 會處理此文字。請勿輸入姓名、聯絡資料或地址。使用固定的 Barcelona 示範點；這不是緊急協助。",
   "form.situationLabel": "描述高溫情況",
   "form.characterCount": "{{currentCount}} / {{limit}} 個字元",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} 個字元 — 請縮短 {{overLimitCount}} 個字元",
   "form.situationHint":
-    "請簡要描述年齡、可取得的降溫資源、行動能力、時間，以及相關症狀。",
+    "年齡 · 降溫資源 · 行動能力 · 症狀",
   "form.demoButton": "載入 Barcelona 示範",
   "form.submitButton": "建立我的高溫行動計畫",
   "form.submittingButton": "正在建立您的計畫……",
@@ -92,10 +92,28 @@ export const TRADITIONAL_CHINESE_CATALOG = {
   "scenario.selfDescription": "建立個人行動計畫",
   "scenario.someoneTitle": "幫助我關心的人",
   "scenario.someoneDescription": "為他人建立計畫",
-  "scenario.placeTitle": "尋找附近的涼爽場所",
-  "scenario.placeDescription": "顯示最近的已核實協助",
-  "scenario.nearestHelp": "最近的協助",
+  "scenario.placeTitle": "在 Barcelona 示範區域尋找涼爽場所",
+  "scenario.placeDescription": "查找地點的事實資訊",
+  "scenario.nearestHelp": "Barcelona 地點資訊",
   "scenario.importantNow": "現在很重要",
+  "scenario.initialTipCoolestSpot":
+    "移到您目前所在位置中最涼爽的可用地點。",
+  "scenario.initialTipReduceEffort": "暫時減少體力活動。",
+  "scenario.initialTipDrinkWater":
+    "若能安全飲水，請定時喝水。",
+
+  "placeLookup.searchAction": "搜尋 Barcelona 示範地點",
+  "placeLookup.loading": "正在查找已核實的地點資料……",
+  "placeLookup.resultsTitle": "Barcelona 地點結果",
+  "placeLookup.emptyTitle": "找不到相符地點",
+  "placeLookup.emptyMessage":
+    "沒有地點符合固定示範點、裝置目前時間及搜尋限制。",
+  "placeLookup.errorTitle": "地點搜尋無法使用",
+  "placeLookup.errorMessage": "無法安全顯示地點資訊。請稍後再次搜尋。",
+  "placeLookup.compactBoundary":
+    "固定的 Barcelona 示範點 · 直線距離 · 核實營業時間及無障礙情況",
+  "placeLookup.boundary":
+    "搜尋使用 Barcelona 的固定示範點，而非您的位置。距離為直線距離，不是路線或預計抵達時間。營業時間依裝置目前時間評估。出發前請核實營業時間及無障礙情況。這不是醫療或緊急協助。路線、行程及個人無障礙適用性均未核實。",
 
   "validation.empty": "請先描述情況，再建立計畫。",
   "validation.overLimit": "描述太長。請縮短文字。",
@@ -145,7 +163,7 @@ export const TRADITIONAL_CHINESE_CATALOG = {
   "place.linksAccessibleName": "地點官方連結",
   "place.informationLink": "官方資訊",
   "place.sourceLink": "官方來源",
-  "place.mapLink": "在 Google 地圖中開啟路線",
+  "place.mapLink": "在 Google 地圖中開啟",
   "place.cautionsAccessibleName": "地點注意事項",
   "place.addressUnavailable": "無可用地址",
   "place.accessibilityConfirmed": "資料來源確認此地點具備無障礙條件",

@@ -70,13 +70,13 @@ export const ENGLISH_CATALOG = {
   "form.privacyDescription":
     "Your description is sent server-side to OpenAI for GPT-5.6 processing. HeatRelay does not intentionally store or log the raw text; provider data-handling policies may still apply.",
   "form.identityWarning":
-    "Sent to OpenAI; HeatRelay does not intentionally save or log the original text. Do not include names, contacts, or addresses. Fixed Barcelona demo coordinates. Not medical or emergency advice.",
+    "OpenAI processes this text. Do not enter names, contacts or addresses. Fixed Barcelona demo point; not emergency help.",
   "form.situationLabel": "Describe the heat situation",
   "form.characterCount": "{{currentCount}} / {{limit}} characters",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} characters — shorten by {{overLimitCount}}",
   "form.situationHint":
-    "Briefly describe age, access to cooling, mobility, timing, and symptoms if relevant.",
+    "Age · cooling access · mobility · symptoms",
   "form.demoButton": "Load Barcelona demo",
   "form.submitButton": "Create my heat action plan",
   "form.submittingButton": "Creating your plan…",
@@ -90,10 +90,29 @@ export const ENGLISH_CATALOG = {
   "scenario.selfDescription": "Create a personal action plan",
   "scenario.someoneTitle": "Help someone I care about",
   "scenario.someoneDescription": "Create a plan for another person",
-  "scenario.placeTitle": "Find a cool place nearby",
-  "scenario.placeDescription": "Show the nearest verified help",
-  "scenario.nearestHelp": "Nearest help",
+  "scenario.placeTitle": "Find a cool place in the Barcelona demo area",
+  "scenario.placeDescription": "Search factual place information",
+  "scenario.nearestHelp": "Barcelona place information",
   "scenario.importantNow": "Important now",
+  "scenario.initialTipCoolestSpot":
+    "Move to the coolest available spot where you already are.",
+  "scenario.initialTipReduceEffort": "Reduce physical effort for now.",
+  "scenario.initialTipDrinkWater":
+    "Drink water regularly if you can do so safely.",
+
+  "placeLookup.searchAction": "Search Barcelona demo places",
+  "placeLookup.loading": "Searching verified place data…",
+  "placeLookup.resultsTitle": "Barcelona place results",
+  "placeLookup.emptyTitle": "No matching place found",
+  "placeLookup.emptyMessage":
+    "No place matched the fixed demo point, current device time, and search limits.",
+  "placeLookup.errorTitle": "Place information unavailable",
+  "placeLookup.errorMessage":
+    "Place information could not be safely displayed. Try again only if you choose.",
+  "placeLookup.compactBoundary":
+    "Fixed Barcelona demo point · Straight-line distance · Verify hours and accessibility",
+  "placeLookup.boundary":
+    "Uses the fixed Barcelona demo point, not your location. Distances are straight-line, not routes or ETAs. Opening hours are evaluated using your device time. Verify hours and accessibility before travelling. Not medical or emergency help.",
 
   "validation.empty": "Describe the situation before creating a plan.",
   "validation.overLimit": "The description is too long. Shorten the text.",
@@ -145,7 +164,7 @@ export const ENGLISH_CATALOG = {
   "place.linksAccessibleName": "Official place links",
   "place.informationLink": "Official information",
   "place.sourceLink": "Official source",
-  "place.mapLink": "Open route in Google Maps",
+  "place.mapLink": "Open in Google Maps",
   "place.cautionsAccessibleName": "Place cautions",
   "place.addressUnavailable": "Address unavailable",
   "place.accessibilityConfirmed": "Accessibility confirmed by the source",

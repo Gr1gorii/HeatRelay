@@ -72,13 +72,13 @@ export const BRAZILIAN_PORTUGUESE_CATALOG = {
   "form.privacyDescription":
     "Sua descrição é enviada ao servidor para processamento pelo GPT-5.6 da OpenAI. A HeatRelay não armazena nem registra intencionalmente o texto original; as políticas de tratamento de dados do provedor ainda podem ser aplicáveis.",
   "form.identityWarning":
-    "O texto é enviado à OpenAI; a HeatRelay não salva nem registra intencionalmente o texto original. Não inclua nomes, contatos ou endereços. Coordenadas fixas da demonstração em Barcelona. Não é orientação médica nem ajuda de emergência.",
+    "A OpenAI processa este texto. Não informe nomes, contatos ou endereços. Ponto fixo da demonstração em Barcelona; não é ajuda de emergência.",
   "form.situationLabel": "Descreva a situação de calor",
   "form.characterCount": "{{currentCount}} / {{limit}} caracteres",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} caracteres — reduza em {{overLimitCount}}",
   "form.situationHint":
-    "Descreva brevemente idade, acesso a refrigeração, mobilidade, horário e sintomas, se forem relevantes.",
+    "Idade · acesso a refrigeração · mobilidade · sintomas",
   "form.demoButton": "Carregar demonstração de Barcelona",
   "form.submitButton": "Criar meu plano de ação para o calor",
   "form.submittingButton": "Criando seu plano…",
@@ -92,10 +92,29 @@ export const BRAZILIAN_PORTUGUESE_CATALOG = {
   "scenario.selfDescription": "Criar um plano de ação pessoal",
   "scenario.someoneTitle": "Ajudar alguém próximo",
   "scenario.someoneDescription": "Criar um plano para outra pessoa",
-  "scenario.placeTitle": "Encontrar um lugar fresco por perto",
-  "scenario.placeDescription": "Mostrar a ajuda verificada mais próxima",
-  "scenario.nearestHelp": "Ajuda mais próxima",
+  "scenario.placeTitle": "Encontrar um lugar fresco na área de demonstração de Barcelona",
+  "scenario.placeDescription": "Buscar informações factuais sobre lugares",
+  "scenario.nearestHelp": "Informações de lugares de Barcelona",
   "scenario.importantNow": "Importante agora",
+  "scenario.initialTipCoolestSpot":
+    "Vá para o local disponível mais fresco onde você já está.",
+  "scenario.initialTipReduceEffort": "Reduza o esforço físico por enquanto.",
+  "scenario.initialTipDrinkWater":
+    "Beba água regularmente se puder fazer isso com segurança.",
+
+  "placeLookup.searchAction": "Buscar lugares da demonstração de Barcelona",
+  "placeLookup.loading": "Buscando dados verificados de lugares…",
+  "placeLookup.resultsTitle": "Resultados de lugares de Barcelona",
+  "placeLookup.emptyTitle": "Nenhum lugar correspondente foi encontrado",
+  "placeLookup.emptyMessage":
+    "Nenhum lugar correspondeu ao ponto fixo da demonstração, ao horário atual do dispositivo e aos limites da busca.",
+  "placeLookup.errorTitle": "Informações de lugares indisponíveis",
+  "placeLookup.errorMessage":
+    "Não foi possível exibir as informações de lugares com segurança. Tente novamente somente se escolher.",
+  "placeLookup.compactBoundary":
+    "Ponto fixo da demonstração em Barcelona · Distância em linha reta · Verifique horários e acessibilidade",
+  "placeLookup.boundary":
+    "Usa o ponto fixo da demonstração de Barcelona, não sua localização. As distâncias são em linha reta, não rotas nem tempos estimados de chegada. Os horários são avaliados pelo relógio do dispositivo. Verifique horários e acessibilidade antes de se deslocar. Não é ajuda médica nem de emergência.",
 
   "validation.empty": "Descreva a situação antes de criar um plano.",
   "validation.overLimit": "A descrição é longa demais. Encurte o texto.",
@@ -147,7 +166,7 @@ export const BRAZILIAN_PORTUGUESE_CATALOG = {
   "place.linksAccessibleName": "Links oficiais do local",
   "place.informationLink": "Informações oficiais",
   "place.sourceLink": "Fonte oficial",
-  "place.mapLink": "Abrir rota no Google Maps",
+  "place.mapLink": "Abrir no Google Maps",
   "place.cautionsAccessibleName": "Cuidados relacionados ao local",
   "place.addressUnavailable": "Endereço indisponível",
   "place.accessibilityConfirmed": "Acessibilidade confirmada pela fonte",

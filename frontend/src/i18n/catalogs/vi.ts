@@ -72,13 +72,13 @@ export const VIETNAMESE_CATALOG = {
   "form.privacyDescription":
     "Mô tả của bạn được gửi từ phía máy chủ đến OpenAI để GPT-5.6 xử lý. HeatRelay không chủ ý lưu trữ hoặc ghi nhật ký văn bản thô; chính sách xử lý dữ liệu của nhà cung cấp vẫn có thể được áp dụng.",
   "form.identityWarning":
-    "Văn bản được gửi đến OpenAI; HeatRelay không chủ ý lưu hoặc ghi nhật ký văn bản gốc. Không cung cấp tên, thông tin liên hệ hoặc địa chỉ. Tọa độ demo Barcelona cố định. Đây không phải lời khuyên y tế hay trợ giúp khẩn cấp.",
+    "OpenAI xử lý văn bản này. Không nhập tên, thông tin liên hệ hoặc địa chỉ. Điểm demo Barcelona cố định; đây không phải trợ giúp khẩn cấp.",
   "form.situationLabel": "Mô tả tình huống nắng nóng",
   "form.characterCount": "{{currentCount}} / {{limit}} ký tự",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} ký tự — rút ngắn {{overLimitCount}} ký tự",
   "form.situationHint":
-    "Mô tả ngắn gọn tuổi, khả năng tiếp cận nơi làm mát, khả năng di chuyển, thời điểm và triệu chứng nếu có liên quan.",
+    "Tuổi · khả năng tiếp cận nơi mát · khả năng di chuyển · triệu chứng",
   "form.demoButton": "Tải bản demo Barcelona",
   "form.submitButton": "Tạo kế hoạch hành động ứng phó nắng nóng của tôi",
   "form.submittingButton": "Đang tạo kế hoạch của bạn…",
@@ -92,10 +92,29 @@ export const VIETNAMESE_CATALOG = {
   "scenario.selfDescription": "Tạo kế hoạch hành động cá nhân",
   "scenario.someoneTitle": "Giúp một người thân cận",
   "scenario.someoneDescription": "Tạo kế hoạch cho người khác",
-  "scenario.placeTitle": "Tìm nơi mát mẻ gần đây",
-  "scenario.placeDescription": "Hiển thị trợ giúp đã xác minh gần nhất",
-  "scenario.nearestHelp": "Trợ giúp gần nhất",
+  "scenario.placeTitle": "Tìm nơi mát mẻ trong khu vực demo Barcelona",
+  "scenario.placeDescription": "Tìm thông tin thực tế về địa điểm",
+  "scenario.nearestHelp": "Thông tin địa điểm Barcelona",
   "scenario.importantNow": "Quan trọng lúc này",
+  "scenario.initialTipCoolestSpot":
+    "Di chuyển đến chỗ mát nhất hiện có ngay nơi bạn đang ở.",
+  "scenario.initialTipReduceEffort": "Tạm thời giảm hoạt động thể chất.",
+  "scenario.initialTipDrinkWater":
+    "Uống nước đều đặn nếu bạn có thể làm vậy một cách an toàn.",
+
+  "placeLookup.searchAction": "Tìm địa điểm trong bản demo Barcelona",
+  "placeLookup.loading": "Đang tìm dữ liệu địa điểm đã xác minh…",
+  "placeLookup.resultsTitle": "Kết quả địa điểm Barcelona",
+  "placeLookup.emptyTitle": "Không tìm thấy địa điểm phù hợp",
+  "placeLookup.emptyMessage":
+    "Không có địa điểm nào phù hợp với điểm demo cố định, thời gian hiện tại của thiết bị và giới hạn tìm kiếm.",
+  "placeLookup.errorTitle": "Tìm kiếm địa điểm không khả dụng",
+  "placeLookup.errorMessage":
+    "Không thể hiển thị thông tin địa điểm một cách an toàn. Vui lòng tìm lại sau.",
+  "placeLookup.compactBoundary":
+    "Điểm demo Barcelona cố định · Khoảng cách đường thẳng · Kiểm tra giờ mở cửa và khả năng tiếp cận",
+  "placeLookup.boundary":
+    "Tìm kiếm dùng điểm demo cố định ở Barcelona, không dùng vị trí của bạn. Khoảng cách là đường thẳng, không phải tuyến đường hay thời gian đến nơi. Lịch được đánh giá theo thời gian thiết bị hiện tại. Hãy xác minh giờ mở cửa và khả năng tiếp cận trước khi đi. Đây không phải trợ giúp y tế hay khẩn cấp. Tuyến đường, việc di chuyển và mức độ phù hợp về khả năng tiếp cận cá nhân chưa được xác minh.",
 
   "validation.empty": "Hãy mô tả tình huống trước khi tạo kế hoạch.",
   "validation.overLimit": "Nội dung mô tả quá dài. Hãy rút ngắn văn bản.",
@@ -147,7 +166,7 @@ export const VIETNAMESE_CATALOG = {
   "place.linksAccessibleName": "Liên kết chính thức của địa điểm",
   "place.informationLink": "Thông tin chính thức",
   "place.sourceLink": "Nguồn chính thức",
-  "place.mapLink": "Mở tuyến đường trong Google Maps",
+  "place.mapLink": "Mở trong Google Maps",
   "place.cautionsAccessibleName": "Lưu ý về địa điểm",
   "place.addressUnavailable": "Thông tin địa chỉ không khả dụng",
   "place.accessibilityConfirmed": "Nguồn đã xác nhận khả năng tiếp cận",

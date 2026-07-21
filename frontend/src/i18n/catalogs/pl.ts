@@ -72,13 +72,13 @@ export const POLISH_CATALOG = {
   "form.privacyDescription":
     "Twój opis jest wysyłany po stronie serwera do OpenAI w celu przetworzenia przez GPT-5.6. HeatRelay nie przechowuje ani nie zapisuje surowego tekstu w dziennikach w sposób zamierzony; mogą jednak mieć zastosowanie zasady dostawcy dotyczące przetwarzania danych.",
   "form.identityWarning":
-    "Tekst jest wysyłany do OpenAI; HeatRelay nie zapisuje ani nie rejestruje celowo tekstu źródłowego. Nie podawaj imion i nazwisk, danych kontaktowych ani adresów. Stałe współrzędne demonstracyjne Barcelona. To nie jest porada medyczna ani pomoc w nagłej sytuacji.",
+    "OpenAI przetwarza ten tekst. Nie wpisuj imion i nazwisk, danych kontaktowych ani adresów. Stały punkt demonstracyjny Barcelona; to nie jest pomoc w nagłej sytuacji.",
   "form.situationLabel": "Opisz sytuację związaną z upałem",
   "form.characterCount": "{{currentCount}} / {{limit}} znaków",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} znaków — skróć o {{overLimitCount}}",
   "form.situationHint":
-    "Krótko opisz wiek, dostęp do chłodzenia, mobilność, czas i istotne objawy.",
+    "Wiek · dostęp do chłodzenia · mobilność · objawy",
   "form.demoButton": "Wczytaj demonstrację Barcelona",
   "form.submitButton": "Utwórz mój plan działania podczas upału",
   "form.submittingButton": "Tworzenie planu…",
@@ -92,10 +92,29 @@ export const POLISH_CATALOG = {
   "scenario.selfDescription": "Utwórz osobisty plan działania",
   "scenario.someoneTitle": "Pomóż bliskiej osobie",
   "scenario.someoneDescription": "Utwórz plan dla innej osoby",
-  "scenario.placeTitle": "Znajdź chłodne miejsce w pobliżu",
-  "scenario.placeDescription": "Pokaż najbliższą zweryfikowaną pomoc",
-  "scenario.nearestHelp": "Najbliższa pomoc",
+  "scenario.placeTitle": "Znajdź chłodne miejsce w obszarze demonstracyjnym Barcelona",
+  "scenario.placeDescription": "Wyszukaj rzeczowe informacje o miejscach",
+  "scenario.nearestHelp": "Informacje o miejscach w Barcelona",
   "scenario.importantNow": "Ważne teraz",
+  "scenario.initialTipCoolestSpot":
+    "Przejdź do najchłodniejszego dostępnego miejsca tam, gdzie już jesteś.",
+  "scenario.initialTipReduceEffort": "Na razie ogranicz wysiłek fizyczny.",
+  "scenario.initialTipDrinkWater":
+    "Pij regularnie wodę, jeśli możesz to robić bezpiecznie.",
+
+  "placeLookup.searchAction": "Wyszukaj miejsca demonstracyjne w Barcelona",
+  "placeLookup.loading": "Wyszukiwanie zweryfikowanych danych o miejscach…",
+  "placeLookup.resultsTitle": "Wyniki miejsc w Barcelona",
+  "placeLookup.emptyTitle": "Nie znaleziono pasującego miejsca",
+  "placeLookup.emptyMessage":
+    "Żadne miejsce nie pasowało do stałego punktu demonstracyjnego, bieżącego czasu urządzenia i limitów wyszukiwania.",
+  "placeLookup.errorTitle": "Informacje o miejscach są niedostępne",
+  "placeLookup.errorMessage":
+    "Nie udało się bezpiecznie wyświetlić informacji o miejscach. Spróbuj ponownie tylko, jeśli tak zdecydujesz.",
+  "placeLookup.compactBoundary":
+    "Stały punkt demonstracyjny Barcelona · Odległość w linii prostej · Sprawdź godziny i dostępność",
+  "placeLookup.boundary":
+    "Używa stałego punktu demonstracyjnego Barcelona, a nie Twojej lokalizacji. Odległości są w linii prostej, a nie trasami ani przewidywanymi czasami przyjazdu. Godziny otwarcia są oceniane według czasu urządzenia. Przed podróżą sprawdź godziny i dostępność. To nie jest pomoc medyczna ani ratunkowa.",
 
   "validation.empty": "Opisz sytuację przed utworzeniem planu.",
   "validation.overLimit": "Opis jest za długi. Skróć tekst.",
@@ -147,7 +166,7 @@ export const POLISH_CATALOG = {
   "place.linksAccessibleName": "Oficjalne linki do miejsca",
   "place.informationLink": "Oficjalne informacje",
   "place.sourceLink": "Oficjalne źródło",
-  "place.mapLink": "Otwórz trasę w Google Maps",
+  "place.mapLink": "Otwórz w Google Maps",
   "place.cautionsAccessibleName": "Uwagi dotyczące miejsca",
   "place.addressUnavailable": "Adres niedostępny",
   "place.accessibilityConfirmed": "Dostępność potwierdzona przez źródło",

@@ -72,13 +72,13 @@ export const ITALIAN_CATALOG = {
   "form.privacyDescription":
     "La tua descrizione viene inviata lato server a OpenAI per l’elaborazione con GPT-5.6. HeatRelay non memorizza né registra intenzionalmente il testo originale; potrebbero comunque applicarsi le politiche del fornitore sul trattamento dei dati.",
   "form.identityWarning":
-    "Il testo viene inviato a OpenAI; HeatRelay non salva né registra intenzionalmente il testo originale. Non includere nomi, recapiti o indirizzi. Coordinate fisse della demo di Barcelona. Non è consulenza medica né assistenza d’emergenza.",
+    "OpenAI elabora questo testo. Non inserire nomi, recapiti o indirizzi. Punto demo fisso di Barcelona; non è assistenza d’emergenza.",
   "form.situationLabel": "Descrivi la situazione di caldo",
   "form.characterCount": "{{currentCount}} / {{limit}} caratteri",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} caratteri — riduci di {{overLimitCount}}",
   "form.situationHint":
-    "Descrivi brevemente età, accesso a sistemi di raffrescamento, mobilità, tempistiche e sintomi pertinenti.",
+    "Età · accesso a un luogo fresco · mobilità · sintomi",
   "form.demoButton": "Carica la demo di Barcelona",
   "form.submitButton": "Crea il mio piano d’azione per il caldo",
   "form.submittingButton": "Creazione del piano in corso…",
@@ -92,10 +92,29 @@ export const ITALIAN_CATALOG = {
   "scenario.selfDescription": "Crea un piano d’azione personale",
   "scenario.someoneTitle": "Aiuta una persona vicina",
   "scenario.someoneDescription": "Crea un piano per un’altra persona",
-  "scenario.placeTitle": "Trova un luogo fresco nelle vicinanze",
-  "scenario.placeDescription": "Mostra l’aiuto verificato più vicino",
-  "scenario.nearestHelp": "Aiuto più vicino",
+  "scenario.placeTitle": "Trova un luogo fresco nell’area demo di Barcelona",
+  "scenario.placeDescription": "Cerca informazioni fattuali sui luoghi",
+  "scenario.nearestHelp": "Informazioni sui luoghi di Barcelona",
   "scenario.importantNow": "Importante adesso",
+  "scenario.initialTipCoolestSpot":
+    "Spostati nel punto disponibile più fresco dove ti trovi già.",
+  "scenario.initialTipReduceEffort": "Riduci per ora lo sforzo fisico.",
+  "scenario.initialTipDrinkWater":
+    "Bevi acqua regolarmente se puoi farlo in sicurezza.",
+
+  "placeLookup.searchAction": "Cerca luoghi nella demo di Barcelona",
+  "placeLookup.loading": "Ricerca di dati verificati sui luoghi…",
+  "placeLookup.resultsTitle": "Risultati dei luoghi di Barcelona",
+  "placeLookup.emptyTitle": "Nessun luogo corrispondente trovato",
+  "placeLookup.emptyMessage":
+    "Nessun luogo corrispondeva al punto demo fisso, all’ora attuale del dispositivo e ai limiti di ricerca.",
+  "placeLookup.errorTitle": "Informazioni sui luoghi non disponibili",
+  "placeLookup.errorMessage":
+    "Non è stato possibile mostrare in modo sicuro le informazioni sui luoghi. Riprova solo se lo scegli.",
+  "placeLookup.compactBoundary":
+    "Punto demo fisso di Barcelona · Distanza in linea d’aria · Verifica orari e accessibilità",
+  "placeLookup.boundary":
+    "Usa il punto demo fisso di Barcelona, non la tua posizione. Le distanze sono in linea d’aria, non percorsi o tempi di arrivo stimati. Gli orari vengono valutati con l’ora del dispositivo. Verifica orari e accessibilità prima di spostarti. Non è assistenza medica o d’emergenza.",
 
   "validation.empty": "Descrivi la situazione prima di creare un piano.",
   "validation.overLimit": "La descrizione è troppo lunga. Accorcia il testo.",
@@ -147,7 +166,7 @@ export const ITALIAN_CATALOG = {
   "place.linksAccessibleName": "Link ufficiali del luogo",
   "place.informationLink": "Informazioni ufficiali",
   "place.sourceLink": "Fonte ufficiale",
-  "place.mapLink": "Apri il percorso in Google Maps",
+  "place.mapLink": "Apri in Google Maps",
   "place.cautionsAccessibleName": "Avvertenze sul luogo",
   "place.addressUnavailable": "Indirizzo non disponibile",
   "place.accessibilityConfirmed": "Accessibilità confermata dalla fonte",

@@ -72,13 +72,13 @@ export const SWAHILI_CATALOG = {
   "form.privacyDescription":
     "Maelezo yako yanatumwa kutoka upande wa seva kwenda OpenAI ili yachakatwe na GPT-5.6. HeatRelay haikusudii kuhifadhi au kurekodi maandishi ghafi; sera za mtoa huduma za kushughulikia data bado zinaweza kutumika.",
   "form.identityWarning":
-    "Maandishi yanatumwa kwa OpenAI; HeatRelay haihifadhi wala kurekodi maandishi ya asili kwa makusudi. Usijumuishe majina, mawasiliano au anwani. Viwianishi vya onyesho la Barcelona ni vya kudumu. Si ushauri wa kitabibu wala msaada wa dharura.",
+    "OpenAI huchakata maandishi haya. Usiweke majina, mawasiliano au anwani. Sehemu ya kudumu ya onyesho la Barcelona; si msaada wa dharura.",
   "form.situationLabel": "Eleza hali ya joto",
   "form.characterCount": "{{currentCount}} / {{limit}} herufi",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} herufi — punguza kwa {{overLimitCount}}",
   "form.situationHint":
-    "Eleza kwa ufupi umri, upatikanaji wa sehemu ya kujituliza, uwezo wa kusogea, muda na dalili zinazohusika.",
+    "Umri · upatikanaji wa sehemu ya kujituliza · uwezo wa kusogea · dalili",
   "form.demoButton": "Pakia onyesho la Barcelona",
   "form.submitButton": "Tengeneza mpango wangu wa hatua dhidi ya joto",
   "form.submittingButton": "Mpango wako unatengenezwa…",
@@ -92,10 +92,29 @@ export const SWAHILI_CATALOG = {
   "scenario.selfDescription": "Unda mpango wangu wa hatua",
   "scenario.someoneTitle": "Msaidie mtu wa karibu",
   "scenario.someoneDescription": "Unda mpango kwa ajili ya mtu mwingine",
-  "scenario.placeTitle": "Tafuta mahali penye baridi karibu",
-  "scenario.placeDescription": "Onyesha msaada uliothibitishwa ulio karibu",
-  "scenario.nearestHelp": "Msaada wa karibu",
+  "scenario.placeTitle": "Tafuta mahali penye baridi katika eneo la majaribio la Barcelona",
+  "scenario.placeDescription": "Tafuta taarifa za kweli kuhusu maeneo",
+  "scenario.nearestHelp": "Taarifa za maeneo ya Barcelona",
   "scenario.importantNow": "Muhimu sasa",
+  "scenario.initialTipCoolestSpot":
+    "Nenda sehemu baridi zaidi inayopatikana ulipo sasa.",
+  "scenario.initialTipReduceEffort": "Punguza juhudi za mwili kwa sasa.",
+  "scenario.initialTipDrinkWater":
+    "Kunywa maji mara kwa mara ikiwa ni salama kufanya hivyo.",
+
+  "placeLookup.searchAction": "Tafuta maeneo ya majaribio ya Barcelona",
+  "placeLookup.loading": "Inatafuta data zilizothibitishwa za maeneo…",
+  "placeLookup.resultsTitle": "Matokeo ya maeneo ya Barcelona",
+  "placeLookup.emptyTitle": "Hakuna eneo linalolingana lililopatikana",
+  "placeLookup.emptyMessage":
+    "Hakuna eneo lililolingana na sehemu ya kudumu ya majaribio, saa ya sasa ya kifaa na mipaka ya utafutaji.",
+  "placeLookup.errorTitle": "Taarifa za maeneo hazipatikani",
+  "placeLookup.errorMessage":
+    "Taarifa za maeneo hazikuweza kuonyeshwa kwa usalama. Jaribu tena ikiwa tu umechagua kufanya hivyo.",
+  "placeLookup.compactBoundary":
+    "Sehemu ya kudumu ya onyesho la Barcelona · Umbali wa mstari wa moja kwa moja · Thibitisha saa na ufikivu",
+  "placeLookup.boundary":
+    "Inatumia sehemu ya kudumu ya majaribio ya Barcelona, si mahali ulipo. Umbali ni wa mstari wa moja kwa moja, si njia au makadirio ya muda wa kufika. Saa za kufungua hutathminiwa kwa saa ya kifaa chako. Thibitisha saa na ufikivu kabla ya kusafiri. Huu si msaada wa matibabu au dharura.",
 
   "validation.empty": "Eleza hali kabla ya kutengeneza mpango.",
   "validation.overLimit": "Maelezo ni marefu sana. Fupisha maandishi.",
@@ -147,7 +166,7 @@ export const SWAHILI_CATALOG = {
   "place.linksAccessibleName": "Viungo rasmi vya eneo",
   "place.informationLink": "Taarifa rasmi",
   "place.sourceLink": "Chanzo rasmi",
-  "place.mapLink": "Fungua njia katika Google Maps",
+  "place.mapLink": "Fungua katika Google Maps",
   "place.cautionsAccessibleName": "Tahadhari za eneo",
   "place.addressUnavailable": "Anwani haipatikani",
   "place.accessibilityConfirmed": "Ufikivu umethibitishwa na chanzo",

@@ -72,13 +72,13 @@ export const PERSIAN_CATALOG = {
   "form.privacyDescription":
     "شرح شما در سمت سرور برای پردازش با GPT-5.6 به OpenAI ارسال می‌شود. HeatRelay عمداً متن خام را ذخیره یا ثبت نمی‌کند؛ با این حال ممکن است سیاست‌های ارائه‌دهنده درباره مدیریت داده اعمال شوند.",
   "form.identityWarning":
-    "متن به OpenAI ارسال می‌شود؛ HeatRelay عمداً متن اصلی را ذخیره یا ثبت نمی‌کند. نام، اطلاعات تماس یا نشانی وارد نکنید. مختصات ثابت نسخه نمایشی Barcelona. این توصیه پزشکی یا کمک اضطراری نیست.",
+    "OpenAI این متن را پردازش می‌کند. نام، اطلاعات تماس یا نشانی وارد نکنید. نقطه ثابت نمایشی Barcelona؛ این کمک اضطراری نیست.",
   "form.situationLabel": "وضعیت گرمایی را شرح دهید",
   "form.characterCount": "{{currentCount}} / {{limit}} نویسه",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} نویسه — {{overLimitCount}} نویسه کوتاه کنید",
   "form.situationHint":
-    "سن، دسترسی به فضای خنک، توانایی جابه‌جایی، زمان و علائم مرتبط را کوتاه شرح دهید.",
+    "سن · دسترسی به خنکی · توانایی جابه‌جایی · علائم",
   "form.demoButton": "بارگذاری نمونه Barcelona",
   "form.submitButton": "ایجاد برنامه اقدام من برای گرما",
   "form.submittingButton": "در حال ایجاد برنامه شما…",
@@ -92,10 +92,29 @@ export const PERSIAN_CATALOG = {
   "scenario.selfDescription": "یک برنامه اقدام شخصی بسازید",
   "scenario.someoneTitle": "به فردی نزدیک کمک کنید",
   "scenario.someoneDescription": "برای فرد دیگری برنامه بسازید",
-  "scenario.placeTitle": "یک مکان خنک نزدیک پیدا کنید",
-  "scenario.placeDescription": "نزدیک‌ترین کمک تأییدشده را نشان دهید",
-  "scenario.nearestHelp": "نزدیک‌ترین کمک",
+  "scenario.placeTitle": "یک مکان خنک در محدوده آزمایشی Barcelona پیدا کنید",
+  "scenario.placeDescription": "اطلاعات واقعی مکان‌ها را جست‌وجو کنید",
+  "scenario.nearestHelp": "اطلاعات مکان‌های Barcelona",
   "scenario.importantNow": "اکنون مهم است",
+  "scenario.initialTipCoolestSpot":
+    "در همان جایی که هستید به خنک‌ترین نقطه در دسترس بروید.",
+  "scenario.initialTipReduceEffort": "فعلاً فعالیت بدنی را کاهش دهید.",
+  "scenario.initialTipDrinkWater":
+    "اگر ایمن است، به‌طور منظم آب بنوشید.",
+
+  "placeLookup.searchAction": "جست‌وجوی مکان‌های آزمایشی Barcelona",
+  "placeLookup.loading": "در حال جست‌وجوی داده‌های تأییدشده مکان‌ها…",
+  "placeLookup.resultsTitle": "نتایج مکان‌های Barcelona",
+  "placeLookup.emptyTitle": "مکان منطبقی پیدا نشد",
+  "placeLookup.emptyMessage":
+    "هیچ مکانی با نقطه ثابت آزمایشی، زمان فعلی دستگاه و محدوده‌های جست‌وجو مطابقت نداشت.",
+  "placeLookup.errorTitle": "اطلاعات مکان در دسترس نیست",
+  "placeLookup.errorMessage":
+    "اطلاعات مکان را نمی‌توان با ایمنی نمایش داد. فقط در صورت انتخاب خودتان دوباره تلاش کنید.",
+  "placeLookup.compactBoundary":
+    "نقطه ثابت نمایشی Barcelona · فاصله مستقیم · ساعت‌ها و دسترس‌پذیری را بررسی کنید",
+  "placeLookup.boundary":
+    "از نقطه ثابت آزمایشی Barcelona استفاده می‌کند، نه موقعیت شما. فاصله‌ها خط مستقیم هستند، نه مسیر یا زمان تخمینی رسیدن. ساعات کار با زمان دستگاه شما ارزیابی می‌شوند. پیش از رفتن، ساعات و دسترس‌پذیری را بررسی کنید. این کمک پزشکی یا اضطراری نیست.",
 
   "validation.empty": "پیش از ایجاد برنامه، وضعیت را شرح دهید.",
   "validation.overLimit": "شرح بیش از حد طولانی است. متن را کوتاه کنید.",
@@ -147,7 +166,7 @@ export const PERSIAN_CATALOG = {
   "place.linksAccessibleName": "پیوندهای رسمی مکان",
   "place.informationLink": "اطلاعات رسمی",
   "place.sourceLink": "منبع رسمی",
-  "place.mapLink": "باز کردن مسیر در Google Maps",
+  "place.mapLink": "باز کردن در Google Maps",
   "place.cautionsAccessibleName": "هشدارهای مربوط به مکان",
   "place.addressUnavailable": "نشانی در دسترس نیست",
   "place.accessibilityConfirmed": "دسترس‌پذیری توسط منبع تأیید شده است",

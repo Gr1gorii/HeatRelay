@@ -72,13 +72,13 @@ export const SIMPLIFIED_CHINESE_CATALOG = {
   "form.privacyDescription":
     "您的描述将发送到服务器端，由 OpenAI 进行 GPT-5.6 处理。HeatRelay 不会有意存储或记录原始文本；但提供商的数据处理政策仍可能适用。",
   "form.identityWarning":
-    "文本会发送至 OpenAI；HeatRelay 不会有意保存或记录原始文本。请勿包含姓名、联系方式或地址。使用固定的 Barcelona 演示坐标。这不是医疗建议或紧急援助。",
+    "OpenAI 会处理此文本。请勿输入姓名、联系方式或地址。使用固定的 Barcelona 演示点；这不是紧急援助。",
   "form.situationLabel": "描述高温情况",
   "form.characterCount": "{{currentCount}} / {{limit}} 个字符",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} 个字符 — 请缩短 {{overLimitCount}} 个字符",
   "form.situationHint":
-    "请简要描述年龄、降温条件、行动能力、时间，以及相关症状。",
+    "年龄 · 降温条件 · 行动能力 · 症状",
   "form.demoButton": "加载 Barcelona 演示",
   "form.submitButton": "创建我的高温行动计划",
   "form.submittingButton": "正在创建您的计划……",
@@ -92,10 +92,28 @@ export const SIMPLIFIED_CHINESE_CATALOG = {
   "scenario.selfDescription": "创建个人行动计划",
   "scenario.someoneTitle": "帮助我关心的人",
   "scenario.someoneDescription": "为他人创建计划",
-  "scenario.placeTitle": "查找附近的凉爽场所",
-  "scenario.placeDescription": "显示最近的已核实帮助",
-  "scenario.nearestHelp": "最近的帮助",
+  "scenario.placeTitle": "在 Barcelona 演示区域查找凉爽场所",
+  "scenario.placeDescription": "查找地点的事实信息",
+  "scenario.nearestHelp": "Barcelona 地点信息",
   "scenario.importantNow": "现在很重要",
+  "scenario.initialTipCoolestSpot":
+    "移到您当前所在位置中最凉爽的可用地点。",
+  "scenario.initialTipReduceEffort": "暂时减少体力活动。",
+  "scenario.initialTipDrinkWater":
+    "如果可以安全饮水，请定时喝水。",
+
+  "placeLookup.searchAction": "搜索 Barcelona 演示地点",
+  "placeLookup.loading": "正在查找已核实的地点数据……",
+  "placeLookup.resultsTitle": "Barcelona 地点结果",
+  "placeLookup.emptyTitle": "未找到匹配地点",
+  "placeLookup.emptyMessage":
+    "没有地点符合固定演示点、设备当前时间和搜索限制。",
+  "placeLookup.errorTitle": "地点搜索不可用",
+  "placeLookup.errorMessage": "无法安全显示地点信息。请稍后再次搜索。",
+  "placeLookup.compactBoundary":
+    "固定的 Barcelona 演示点 · 直线距离 · 核实营业时间和无障碍情况",
+  "placeLookup.boundary":
+    "搜索使用 Barcelona 的固定演示点，而不是您的位置。距离为直线距离，不是路线或预计到达时间。营业时间按设备当前时间评估。出发前请核实营业时间和无障碍情况。这不是医疗或紧急援助。路线、出行及个人无障碍适配情况均未核实。",
 
   "validation.empty": "请先描述情况，再创建计划。",
   "validation.overLimit": "描述过长。请缩短文本。",
@@ -145,7 +163,7 @@ export const SIMPLIFIED_CHINESE_CATALOG = {
   "place.linksAccessibleName": "官方地点链接",
   "place.informationLink": "官方信息",
   "place.sourceLink": "官方来源",
-  "place.mapLink": "在 Google 地图中打开路线",
+  "place.mapLink": "在 Google 地图中打开",
   "place.cautionsAccessibleName": "地点注意事项",
   "place.addressUnavailable": "无可用地址",
   "place.accessibilityConfirmed": "来源确认无障碍",

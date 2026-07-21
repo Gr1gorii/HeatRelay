@@ -64,6 +64,11 @@ import {
   resolveInitialVisualMode,
   type VisualMode,
 } from "./visual-mode";
+import {
+  findPlaceCandidates,
+  type PlaceCandidate,
+  type PlaceCandidatesResponse,
+} from "./place-candidates";
 
 const MADRID_TIME_ZONE = "Europe/Madrid";
 const MOBILE_SETTINGS_BREAKPOINT = 900;
@@ -167,14 +172,19 @@ const PHASE_IDS = {
 
 const INITIAL_SAFETY_STEPS = [
   {
-    key: "water",
-    label: "feature.potableWater",
-    Icon: PintGlassIcon,
+    key: "coolest-spot",
+    label: "scenario.initialTipCoolestSpot",
+    Icon: HouseLineIcon,
   },
   {
-    key: "cool-space",
-    label: "scenario.placeTitle",
-    Icon: FanIcon,
+    key: "reduce-effort",
+    label: "scenario.initialTipReduceEffort",
+    Icon: PersonSimpleWalkIcon,
+  },
+  {
+    key: "drink-water",
+    label: "scenario.initialTipDrinkWater",
+    Icon: PintGlassIcon,
   },
 ] as const satisfies ReadonlyArray<{
   key: string;
@@ -222,6 +232,15 @@ const FIELD_ERROR_MESSAGE_KEYS = {
 } as const satisfies Record<FieldErrorKind, MessageKey>;
 
 type UiErrorKind = "malformed_response" | "unavailable" | "connection";
+
+type PlaceLookupState =
+  | Readonly<{ status: "idle" }>
+  | Readonly<{ status: "loading" }>
+  | Readonly<{
+      status: "success" | "empty";
+      response: PlaceCandidatesResponse;
+    }>
+  | Readonly<{ status: "error" }>;
 
 const UI_ERROR_MESSAGE_KEYS = {
   malformed_response: {
@@ -701,11 +720,28 @@ function InitialSafetyPreview() {
   );
 }
 
-function FeatureList({ features }: { features: SelectedPlace["features"] }) {
+function FeatureList({
+  features,
+  states = ["confirmed", "unavailable", "unknown"],
+  compact = false,
+}: {
+  features: SelectedPlace["features"];
+  states?: ReadonlyArray<FactState>;
+  compact?: boolean;
+}) {
   const { t } = useTranslation();
+  const visibleFeatures = FEATURE_CODE_ORDER.filter((feature) =>
+    states.includes(factState(features[feature])),
+  );
+  if (visibleFeatures.length === 0) {
+    return null;
+  }
   return (
-    <ul className="feature-list">
-      {FEATURE_CODE_ORDER.map((feature) => {
+    <ul
+      className={`feature-list${compact ? " feature-chip-list" : ""}`}
+      aria-label={compact ? t("place.featuresTitle") : undefined}
+    >
+      {visibleFeatures.map((feature) => {
         const state = factState(features[feature]);
         const FeatureIcon = FEATURE_ICONS[feature];
         return (
@@ -714,7 +750,9 @@ function FeatureList({ features }: { features: SelectedPlace["features"] }) {
               <FeatureIcon aria-hidden="true" size={24} weight="regular" />
               {t(FEATURE_LABEL_KEYS[feature])}
             </span>
-            <strong>{t(FEATURE_STATE_LABEL_KEYS[state])}</strong>
+            {compact ? null : (
+              <strong>{t(FEATURE_STATE_LABEL_KEYS[state])}</strong>
+            )}
           </li>
         );
       })}
@@ -722,14 +760,22 @@ function FeatureList({ features }: { features: SelectedPlace["features"] }) {
   );
 }
 
-function ExternalMapLink({ address }: { address: string | null }) {
+function ExternalMapLink({
+  address,
+  standalone = false,
+}: {
+  address: string | null;
+  standalone?: boolean;
+}) {
   const { t } = useTranslation();
   if (!address) {
     return null;
   }
-  const href =
-    "https://www.google.com/maps/dir/?api=1&destination=" +
-    encodeURIComponent(address);
+  const href = standalone
+    ? "https://www.google.com/maps/search/?api=1&query=" +
+      encodeURIComponent(address)
+    : "https://www.google.com/maps/dir/?api=1&destination=" +
+      encodeURIComponent(address);
   return (
     <a
       className="map-link"
@@ -740,6 +786,278 @@ function ExternalMapLink({ address }: { address: string | null }) {
       <ArrowSquareOutIcon aria-hidden="true" size={24} weight="bold" />
       {t("place.mapLink")}
     </a>
+  );
+}
+
+function StandalonePlaceCandidateCard({
+  candidate,
+  index,
+}: {
+  candidate: PlaceCandidate;
+  index: number;
+}) {
+  const { t, i18n } = useTranslation();
+  const locale = activeInterfaceLocale(i18n.resolvedLanguage);
+  const address = verifiedAddress(candidate);
+  const titleId = `place-candidate-${index}-title`;
+
+  return (
+    <article
+      className="place-card standalone-place-card"
+      aria-labelledby={titleId}
+    >
+      <h4 id={titleId}>
+        <bdi dir="auto">{candidate.name}</bdi>
+      </h4>
+      <p className="place-address">
+        <MapPinIcon aria-hidden="true" size={22} weight="fill" />
+        <bdi dir="auto">
+          {formatAddress(candidate, t("place.addressUnavailable"))}
+        </bdi>
+      </p>
+
+      <dl className="place-details standalone-place-facts">
+        <div>
+          <dt>
+            <PersonSimpleWalkIcon aria-hidden="true" size={22} />
+            {t("place.distanceLabel")}
+          </dt>
+          <dd>
+            <bdi dir="auto">
+              {t("distance.straightLine", {
+                distance: formatDistance(candidate.distance_m, locale),
+              })}
+            </bdi>
+          </dd>
+        </div>
+        <div>
+          <dt>
+            <ClockIcon aria-hidden="true" size={22} />
+            {t("place.closesLabel")}
+          </dt>
+          <dd>
+            <time dateTime={candidate.closes_at} dir="auto">
+              {formatDateTime(candidate.closes_at, locale, MADRID_TIME_ZONE)}
+            </time>
+          </dd>
+        </div>
+        <div>
+          <dt>
+            <WheelchairIcon aria-hidden="true" size={22} />
+            {t("place.accessibilityLabel")}
+          </dt>
+          <dd>
+            {t(ACCESSIBILITY_LABEL_KEYS[factState(candidate.accessibility)])}
+          </dd>
+        </div>
+      </dl>
+
+      <FeatureList
+        features={candidate.features}
+        states={["confirmed"]}
+        compact
+      />
+
+      <div className="result-actions" aria-label={t("place.linksAccessibleName")}>
+        {candidate.information_url ? (
+          <a
+            className="text-link"
+            href={candidate.information_url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {t("place.informationLink")}
+          </a>
+        ) : null}
+        <ExternalMapLink address={address} standalone />
+      </div>
+    </article>
+  );
+}
+
+function PlaceLookupVerificationDetails({
+  response,
+}: {
+  response: PlaceCandidatesResponse;
+}) {
+  const { t, i18n } = useTranslation();
+  const locale = activeInterfaceLocale(i18n.resolvedLanguage);
+
+  return (
+    <details className="place-lookup-disclosure">
+      <summary>{t("place.cautionsAccessibleName")}</summary>
+      <p className="place-lookup-detailed-boundary">
+        {t("placeLookup.boundary")}
+      </p>
+      <p className="place-provenance">
+        <strong>{t("place.sourceLink")}:</strong>{" "}
+        <bdi dir="auto">{response.snapshot.publisher}</bdi>
+        <span>{response.snapshot.attribution}</span>
+      </p>
+      <div className="place-candidate-verification-list">
+        {response.candidates.map((candidate, index) => {
+          const detailsTitleId = `place-candidate-${index}-verification-title`;
+          return (
+            <section key={candidate.place_id} aria-labelledby={detailsTitleId}>
+              <h4 id={detailsTitleId}>
+                <bdi dir="auto">{candidate.name}</bdi>
+              </h4>
+              <FeatureList
+                features={candidate.features}
+                states={["unavailable", "unknown"]}
+              />
+              <p className="place-last-checked">
+                <ClockIcon aria-hidden="true" size={20} />
+                <span>{t("place.lastCheckedLabel")}</span>{" "}
+                <time dateTime={candidate.last_checked} dir="auto">
+                  {formatDateOnly(candidate.last_checked, locale)}
+                </time>
+              </p>
+              <a
+                className="text-link"
+                href={candidate.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t("place.sourceLink")}
+              </a>
+            </section>
+          );
+        })}
+      </div>
+      <ul className="place-backend-notices" lang="en" dir="ltr">
+        <li>{response.explanation}</li>
+        <li>{response.candidate_notice}</li>
+        <li>{response.hours_warning}</li>
+      </ul>
+    </details>
+  );
+}
+
+function PlaceLookupPanel({
+  state,
+  isActionPlanLoading,
+  searchButtonRef,
+  resultHeadingRef,
+  onSearch,
+}: {
+  state: PlaceLookupState;
+  isActionPlanLoading: boolean;
+  searchButtonRef: RefObject<HTMLButtonElement | null>;
+  resultHeadingRef: RefObject<HTMLHeadingElement | null>;
+  onSearch: () => void;
+}) {
+  const { t } = useTranslation();
+  const loading = state.status === "loading";
+  const statusText =
+    state.status === "loading"
+      ? t("placeLookup.loading")
+      : state.status === "success"
+        ? t("placeLookup.resultsTitle")
+        : state.status === "empty"
+          ? t("placeLookup.emptyTitle")
+          : state.status === "error"
+            ? t("placeLookup.errorTitle")
+            : "";
+
+  return (
+    <section
+      id="place-lookup-panel"
+      className="place-lookup-panel"
+      aria-labelledby="place-lookup-title"
+      aria-busy={loading}
+    >
+      <div className="place-lookup-heading">
+        <MapPinIcon aria-hidden="true" size={32} weight="regular" />
+        <div>
+          <h2 id="place-lookup-title">{t("scenario.placeTitle")}</h2>
+          <p>{t("scenario.placeDescription")}</p>
+        </div>
+      </div>
+      <p className="place-lookup-boundary">
+        {t("placeLookup.compactBoundary")}
+      </p>
+      <button
+        ref={searchButtonRef}
+        type="button"
+        className="primary-button place-search-button"
+        disabled={loading || isActionPlanLoading}
+        onClick={onSearch}
+      >
+        <span>{t("placeLookup.searchAction")}</span>
+        <ArrowRightIcon aria-hidden="true" size={24} weight="bold" />
+      </button>
+      <p
+        className="place-lookup-status"
+        data-visible={loading ? "true" : "false"}
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {statusText}
+      </p>
+
+      {state.status === "success" ? (
+        <section
+          className="place-lookup-results"
+          aria-labelledby="place-lookup-results-title"
+        >
+          <h3
+            id="place-lookup-results-title"
+            ref={resultHeadingRef}
+            tabIndex={-1}
+            className="result-focus"
+          >
+            {t("placeLookup.resultsTitle")}
+          </h3>
+          <div className="place-candidate-list">
+            {state.response.candidates.map((candidate, index) => (
+              <StandalonePlaceCandidateCard
+                key={candidate.place_id}
+                candidate={candidate}
+                index={index}
+              />
+            ))}
+          </div>
+          <PlaceLookupVerificationDetails response={state.response} />
+        </section>
+      ) : null}
+
+      {state.status === "empty" ? (
+        <section
+          className="place-lookup-empty"
+          aria-labelledby="place-lookup-empty-title"
+        >
+          <h3
+            id="place-lookup-empty-title"
+            ref={resultHeadingRef}
+            tabIndex={-1}
+            className="result-focus"
+          >
+            {t("placeLookup.emptyTitle")}
+          </h3>
+          <p>{t("placeLookup.emptyMessage")}</p>
+        </section>
+      ) : null}
+
+      {state.status === "error" ? (
+        <section
+          className="place-lookup-error"
+          aria-labelledby="place-lookup-error-title"
+        >
+          <h3
+            id="place-lookup-error-title"
+            ref={resultHeadingRef}
+            tabIndex={-1}
+            className="result-focus"
+          >
+            {t("placeLookup.errorTitle")}
+          </h3>
+          <p>{t("placeLookup.errorMessage")}</p>
+        </section>
+      ) : null}
+
+    </section>
   );
 }
 
@@ -1228,27 +1546,36 @@ function SituationForm({
 function ScenarioDashboard({
   response,
   activeScenario,
+  placeLookupState,
   situationText,
   fieldError,
   isLoading,
   textareaRef,
+  placeSearchButtonRef,
+  placeResultHeadingRef,
   locale,
   onTextChange,
   onScenarioChange,
+  onPlaceSearch,
   onSubmit,
 }: {
   response?: NormalActionPlanResponse;
   activeScenario: AssistanceScenario;
+  placeLookupState: PlaceLookupState;
   situationText: string;
   fieldError: FieldErrorKind | null;
   isLoading: boolean;
   textareaRef: RefObject<HTMLTextAreaElement | null>;
+  placeSearchButtonRef: RefObject<HTMLButtonElement | null>;
+  placeResultHeadingRef: RefObject<HTMLHeadingElement | null>;
   locale: InterfaceLocale;
   onTextChange: (value: string) => void;
   onScenarioChange: (scenario: AssistanceScenario) => void;
+  onPlaceSearch: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
   const { t } = useTranslation();
+  const placeLookupLoading = placeLookupState.status === "loading";
   const outputDirection = response
     ? getLocaleDefinition(response.output_locale).direction
     : "ltr";
@@ -1271,8 +1598,12 @@ function ScenarioDashboard({
                   type="button"
                   className="scenario-example"
                   aria-expanded={active}
-                  aria-controls="scenario-form"
-                  disabled={isLoading}
+                  aria-controls={
+                    scenario === "place"
+                      ? "place-lookup-panel"
+                      : "scenario-form"
+                  }
+                  disabled={isLoading || placeLookupLoading}
                   onClick={() => {
                     onScenarioChange(scenario);
                   }}
@@ -1285,15 +1616,25 @@ function ScenarioDashboard({
                 </button>
 
                 {active ? (
-                  <SituationForm
-                    situationText={situationText}
-                    fieldError={fieldError}
-                    isLoading={isLoading}
-                    textareaRef={textareaRef}
-                    locale={locale}
-                    onTextChange={onTextChange}
-                    onSubmit={onSubmit}
-                  />
+                  scenario === "place" ? (
+                    <PlaceLookupPanel
+                      state={placeLookupState}
+                      isActionPlanLoading={isLoading}
+                      searchButtonRef={placeSearchButtonRef}
+                      resultHeadingRef={placeResultHeadingRef}
+                      onSearch={onPlaceSearch}
+                    />
+                  ) : (
+                    <SituationForm
+                      situationText={situationText}
+                      fieldError={fieldError}
+                      isLoading={isLoading}
+                      textareaRef={textareaRef}
+                      locale={locale}
+                      onTextChange={onTextChange}
+                      onSubmit={onSubmit}
+                    />
+                  )
                 ) : null}
               </section>
             );
@@ -1363,13 +1704,19 @@ export default function App() {
     useState<AssistanceScenario>("self");
   const [fieldError, setFieldError] = useState<FieldErrorKind | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [placeLookupState, setPlaceLookupState] =
+    useState<PlaceLookupState>({ status: "idle" });
   const [result, setResult] = useState<ActionPlanResponse | null>(null);
   const [error, setError] = useState<UiErrorKind | null>(null);
   const submissionInFlight = useRef(false);
+  const placeLookupInFlight = useRef(false);
   const situationTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const placeSearchButtonRef = useRef<HTMLButtonElement>(null);
+  const placeResultHeadingRef = useRef<HTMLHeadingElement>(null);
   const languageSelectRef = useRef<HTMLSelectElement>(null);
   const focusLanguageAfterSettingsOpen = useRef(false);
   const focusSituationAfterScenarioChange = useRef(false);
+  const focusPlaceSearchAfterScenarioChange = useRef(false);
   const resultHeadingRef = useRef<HTMLHeadingElement>(null);
   const errorHeadingRef = useRef<HTMLHeadingElement>(null);
 
@@ -1395,7 +1742,21 @@ export default function App() {
       focusSituationAfterScenarioChange.current = false;
       situationTextareaRef.current?.focus();
     }
+    if (focusPlaceSearchAfterScenarioChange.current) {
+      focusPlaceSearchAfterScenarioChange.current = false;
+      placeSearchButtonRef.current?.focus();
+    }
   }, [activeScenario]);
+
+  useEffect(() => {
+    if (
+      placeLookupState.status === "success" ||
+      placeLookupState.status === "empty" ||
+      placeLookupState.status === "error"
+    ) {
+      placeResultHeadingRef.current?.focus();
+    }
+  }, [placeLookupState]);
 
   useEffect(() => {
     if (error) {
@@ -1427,11 +1788,38 @@ export default function App() {
   }
 
   function handleScenarioChange(scenario: AssistanceScenario) {
-    if (isLoading || scenario === activeScenario) {
+    if (
+      isLoading ||
+      placeLookupState.status === "loading" ||
+      scenario === activeScenario
+    ) {
       return;
     }
-    focusSituationAfterScenarioChange.current = true;
+    if (scenario === "place") {
+      focusPlaceSearchAfterScenarioChange.current = true;
+    } else {
+      focusSituationAfterScenarioChange.current = true;
+    }
     setActiveScenario(scenario);
+  }
+
+  async function handlePlaceSearch() {
+    if (placeLookupInFlight.current || isLoading) {
+      return;
+    }
+    placeLookupInFlight.current = true;
+    setPlaceLookupState({ status: "loading" });
+    try {
+      const response = await findPlaceCandidates();
+      setPlaceLookupState({
+        status: response.candidates.length === 0 ? "empty" : "success",
+        response,
+      });
+    } catch {
+      setPlaceLookupState({ status: "error" });
+    } finally {
+      placeLookupInFlight.current = false;
+    }
   }
 
   async function handleLocaleChange(
@@ -1568,13 +1956,19 @@ export default function App() {
               <ScenarioDashboard
                 response={result}
                 activeScenario={activeScenario}
+                placeLookupState={placeLookupState}
                 situationText={situationText}
                 fieldError={fieldError}
                 isLoading={isLoading}
                 textareaRef={situationTextareaRef}
+                placeSearchButtonRef={placeSearchButtonRef}
+                placeResultHeadingRef={placeResultHeadingRef}
                 locale={locale}
                 onTextChange={changeSituationText}
                 onScenarioChange={handleScenarioChange}
+                onPlaceSearch={() => {
+                  void handlePlaceSearch();
+                }}
                 onSubmit={handleSubmit}
               />
             </NormalResult>
@@ -1602,13 +1996,19 @@ export default function App() {
           ) : (
             <ScenarioDashboard
               activeScenario={activeScenario}
+              placeLookupState={placeLookupState}
               situationText={situationText}
               fieldError={fieldError}
               isLoading={isLoading}
               textareaRef={situationTextareaRef}
+              placeSearchButtonRef={placeSearchButtonRef}
+              placeResultHeadingRef={placeResultHeadingRef}
               locale={locale}
               onTextChange={changeSituationText}
               onScenarioChange={handleScenarioChange}
+              onPlaceSearch={() => {
+                void handlePlaceSearch();
+              }}
               onSubmit={handleSubmit}
             />
           )}

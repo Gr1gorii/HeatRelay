@@ -72,13 +72,13 @@ export const THAI_CATALOG = {
   "form.privacyDescription":
     "คำอธิบายของคุณถูกส่งผ่านเซิร์ฟเวอร์ไปยัง OpenAI เพื่อประมวลผลด้วย GPT-5.6 HeatRelay ไม่ได้ตั้งใจจัดเก็บหรือบันทึกข้อความต้นฉบับ แต่นโยบายการจัดการข้อมูลของผู้ให้บริการอาจยังมีผลบังคับใช้",
   "form.identityWarning":
-    "ข้อความจะถูกส่งไปยัง OpenAI โดย HeatRelay ไม่ได้ตั้งใจบันทึกหรือจัดเก็บข้อความต้นฉบับ อย่าใส่ชื่อ ข้อมูลติดต่อ หรือที่อยู่ ใช้พิกัดเดโม Barcelona แบบคงที่ ไม่ใช่คำแนะนำทางการแพทย์หรือความช่วยเหลือฉุกเฉิน",
+    "OpenAI ประมวลผลข้อความนี้ อย่าใส่ชื่อ ข้อมูลติดต่อ หรือที่อยู่ ใช้จุดเดโม Barcelona แบบคงที่ และไม่ใช่ความช่วยเหลือฉุกเฉิน",
   "form.situationLabel": "อธิบายสถานการณ์เกี่ยวกับความร้อน",
   "form.characterCount": "{{currentCount}} / {{limit}} อักขระ",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} อักขระ — ลดลง {{overLimitCount}} อักขระ",
   "form.situationHint":
-    "อธิบายอายุ การเข้าถึงวิธีคลายร้อน การเคลื่อนไหว ช่วงเวลา และอาการที่เกี่ยวข้องโดยย่อ",
+    "อายุ · การเข้าถึงวิธีคลายร้อน · การเคลื่อนไหว · อาการ",
   "form.demoButton": "โหลดเดโม Barcelona",
   "form.submitButton": "สร้างแผนปฏิบัติการรับมือความร้อนของฉัน",
   "form.submittingButton": "กำลังสร้างแผนของคุณ…",
@@ -92,10 +92,29 @@ export const THAI_CATALOG = {
   "scenario.selfDescription": "สร้างแผนปฏิบัติการส่วนตัว",
   "scenario.someoneTitle": "ช่วยคนใกล้ชิด",
   "scenario.someoneDescription": "สร้างแผนสำหรับบุคคลอื่น",
-  "scenario.placeTitle": "ค้นหาสถานที่เย็นใกล้เคียง",
-  "scenario.placeDescription": "แสดงความช่วยเหลือที่ยืนยันแล้วใกล้ที่สุด",
-  "scenario.nearestHelp": "ความช่วยเหลือใกล้ที่สุด",
+  "scenario.placeTitle": "ค้นหาสถานที่เย็นในพื้นที่สาธิต Barcelona",
+  "scenario.placeDescription": "ค้นหาข้อมูลข้อเท็จจริงเกี่ยวกับสถานที่",
+  "scenario.nearestHelp": "ข้อมูลสถานที่ใน Barcelona",
   "scenario.importantNow": "สิ่งสำคัญตอนนี้",
+  "scenario.initialTipCoolestSpot":
+    "ย้ายไปยังจุดที่เย็นที่สุดที่มีอยู่ในบริเวณที่คุณอยู่ตอนนี้",
+  "scenario.initialTipReduceEffort": "ลดการออกแรงทางกายในตอนนี้",
+  "scenario.initialTipDrinkWater":
+    "ดื่มน้ำเป็นประจำหากทำได้อย่างปลอดภัย",
+
+  "placeLookup.searchAction": "ค้นหาสถานที่ในสาธิต Barcelona",
+  "placeLookup.loading": "กำลังค้นหาข้อมูลสถานที่ที่ผ่านการตรวจสอบ…",
+  "placeLookup.resultsTitle": "ผลการค้นหาสถานที่ใน Barcelona",
+  "placeLookup.emptyTitle": "ไม่พบสถานที่ที่ตรงกัน",
+  "placeLookup.emptyMessage":
+    "ไม่มีสถานที่ตรงกับจุดสาธิตคงที่ เวลาปัจจุบันของอุปกรณ์ และขอบเขตการค้นหา",
+  "placeLookup.errorTitle": "ไม่มีข้อมูลสถานที่",
+  "placeLookup.errorMessage":
+    "ไม่สามารถแสดงข้อมูลสถานที่ได้อย่างปลอดภัย ลองอีกครั้งเฉพาะเมื่อคุณเลือกเอง",
+  "placeLookup.compactBoundary":
+    "จุดเดโม Barcelona แบบคงที่ · ระยะทางเส้นตรง · ตรวจสอบเวลาทำการและการเข้าถึง",
+  "placeLookup.boundary":
+    "ใช้จุดสาธิตคงที่ใน Barcelona ไม่ใช่ตำแหน่งของคุณ ระยะทางเป็นเส้นตรง ไม่ใช่เส้นทางหรือเวลาเดินทางโดยประมาณ เวลาทำการประเมินจากเวลาของอุปกรณ์ ตรวจสอบเวลาทำการและการเข้าถึงก่อนเดินทาง นี่ไม่ใช่ความช่วยเหลือทางการแพทย์หรือฉุกเฉิน",
 
   "validation.empty": "โปรดอธิบายสถานการณ์ก่อนสร้างแผน",
   "validation.overLimit": "คำอธิบายยาวเกินไป โปรดย่อข้อความ",
@@ -147,7 +166,7 @@ export const THAI_CATALOG = {
   "place.linksAccessibleName": "ลิงก์ทางการของสถานที่",
   "place.informationLink": "ข้อมูลทางการ",
   "place.sourceLink": "แหล่งข้อมูลทางการ",
-  "place.mapLink": "เปิดเส้นทางใน Google Maps",
+  "place.mapLink": "เปิดใน Google Maps",
   "place.cautionsAccessibleName": "ข้อควรระวังเกี่ยวกับสถานที่",
   "place.addressUnavailable": "ไม่มีข้อมูลที่อยู่",
   "place.accessibilityConfirmed": "แหล่งข้อมูลยืนยันว่าสถานที่นี้เข้าถึงได้",

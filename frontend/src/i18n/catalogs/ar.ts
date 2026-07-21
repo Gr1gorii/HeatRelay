@@ -72,13 +72,13 @@ export const ARABIC_CATALOG = {
   "form.privacyDescription":
     "يُرسل وصفك من جانب الخادم إلى OpenAI لمعالجته باستخدام GPT-5.6. لا يتعمد HeatRelay تخزين النص الخام أو تسجيله؛ ومع ذلك، قد تظل سياسات مزود الخدمة لمعالجة البيانات سارية.",
   "form.identityWarning":
-    "يُرسل النص إلى OpenAI؛ ولا يتعمد HeatRelay حفظ النص الأصلي أو تسجيله. لا تُدرج أسماء أو معلومات اتصال أو عناوين. إحداثيات عرض Barcelona التجريبي ثابتة. هذه ليست نصيحة طبية ولا مساعدة طارئة.",
+    "يعالج OpenAI هذا النص. لا تُدخل أسماء أو معلومات اتصال أو عناوين. نقطة Barcelona التجريبية ثابتة؛ وليست مساعدة طارئة.",
   "form.situationLabel": "صِف الموقف المتعلق بالحر",
   "form.characterCount": "{{currentCount}} / {{limit}} حرفًا",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} حرفًا — اختصر بمقدار {{overLimitCount}}",
   "form.situationHint":
-    "صِف بإيجاز العمر وإمكانية التبريد والقدرة على الحركة والتوقيت والأعراض إن كانت ذات صلة.",
+    "العمر · إمكانية التبريد · القدرة على الحركة · الأعراض",
   "form.demoButton": "تحميل عرض Barcelona التجريبي",
   "form.submitButton": "إنشاء خطة عملي لمواجهة الحر",
   "form.submittingButton": "جارٍ إنشاء خطتك…",
@@ -92,10 +92,28 @@ export const ARABIC_CATALOG = {
   "scenario.selfDescription": "أنشئ خطة عمل شخصية",
   "scenario.someoneTitle": "ساعد شخصًا قريبًا منك",
   "scenario.someoneDescription": "أنشئ خطة لشخص آخر",
-  "scenario.placeTitle": "اعثر على مكان بارد قريب",
-  "scenario.placeDescription": "اعرض أقرب مساعدة موثقة",
-  "scenario.nearestHelp": "أقرب مساعدة",
+  "scenario.placeTitle": "اعثر على مكان بارد في منطقة Barcelona التجريبية",
+  "scenario.placeDescription": "ابحث عن معلومات واقعية حول الأماكن",
+  "scenario.nearestHelp": "معلومات أماكن Barcelona",
   "scenario.importantNow": "مهم الآن",
+  "scenario.initialTipCoolestSpot":
+    "انتقل إلى أبرد مكان متاح حيث أنت الآن.",
+  "scenario.initialTipReduceEffort": "قلّل المجهود البدني مؤقتًا.",
+  "scenario.initialTipDrinkWater": "اشرب الماء بانتظام إذا كان ذلك آمنًا.",
+
+  "placeLookup.searchAction": "البحث في أماكن Barcelona التجريبية",
+  "placeLookup.loading": "جارٍ البحث في بيانات الأماكن المتحقق منها…",
+  "placeLookup.resultsTitle": "نتائج أماكن Barcelona",
+  "placeLookup.emptyTitle": "لم يُعثر على مكان مطابق",
+  "placeLookup.emptyMessage":
+    "لم يطابق أي مكان نقطة العرض التجريبية الثابتة ووقت الجهاز الحالي وحدود البحث.",
+  "placeLookup.errorTitle": "معلومات الأماكن غير متاحة",
+  "placeLookup.errorMessage":
+    "تعذر عرض معلومات الأماكن بأمان. أعد المحاولة فقط إذا اخترت ذلك.",
+  "placeLookup.compactBoundary":
+    "نقطة Barcelona تجريبية ثابتة · مسافة بخط مستقيم · تحقّق من الساعات وإمكانية الوصول",
+  "placeLookup.boundary":
+    "يستخدم نقطة Barcelona التجريبية الثابتة، وليس موقعك. المسافات بخط مستقيم وليست مسارات أو أوقات وصول متوقعة. تُقيَّم ساعات العمل باستخدام وقت جهازك. تحقّق من الساعات وإمكانية الوصول قبل السفر. هذه ليست مساعدة طبية أو طارئة.",
 
   "validation.empty": "صِف الموقف قبل إنشاء خطة.",
   "validation.overLimit": "الوصف طويل جدًا. اختصر النص.",
@@ -147,7 +165,7 @@ export const ARABIC_CATALOG = {
   "place.linksAccessibleName": "روابط المكان الرسمية",
   "place.informationLink": "المعلومات الرسمية",
   "place.sourceLink": "المصدر الرسمي",
-  "place.mapLink": "فتح المسار في خرائط Google",
+  "place.mapLink": "فتح في خرائط Google",
   "place.cautionsAccessibleName": "تنبيهات خاصة بالمكان",
   "place.addressUnavailable": "العنوان غير متاح",
   "place.accessibilityConfirmed": "أكد المصدر إمكانية الوصول",

@@ -72,13 +72,13 @@ export const DUTCH_CATALOG = {
   "form.privacyDescription":
     "Uw beschrijving wordt aan de serverzijde naar OpenAI gestuurd voor verwerking door GPT-5.6. HeatRelay slaat de ruwe tekst niet opzettelijk op en registreert die ook niet opzettelijk; het beleid van de aanbieder voor gegevensverwerking kan nog steeds van toepassing zijn.",
   "form.identityWarning":
-    "De tekst wordt naar OpenAI gestuurd; HeatRelay slaat de oorspronkelijke tekst niet opzettelijk op en registreert die niet opzettelijk. Vermeld geen namen, contactgegevens of adressen. Vaste democoördinaten voor Barcelona. Geen medisch advies of noodhulp.",
+    "OpenAI verwerkt deze tekst. Voer geen namen, contactgegevens of adressen in. Vast demopunt voor Barcelona; geen noodhulp.",
   "form.situationLabel": "Beschrijf de hittesituatie",
   "form.characterCount": "{{currentCount}} / {{limit}} tekens",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} tekens — kort in met {{overLimitCount}}",
   "form.situationHint":
-    "Beschrijf kort leeftijd, toegang tot verkoeling, mobiliteit, tijdstip en relevante symptomen.",
+    "Leeftijd · toegang tot verkoeling · mobiliteit · symptomen",
   "form.demoButton": "Laad Barcelona-demo",
   "form.submitButton": "Maak mijn hitteactieplan",
   "form.submittingButton": "Uw plan wordt gemaakt…",
@@ -92,10 +92,29 @@ export const DUTCH_CATALOG = {
   "scenario.selfDescription": "Maak een persoonlijk actieplan",
   "scenario.someoneTitle": "Help iemand die dichtbij staat",
   "scenario.someoneDescription": "Maak een plan voor iemand anders",
-  "scenario.placeTitle": "Vind een koele plek in de buurt",
-  "scenario.placeDescription": "Toon de dichtstbijzijnde geverifieerde hulp",
-  "scenario.nearestHelp": "Dichtstbijzijnde hulp",
+  "scenario.placeTitle": "Vind een koele plek in het demogebied van Barcelona",
+  "scenario.placeDescription": "Zoek feitelijke plaatsinformatie",
+  "scenario.nearestHelp": "Plaatsinformatie voor Barcelona",
   "scenario.importantNow": "Nu belangrijk",
+  "scenario.initialTipCoolestSpot":
+    "Ga naar de koelste beschikbare plek waar je al bent.",
+  "scenario.initialTipReduceEffort": "Beperk lichamelijke inspanning voorlopig.",
+  "scenario.initialTipDrinkWater":
+    "Drink regelmatig water als je dat veilig kunt doen.",
+
+  "placeLookup.searchAction": "Zoek plaatsen in de Barcelona-demo",
+  "placeLookup.loading": "Geverifieerde plaatsgegevens worden doorzocht…",
+  "placeLookup.resultsTitle": "Resultaten voor plaatsen in Barcelona",
+  "placeLookup.emptyTitle": "Geen overeenkomende plaats gevonden",
+  "placeLookup.emptyMessage":
+    "Geen plaats voldeed aan het vaste demopunt, de huidige apparaattijd en de zoeklimieten.",
+  "placeLookup.errorTitle": "Plaatsinformatie niet beschikbaar",
+  "placeLookup.errorMessage":
+    "De plaatsinformatie kon niet veilig worden weergegeven. Probeer alleen opnieuw als je daarvoor kiest.",
+  "placeLookup.compactBoundary":
+    "Vast demopunt voor Barcelona · Afstand hemelsbreed · Controleer openingstijden en toegankelijkheid",
+  "placeLookup.boundary":
+    "Gebruikt het vaste demopunt van Barcelona, niet jouw locatie. Afstanden zijn hemelsbreed, geen routes of geschatte aankomsttijden. Openingstijden worden beoordeeld met de tijd van je apparaat. Controleer openingstijden en toegankelijkheid voordat je reist. Dit is geen medische hulp of noodhulp.",
 
   "validation.empty": "Beschrijf de situatie voordat u een plan maakt.",
   "validation.overLimit": "De beschrijving is te lang. Kort de tekst in.",
@@ -147,7 +166,7 @@ export const DUTCH_CATALOG = {
   "place.linksAccessibleName": "Officiële links van de locatie",
   "place.informationLink": "Officiële informatie",
   "place.sourceLink": "Officiële bron",
-  "place.mapLink": "Route openen in Google Maps",
+  "place.mapLink": "Openen in Google Maps",
   "place.cautionsAccessibleName": "Waarschuwingen voor de locatie",
   "place.addressUnavailable": "Adres niet beschikbaar",
   "place.accessibilityConfirmed": "Toegankelijkheid bevestigd door de bron",

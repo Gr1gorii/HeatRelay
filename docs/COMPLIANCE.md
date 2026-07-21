@@ -534,10 +534,14 @@ uses the same logical RTL-capable component tree. Enhanced necessary control
 boundaries meet the adjacent-background contrast target and Enhanced
 programmatic scrolling is automatic rather than smooth.
 
-The three scenario headers are native buttons that move the same form between
-the localized cards. This presentation state is not stored, makes no request,
-does not alter the submitted text, and does not add a scenario field to the
-four-field request. One compact essential privacy, identity, fixed-origin,
+The three scenario headers are native buttons. Self and someone move the same
+action-plan form; the place scenario opens a dedicated standalone factual
+Barcelona-demo search panel. This presentation state is not stored, makes no
+request, does not alter submitted text, and adds no scenario field. Only an
+explicit search click sends fixed origin, device-time evaluation timestamp,
+empty required features, 3,000-metre maximum distance, and limit `3` to the
+existing deterministic places endpoint, with no situation or preference data.
+One compact essential privacy, identity, fixed-origin,
 server-side OpenAI-processing, and demo-boundary notice is permanently visible;
 the existing detailed explanations use a native progressive disclosure. The
 normal weather summary uses one native `dl` with three exposed fact pairs, and
@@ -548,11 +552,23 @@ ordinary dashboard, place, weather, or normal-plan content. Normal and urgent
 completion continue focusing their result headings; errors focus their `h2`
 after the page `h1`.
 
-The only Google Maps behavior is an HTTPS link for a backend-verified selected
-place, opened with `target="_blank"` and `rel="noopener noreferrer"`. Its
-destination contains only the verified address, never situation text or a
-user/device origin. It does not implement an embedded map, geolocation, route
-engine, ETA, or navigation.
+The permanent pre-submit copy is deliberately bounded to one four-item hint
+and one short notice; complete provider, storage, logging, location, distance,
+and medical-boundary facts remain available in the closed disclosure. The
+three-item initial cooling preview is concise, disappears when personalized
+backend actions exist, and never accompanies urgent output. Standalone place
+cards expose core factual fields and confirmed features only; non-confirmed
+features, dates, sources, one shared attribution, timing/route limitations,
+and the exact backend English notices remain preserved in one closed
+result-set disclosure.
+
+The only Google Maps behavior is HTTPS new-tab links derived from
+backend-verified addresses for an action-plan selected place or a standalone
+factual candidate, opened with `target="_blank"` and `rel="noopener
+noreferrer"`. Destinations never contain situation text or a user/device
+origin. They do not implement an embedded map, geolocation, route engine, ETA,
+or navigation. Standalone candidates are not recommendations and do not prove
+route, travel, personal accessibility, safety, reachability, or current hours.
 
 Listen/speech, an embedded map preview, a calculated route or ETA, a permanent
 emergency strip, and an unverified third initial safety instruction are omitted

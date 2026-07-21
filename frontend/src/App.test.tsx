@@ -474,6 +474,59 @@ const urgentResponse = {
   ],
 } as const;
 
+const placeCandidatesResponse = {
+  candidates: [
+    {
+      place_id: "bcn-101",
+      source_record_id: "101",
+      name: "Barcelona Synthetic Cooling Centre",
+      address: {
+        street: "Carrer de Prova",
+        number: "10",
+        postal_code: "08001",
+        city: "Barcelona",
+      },
+      district: "Synthetic District",
+      neighborhood: "Synthetic Neighbourhood",
+      latitude: 41.389,
+      longitude: 2.17,
+      distance_m: 725,
+      closes_at: "2026-07-21T18:30:00Z",
+      accessibility: null,
+      features: {
+        indoor_space: true,
+        potable_water: true,
+        toilets: false,
+        micro_shelter: null,
+        pets_allowed: null,
+      },
+      information_url: "https://example.test/synthetic-place",
+      schedule_verification_status: "verified",
+      source_url: "https://example.test/synthetic-dataset",
+      source_modified_at: "2026-07-20T09:00:00Z",
+      last_checked: "2026-07-20",
+    },
+  ],
+  snapshot: {
+    schema_version: "1.0.0",
+    snapshot_id: "barcelona-climate-shelters-v1",
+    publisher: "Synthetic Barcelona Publisher",
+    dataset_url: "https://example.test/synthetic-dataset",
+    distribution_url: "https://example.test/synthetic-distribution.csv",
+    retrieved_at: "2026-07-20T10:00:00Z",
+    upstream_max_modified: "2026-07-20T09:00:00Z",
+    license: "CC BY 4.0",
+    license_url: "https://example.test/license",
+    attribution: "Synthetic source attribution for tests.",
+    normalized_sha256: "a".repeat(64),
+  },
+  explanation: "Synthetic candidates met the deterministic place filters.",
+  hours_warning:
+    "Opening hours were evaluated at the supplied device time and must be verified before travel.",
+  candidate_notice:
+    "These are factual, backend-approved candidate places, not medical recommendations.",
+} as const;
+
 const spanishNormalResponse = {
   ...normalResponse,
   output_locale: "es",
@@ -4338,11 +4391,19 @@ describe("Barcelona action-plan flow", () => {
       screen.getByRole("heading", { name: "Important now" }),
     ).toBeTruthy();
     const initialSteps = document.querySelector(".important-now-preview");
-    expect(initialSteps?.textContent).toContain("Drinking water");
-    expect(initialSteps?.textContent).toContain("Find a cool place nearby");
+    expect(initialSteps?.querySelectorAll("li")).toHaveLength(3);
+    expect(initialSteps?.textContent).toContain(
+      "Move to the coolest available spot where you already are.",
+    );
+    expect(initialSteps?.textContent).toContain(
+      "Reduce physical effort for now.",
+    );
+    expect(initialSteps?.textContent).toContain(
+      "Drink water regularly if you can do so safely.",
+    );
     expect(
       initialSteps?.querySelectorAll(".action-icon"),
-    ).toHaveLength(2);
+    ).toHaveLength(3);
 
     const textarea = situationField();
     expect(textarea.getAttribute("aria-describedby")).toBe(
@@ -4375,6 +4436,7 @@ describe("Barcelona action-plan flow", () => {
       "HeatRelay does not use analytics, cookies, URL parameters, or geolocation in this demo.",
     );
     expect(screen.getByText(ENGLISH_CATALOG["form.identityWarning"])).toBeTruthy();
+    expect(screen.getByText("Age · cooling access · mobility · symptoms")).toBeTruthy();
     expect(
       screen.getByRole("button", { name: "Load Barcelona demo" }),
     ).toBeTruthy();
@@ -4399,6 +4461,23 @@ describe("Barcelona action-plan flow", () => {
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
     expectNoLocalizationLeak();
+  });
+
+  it("replaces the initial tips with personalized normal actions and omits them for urgent output", async () => {
+    const tipText = ENGLISH_CATALOG["scenario.initialTipCoolestSpot"];
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse(normalResponse))
+      .mockResolvedValueOnce(jsonResponse(urgentResponse));
+    render(<App />);
+
+    expect(screen.getByText(tipText)).toBeTruthy();
+    submitSituation(SYNTHETIC_SITUATION);
+    await screen.findByRole("heading", { name: "Act now" });
+    expect(screen.queryByText(tipText)).toBeNull();
+
+    submitSituation(`${SYNTHETIC_SITUATION} urgent`);
+    await screen.findByRole("heading", { name: "Urgent help" });
+    expect(screen.queryByText(tipText)).toBeNull();
   });
 
   it.each([320, 768, 1280])(
@@ -4464,7 +4543,7 @@ describe("Barcelona action-plan flow", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("moves one form among three native scenario buttons without side effects", async () => {
+  it("keeps self and someone on one form while place opens its standalone panel", async () => {
     const storageWrite = vi.spyOn(window.localStorage, "setItem");
     render(<App />);
 
@@ -4474,10 +4553,10 @@ describe("Barcelona action-plan flow", () => {
     const scenarioButtons = screen.getAllByRole("button").filter((button) =>
       button.classList.contains("scenario-example"),
     );
-    const expectSharedScenarioRelationship = (expandedIndex: number) => {
+    const expectScenarioRelationship = (expandedIndex: number) => {
       expect(
         scenarioButtons.map((button) => button.getAttribute("aria-controls")),
-      ).toEqual(["scenario-form", "scenario-form", "scenario-form"]);
+      ).toEqual(["scenario-form", "scenario-form", "place-lookup-panel"]);
       expect(
         scenarioButtons.map((button) => button.getAttribute("aria-expanded")),
       ).toEqual(
@@ -4485,9 +4564,15 @@ describe("Barcelona action-plan flow", () => {
           index === expandedIndex ? "true" : "false",
         ),
       );
-      expect(document.querySelectorAll("#scenario-form")).toHaveLength(1);
-      expect(document.getElementById("scenario-form")).not.toBeNull();
-      expect(document.querySelectorAll("form.plan-form")).toHaveLength(1);
+      if (expandedIndex === 2) {
+        expect(document.querySelectorAll("#scenario-form")).toHaveLength(0);
+        expect(document.querySelectorAll("#place-lookup-panel")).toHaveLength(1);
+        expect(document.querySelectorAll("form.plan-form")).toHaveLength(0);
+      } else {
+        expect(document.querySelectorAll("#scenario-form")).toHaveLength(1);
+        expect(document.querySelectorAll("#place-lookup-panel")).toHaveLength(0);
+        expect(document.querySelectorAll("form.plan-form")).toHaveLength(1);
+      }
     };
     expect(scenarios).toHaveLength(3);
     expect(scenarioButtons).toHaveLength(3);
@@ -4498,29 +4583,35 @@ describe("Barcelona action-plan flow", () => {
     ]);
     expect(screen.queryByRole("radio")).toBeNull();
     expect(document.querySelector('[role="radiogroup"]')).toBeNull();
-    expectSharedScenarioRelationship(0);
+    expectScenarioRelationship(0);
 
     fireEvent.change(situationField(), { target: { value: SYNTHETIC_SITUATION } });
     fireEvent.click(scenarioButtons[1]);
     await waitFor(() => expect(document.activeElement).toBe(situationField()));
     expect(situationField().value).toBe(SYNTHETIC_SITUATION);
-    expectSharedScenarioRelationship(1);
+    expectScenarioRelationship(1);
 
     fireEvent.click(scenarioButtons[2]);
-    await waitFor(() => expect(document.activeElement).toBe(situationField()));
-    expect(situationField().value).toBe(SYNTHETIC_SITUATION);
-    expectSharedScenarioRelationship(2);
+    const searchButton = await screen.findByRole("button", {
+      name: ENGLISH_CATALOG["placeLookup.searchAction"],
+    });
+    await waitFor(() => expect(document.activeElement).toBe(searchButton));
+    expectScenarioRelationship(2);
     expect(fetchMock).not.toHaveBeenCalled();
     expect(storageWrite).not.toHaveBeenCalled();
+
+    fireEvent.click(scenarioButtons[0]);
+    await waitFor(() => expect(document.activeElement).toBe(situationField()));
+    expect(situationField().value).toBe(SYNTHETIC_SITUATION);
+    expectScenarioRelationship(0);
   });
 
-  it.each([
-    ["Help someone I care about"],
-    ["Find a cool place nearby"],
-  ])("submits the unchanged four-field request from %s", async (scenarioName) => {
+  it("submits the unchanged four-field request from Help someone", async () => {
     fetchMock.mockResolvedValue(jsonResponse(normalResponse));
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: new RegExp(scenarioName) }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Help someone I care about/ }),
+    );
     await waitFor(() => expect(document.activeElement).toBe(situationField()));
     fireEvent.change(situationField(), { target: { value: `  ${SYNTHETIC_SITUATION}  ` } });
     fireEvent.click(
@@ -4540,6 +4631,234 @@ describe("Barcelona action-plan flow", () => {
       "maximum_distance_m",
       "output_locale",
     ]);
+  });
+
+  it("runs one explicit standalone place search with the exact factual request boundary", async () => {
+    const evaluationTime = "2026-07-21T14:30:00.000Z";
+    const isoSpy = vi
+      .spyOn(Date.prototype, "toISOString")
+      .mockReturnValue(evaluationTime);
+    fetchMock.mockResolvedValue(jsonResponse(placeCandidatesResponse));
+    render(<App />);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: new RegExp(ENGLISH_CATALOG["scenario.placeTitle"]),
+      }),
+    );
+    const searchButton = await screen.findByRole("button", {
+      name: ENGLISH_CATALOG["placeLookup.searchAction"],
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    fireEvent.click(searchButton);
+
+    const resultsHeading = await screen.findByRole("heading", {
+      name: ENGLISH_CATALOG["placeLookup.resultsTitle"],
+    });
+    expect(document.activeElement).toBe(resultsHeading);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/v1/places/candidates",
+      expect.objectContaining({ method: "POST" }),
+    );
+    const request = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
+    expect(request).toEqual({
+      origin: { latitude: 41.3874, longitude: 2.1686 },
+      evaluation_datetime: evaluationTime,
+      required_features: {},
+      maximum_distance_m: 3000,
+      limit: 3,
+    });
+    expect(Object.keys(request)).toEqual([
+      "origin",
+      "evaluation_datetime",
+      "required_features",
+      "maximum_distance_m",
+      "limit",
+    ]);
+    expect(JSON.stringify(request)).not.toContain(SYNTHETIC_SITUATION);
+    expect(JSON.stringify(request)).not.toMatch(
+      /scenario|locale|visual|preference|geolocation|situation_text/,
+    );
+
+    const name = screen
+      .getAllByText("Barcelona Synthetic Cooling Centre")
+      .find((element) => element.closest("article"));
+    const address = screen.getByText("Carrer de Prova 10, 08001 Barcelona");
+    expect(name?.tagName).toBe("BDI");
+    expect(name?.getAttribute("dir")).toBe("auto");
+    expect(address.tagName).toBe("BDI");
+    expect(address.getAttribute("dir")).toBe("auto");
+    expect(screen.getByText(/725 m straight-line/)).toBeTruthy();
+    expect(screen.getByText("Accessibility status unknown")).toBeTruthy();
+    expect(screen.getByText("21 Jul 2026, 20:30")).toBeTruthy();
+    expect(screen.getByText("Indoor space").closest("ul")?.classList).toContain(
+      "feature-chip-list",
+    );
+    expect(screen.getByText("Drinking water").closest("ul")?.classList).toContain(
+      "feature-chip-list",
+    );
+
+    const officialLink = screen.getByRole("link", {
+      name: ENGLISH_CATALOG["place.informationLink"],
+    });
+    expect(officialLink.getAttribute("href")).toBe(
+      "https://example.test/synthetic-place",
+    );
+    expect(officialLink.getAttribute("target")).toBe("_blank");
+    expect(officialLink.getAttribute("rel")).toBe("noopener noreferrer");
+    const mapLink = screen.getByRole("link", {
+      name: ENGLISH_CATALOG["place.mapLink"],
+    });
+    expect(mapLink.getAttribute("href")).toMatch(
+      /^https:\/\/www\.google\.com\/maps\/search\/\?api=1&query=/,
+    );
+    expect(mapLink.getAttribute("href")).not.toMatch(/origin|directions|route/i);
+    const disclosure = document.querySelector<HTMLDetailsElement>(
+      "details.place-lookup-disclosure",
+    );
+    expect(disclosure).not.toBeNull();
+    expect(disclosure?.open).toBe(false);
+    expect(screen.getByText("20 Jul 2026").closest("details")).toBe(disclosure);
+    expect(
+      screen.getByText("Synthetic Barcelona Publisher").closest("details"),
+    ).toBe(disclosure);
+    expect(
+      screen.getByText("Synthetic source attribution for tests.").closest("details"),
+    ).toBe(disclosure);
+    expect(screen.getByText("Toilets").closest("details")).toBe(disclosure);
+    expect(screen.getByText("Micro-shelter").closest("details")).toBe(disclosure);
+    expect(screen.getAllByText("Synthetic Barcelona Publisher")).toHaveLength(1);
+    expect(
+      screen.getAllByText("Synthetic source attribution for tests."),
+    ).toHaveLength(1);
+    const backendNotices = document.querySelector(".place-backend-notices");
+    expect(backendNotices?.closest("details")).toBe(disclosure);
+    expect(backendNotices?.getAttribute("lang")).toBe("en");
+    expect(backendNotices?.getAttribute("dir")).toBe("ltr");
+    expect(backendNotices?.textContent).toContain(
+      placeCandidatesResponse.candidate_notice,
+    );
+    const liveStatus = document.querySelector(".place-lookup-status");
+    expect(liveStatus?.getAttribute("data-visible")).toBe("false");
+    expect(liveStatus?.textContent).toBe(
+      ENGLISH_CATALOG["placeLookup.resultsTitle"],
+    );
+    isoSpy.mockRestore();
+  });
+
+  it("renders empty and safe error place states only after explicit searches", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({ ...placeCandidatesResponse, candidates: [] }),
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ detail: { code: "private_backend_detail" } }, 503),
+      );
+    render(<App />);
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: new RegExp(ENGLISH_CATALOG["scenario.placeTitle"]),
+      }),
+    );
+    const searchButton = await screen.findByRole("button", {
+      name: ENGLISH_CATALOG["placeLookup.searchAction"],
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    fireEvent.click(searchButton);
+    const emptyHeading = await screen.findByRole("heading", {
+      name: ENGLISH_CATALOG["placeLookup.emptyTitle"],
+    });
+    expect(document.activeElement).toBe(emptyHeading);
+    expect(screen.getByText(ENGLISH_CATALOG["placeLookup.emptyMessage"])).toBeTruthy();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(searchButton);
+    const errorHeading = await screen.findByRole("heading", {
+      name: ENGLISH_CATALOG["placeLookup.errorTitle"],
+    });
+    expect(document.activeElement).toBe(errorHeading);
+    expect(screen.getByText(ENGLISH_CATALOG["placeLookup.errorMessage"])).toBeTruthy();
+    expect(document.body.textContent).not.toContain("private_backend_detail");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("prevents duplicate place searches while loading and re-enables explicit retry", async () => {
+    let resolveFetch!: (response: Response) => void;
+    fetchMock.mockReturnValue(
+      new Promise<Response>((resolve) => {
+        resolveFetch = resolve;
+      }),
+    );
+    render(<App />);
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: new RegExp(ENGLISH_CATALOG["scenario.placeTitle"]),
+      }),
+    );
+    const searchButton = await screen.findByRole("button", {
+      name: ENGLISH_CATALOG["placeLookup.searchAction"],
+    }) as HTMLButtonElement;
+
+    fireEvent.click(searchButton);
+    expect(searchButton.disabled).toBe(true);
+    expect(document.getElementById("place-lookup-panel")?.getAttribute("aria-busy")).toBe(
+      "true",
+    );
+    const status = document.querySelector<HTMLElement>(".place-lookup-status");
+    expect(status).not.toBeNull();
+    expect(status?.getAttribute("aria-live")).toBe("polite");
+    expect(status?.getAttribute("aria-atomic")).toBe("true");
+    fireEvent.click(searchButton);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(
+      screen
+        .getAllByRole("button")
+        .filter((button) => button.classList.contains("scenario-example"))
+        .every((button) => (button as HTMLButtonElement).disabled),
+    ).toBe(true);
+
+    await act(async () => {
+      resolveFetch(jsonResponse(placeCandidatesResponse));
+    });
+    await screen.findByRole("heading", {
+      name: ENGLISH_CATALOG["placeLookup.resultsTitle"],
+    });
+    expect(searchButton.disabled).toBe(false);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves an existing action plan and form state when opening place lookup", async () => {
+    fetchMock.mockResolvedValue(jsonResponse(normalResponse));
+    render(<App />);
+    submitSituation(SYNTHETIC_SITUATION);
+    const resultHeading = await screen.findByRole("heading", { name: "Act now" });
+    const storageWrite = vi.spyOn(window.localStorage, "setItem");
+    storageWrite.mockClear();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: new RegExp(ENGLISH_CATALOG["scenario.placeTitle"]),
+      }),
+    );
+    await screen.findByRole("button", {
+      name: ENGLISH_CATALOG["placeLookup.searchAction"],
+    });
+    expect(resultHeading.isConnected).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(storageWrite).not.toHaveBeenCalled();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: new RegExp(ENGLISH_CATALOG["scenario.selfTitle"]),
+      }),
+    );
+    await waitFor(() => expect(document.activeElement).toBe(situationField()));
+    expect(situationField().value).toBe(SYNTHETIC_SITUATION);
+    expect(resultHeading.isConnected).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("preserves a displayed result, settings, and RTL state when the form moves", async () => {
@@ -6351,7 +6670,7 @@ describe("Barcelona action-plan flow", () => {
     expect(sourceLink.getAttribute("target")).toBe("_blank");
     expect(sourceLink.getAttribute("rel")).toBe("noopener noreferrer");
     const routeLink = screen.getByRole("link", {
-      name: "Open route in Google Maps",
+      name: "Open in Google Maps",
     });
     expect(routeLink.getAttribute("href")).toBe(
       "https://www.google.com/maps/dir/?api=1&destination=Carrer%20de%20Prova%2010%2C%2008001%20Barcelona",

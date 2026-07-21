@@ -1735,3 +1735,73 @@ strict four-field POSTs, zero retries, zero invalid or unexpected requests,
 correct LTR/RTL ownership, no horizontal overflow, and 48px Standard / 56px
 Enhanced control targets. Tablet and desktop initial-form checks used the same
 compact DOM hierarchy with the long copy closed inside the native disclosure.
+
+## Standalone Barcelona-demo place lookup — 2026-07-21
+
+The place scenario now opens a dedicated factual search panel rather than the
+action-plan situation form. Scenario selection preserves the action-plan text,
+validation, result, Settings, unified language, visual mode, and direction and
+makes no request or storage write. An explicit search sends one fixed five-field
+request to the existing deterministic `/api/v1/places/candidates` endpoint:
+Barcelona demo origin, device-time ISO evaluation instant, empty required
+features, 3,000-metre maximum distance, and limit `3`. It sends no situation
+text, scenario, locale, preference, visual mode, or geolocation data and does
+not merge candidates into `ActionPlanResponse`.
+
+The frontend adds strict runtime validation for the complete candidate and
+snapshot provenance response, including identifier pairing and uniqueness,
+finite coordinates and bounded distances, aware datetimes, verified schedules,
+tri-state accessibility, HTTPS-or-null information URLs, HTTPS provenance, and
+exact response keys. Candidate cards retain backend-owned facts, mark backend
+warnings as English, and state that straight-line distance is not a route or
+ETA and that travel, current hours, and personal accessibility were not
+verified. All 25 interface catalogs retained exact key/interpolation parity and
+removed proximity or device-location implications from the place scenario.
+
+Focused parser/i18n/App verification passed 1,400 tests. The required frontend
+and backend suites passed 1,400 and 2,673 tests respectively; the combined
+target repeated both counts. The final production build, Python dependency
+check, installed npm tree, and whitespace check passed. The build retained its
+existing informational large-chunk warning. A loopback-only browser pass used
+four explicit search clicks for Russian 320px success, empty, and safe-error
+states plus Arabic desktop success: exactly four places POSTs, zero action-plan
+POSTs, zero invalid or unexpected requests, zero retries, and zero console
+errors. Root/body reflow stayed exact at 320px; Russian Standard and Arabic
+Enhanced targets exceeded 48px and 56px respectively; English backend warnings
+remained explicitly LTR. Pointer scenario switching passed. The controller
+focused the native scenario buttons but did not synthesize Enter/Space
+activation, so keyboard activation was not independently re-proven in this
+browser pass; native `type="button"` semantics and state transitions remain
+covered offline.
+
+## Compact guidance, cooling preview, and place results — 2026-07-21
+
+The shared form now places only its label/counter, textarea, one concise
+age/cooling/mobility/symptom hint, one compact OpenAI/identity/fixed-Barcelona/
+emergency notice, and the primary action before the existing closed disclosure.
+The full provider, storage, logging, location, distance, and medical-boundary
+copy remains in that disclosure. The initial normal-plan preview now contains
+exactly three concise actions: move to the coolest available spot where the
+person already is, reduce physical effort, and drink water regularly when
+safe. Personalized normal actions replace the preview, and urgent output never
+shows it.
+
+Standalone candidate cards now keep only name/address, a compact distance/
+closing/accessibility row, confirmed-feature chips, and official-information/
+Maps actions visible. One initially closed result-set disclosure retains every
+non-confirmed feature, per-candidate last-checked and source facts, publisher
+and attribution once, device-time and route limitations, and the three exact
+English backend notices. The polite live region remains available without
+visibly duplicating the results heading.
+
+Focused App/i18n verification passed 1,375 tests. The full frontend and
+backend suites passed 1,402 and 2,673 tests respectively, and the combined
+target repeated both counts. The production build passed with the existing
+informational large-chunk warning. In the final loopback browser session,
+Russian Standard at 320×800 placed the primary action at 542 CSS pixels with
+a 73-pixel target; Arabic Enhanced retained 56-pixel minimum visible controls.
+Russian and Arabic result views at 320 and 1280 CSS pixels had no horizontal
+overflow. Three compact candidates rendered with a single closed verification
+disclosure and one shared attribution. Exactly one places POST occurred, with
+zero action-plan POSTs, invalid requests, unexpected requests, retries,
+provider calls, or console errors.

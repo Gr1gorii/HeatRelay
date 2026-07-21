@@ -56,6 +56,9 @@ Included in the implemented scope:
 - An accessible single-page Barcelona demo that sends one same-origin
   `POST /api/v1/action-plan` request with fixed coordinates and renders
   loading, normal, no-place, urgent, and sanitized error states.
+- A separate, explicit Barcelona-demo place search that sends one same-origin
+  `POST /api/v1/places/candidates` request, strictly parses factual candidates,
+  and never adds situation text or preference data to that request.
 - One shared application and component flow. Milestone 5 introduced `Standard`
   and `Enhanced Visibility`; Milestone 7 adds `High Contrast` through the same
   labelled native visual-mode control without changing requests or state.
@@ -94,11 +97,33 @@ Included in the implemented scope:
 - Offline backend tests, mocked frontend workflow tests, production build, and
   a coordinated local development command.
 
-The browser calls only the action-plan endpoint for this flow. Its request has
-exactly the trimmed situation text, fixed Barcelona origin, 3,000-metre maximum
-distance, and selected unified language code as `output_locale`. It does not
-send visual mode or another locale field. It uses fixed coordinates rather than browser location
-and does not call the situation, weather, or places endpoints separately.
+The “I am too hot” and “Help someone” scenarios call only the action-plan
+endpoint. That request has exactly the trimmed situation text, fixed Barcelona
+origin, 3,000-metre maximum distance, and selected unified language code as
+`output_locale`; it does not send visual mode or another locale field. “Find a
+cool place in the Barcelona demo area” instead opens a standalone panel and
+makes no request until its explicit search button is used. That search sends
+only fixed origin, device-time evaluation timestamp, empty required features,
+3,000-metre maximum distance, and limit `3` to the deterministic places
+endpoint. It sends no situation text, scenario, language, preference, or user
+location data. Neither flow uses browser geolocation or calls the situation or
+weather endpoint directly.
+
+Before submission, the action-plan form keeps only the field label and
+counter, textarea, one four-item hint, one compact safety notice, and the
+primary action visible; full provider, storage, logging, location, distance,
+and medical-boundary facts remain in the initially closed native disclosure.
+The initial normal-plan preview contains exactly three bounded actions: move
+to the coolest available spot where the person already is, reduce physical
+effort, and drink water regularly when safe. It disappears for completed
+normal plans and is never shown for urgent output.
+
+Standalone place results keep one compact Barcelona/distance/verification
+boundary above the list. Each card exposes only name, address, the three core
+facts, confirmed-feature chips, and official-information/Maps actions. One
+closed result-set disclosure retains non-confirmed features, last-checked and
+source facts, attribution, device-time and route limitations, and exact
+backend English notices.
 Official heat-warning retrieval, medical diagnosis or risk scoring, free-form
 medical or emergency decision logic, embedded maps, route calculation, ETAs, browser
 geolocation, runtime machine translation, authentication, analytics,
@@ -171,8 +196,11 @@ human-reviewed or release-ready.
 
 The redesign keeps one logical page heading followed by focused result
 headings, a compact permanently visible privacy/identity/demo-boundary notice,
-three localized scenario buttons that move the same form without changing its
-text or request, and one native three-pair weather description list. The full
+three localized scenario buttons, and one native three-pair weather
+description list. “I am too hot” and “Help someone” move the same action-plan
+form without changing its text or request. The place scenario opens the
+standalone factual Barcelona-demo search panel and preserves action-plan state.
+The full
 privacy and demo explanation remains available through a native disclosure. An
 urgent response places the complete fixed `112` alert before its resubmission
 form and does not render ordinary scenario, weather, place, or normal-plan
@@ -182,7 +210,8 @@ preserves the result and makes no request.
 
 Scenario selection is presentation state only: it is not stored, does not make
 a request, adds no request field, and never prefixes or rewrites
-`situation_text`. The displayed counter uses ordinary character wording while
+`situation_text`. Only the place panel's explicit search button calls the
+places endpoint. The displayed counter uses ordinary character wording while
 the enforced technical limit remains 2,000 Unicode code points on the trimmed
 submitted value.
 
@@ -890,6 +919,14 @@ future live call requires separate author authorization and a fresh official
 price check.
 
 ### `POST /api/v1/places/candidates`
+
+The current standalone browser panel uses this endpoint with fixed Barcelona
+demo coordinates, the device's current ISO timestamp, an empty
+`required_features` object, `maximum_distance_m: 3000`, and `limit: 3`. It
+makes exactly one request per explicit search click, with no automatic request,
+retry, or polling. Candidates remain factual standalone information and are
+not merged into an action plan; route, travel, personal accessibility, and
+current opening status must be independently verified.
 
 Request body:
 

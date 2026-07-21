@@ -72,13 +72,13 @@ export const BENGALI_CATALOG = {
   "form.privacyDescription":
     "GPT-5.6 দিয়ে প্রক্রিয়াকরণের জন্য আপনার বর্ণনাটি সার্ভারের মাধ্যমে OpenAI-তে পাঠানো হয়। HeatRelay ইচ্ছাকৃতভাবে মূল লেখাটি সংরক্ষণ বা লগ করে না; তবে প্রদানকারীর ডেটা পরিচালনা নীতি প্রযোজ্য হতে পারে।",
   "form.identityWarning":
-    "লেখাটি OpenAI-তে পাঠানো হয়; HeatRelay ইচ্ছাকৃতভাবে মূল লেখা সংরক্ষণ বা লগ করে না। নাম, যোগাযোগের তথ্য বা ঠিকানা দেবেন না। Barcelona-এর নির্দিষ্ট ডেমো স্থানাঙ্ক। এটি চিকিৎসা বা জরুরি পরামর্শ নয়।",
+    "OpenAI এই লেখা প্রক্রিয়া করে। নাম, যোগাযোগের তথ্য বা ঠিকানা দেবেন না। Barcelona-এর নির্দিষ্ট ডেমো পয়েন্ট; এটি জরুরি সহায়তা নয়।",
   "form.situationLabel": "তাপজনিত পরিস্থিতি বর্ণনা করুন",
   "form.characterCount": "{{currentCount}} / {{limit}} অক্ষর",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} অক্ষর — {{overLimitCount}} কমান",
   "form.situationHint":
-    "বয়স, ঠান্ডা থাকার সুবিধা, চলাফেরা, সময় এবং প্রাসঙ্গিক উপসর্গ সংক্ষেপে লিখুন।",
+    "বয়স · ঠান্ডা থাকার সুবিধা · চলাফেরা · উপসর্গ",
   "form.demoButton": "Barcelona ডেমো লোড করুন",
   "form.submitButton": "আমার তাপ মোকাবিলার অ্যাকশন প্ল্যান তৈরি করুন",
   "form.submittingButton": "আপনার পরিকল্পনা তৈরি করা হচ্ছে…",
@@ -92,10 +92,29 @@ export const BENGALI_CATALOG = {
   "scenario.selfDescription": "ব্যক্তিগত করণীয় পরিকল্পনা তৈরি করুন",
   "scenario.someoneTitle": "কাছের কাউকে সাহায্য করুন",
   "scenario.someoneDescription": "অন্য একজনের জন্য পরিকল্পনা তৈরি করুন",
-  "scenario.placeTitle": "কাছাকাছি শীতল জায়গা খুঁজুন",
-  "scenario.placeDescription": "নিকটতম যাচাইকৃত সহায়তা দেখান",
-  "scenario.nearestHelp": "নিকটতম সহায়তা",
+  "scenario.placeTitle": "Barcelona ডেমো এলাকায় একটি শীতল জায়গা খুঁজুন",
+  "scenario.placeDescription": "স্থান সম্পর্কে তথ্যভিত্তিক বিবরণ খুঁজুন",
+  "scenario.nearestHelp": "Barcelona স্থানের তথ্য",
   "scenario.importantNow": "এখন গুরুত্বপূর্ণ",
+  "scenario.initialTipCoolestSpot":
+    "আপনি যেখানে আছেন সেখানকার সবচেয়ে ঠান্ডা উপলভ্য স্থানে যান।",
+  "scenario.initialTipReduceEffort": "আপাতত শারীরিক পরিশ্রম কমান।",
+  "scenario.initialTipDrinkWater":
+    "নিরাপদ হলে নিয়মিত পানি পান করুন।",
+
+  "placeLookup.searchAction": "Barcelona ডেমোর স্থান খুঁজুন",
+  "placeLookup.loading": "যাচাইকৃত স্থানের তথ্য খোঁজা হচ্ছে…",
+  "placeLookup.resultsTitle": "Barcelona স্থানের ফলাফল",
+  "placeLookup.emptyTitle": "মিল আছে এমন কোনো স্থান পাওয়া যায়নি",
+  "placeLookup.emptyMessage":
+    "স্থির ডেমো পয়েন্ট, ডিভাইসের বর্তমান সময় এবং অনুসন্ধানসীমার সঙ্গে কোনো স্থান মেলেনি।",
+  "placeLookup.errorTitle": "স্থানের তথ্য পাওয়া যাচ্ছে না",
+  "placeLookup.errorMessage":
+    "স্থানের তথ্য নিরাপদভাবে দেখানো যায়নি। আপনি চাইলে তবেই আবার চেষ্টা করুন।",
+  "placeLookup.compactBoundary":
+    "Barcelona-এর নির্দিষ্ট ডেমো পয়েন্ট · সরলরেখার দূরত্ব · সময়সূচি ও প্রবেশগম্যতা যাচাই করুন",
+  "placeLookup.boundary":
+    "এটি আপনার অবস্থান নয়, Barcelona-র স্থির ডেমো পয়েন্ট ব্যবহার করে। দূরত্ব সরলরেখায়, কোনো পথ বা পৌঁছানোর আনুমানিক সময় নয়। খোলার সময় আপনার ডিভাইসের সময় দিয়ে মূল্যায়িত হয়। যাওয়ার আগে সময়সূচি ও প্রবেশগম্যতা যাচাই করুন। এটি চিকিৎসা বা জরুরি সহায়তা নয়।",
 
   "validation.empty": "পরিকল্পনা তৈরির আগে পরিস্থিতি বর্ণনা করুন।",
   "validation.overLimit": "বর্ণনাটি খুব দীর্ঘ। লেখা ছোট করুন।",
@@ -147,7 +166,7 @@ export const BENGALI_CATALOG = {
   "place.linksAccessibleName": "স্থানের অফিশিয়াল লিংক",
   "place.informationLink": "অফিশিয়াল তথ্য",
   "place.sourceLink": "অফিশিয়াল উৎস",
-  "place.mapLink": "Google Maps-এ পথ খুলুন",
+  "place.mapLink": "Google Maps-এ খুলুন",
   "place.cautionsAccessibleName": "স্থানসংক্রান্ত সতর্কতা",
   "place.addressUnavailable": "ঠিকানা উপলভ্য নয়",
   "place.accessibilityConfirmed": "উৎসটি প্রবেশগম্যতা নিশ্চিত করেছে",

@@ -72,13 +72,13 @@ export const JAPANESE_CATALOG = {
   "form.privacyDescription":
     "入力した説明は、GPT-5.6 で処理するためサーバー側から OpenAI に送信されます。HeatRelay は生のテキストを意図的に保存または記録しませんが、プロバイダーのデータ取り扱いポリシーが適用される場合があります。",
   "form.identityWarning":
-    "テキストは OpenAI に送信されます。HeatRelay は元のテキストを意図的に保存または記録しません。氏名、連絡先、住所を含めないでください。Barcelona の固定デモ座標を使用します。医療上の助言や緊急支援ではありません。",
+    "OpenAI がこのテキストを処理します。氏名、連絡先、住所を入力しないでください。Barcelona の固定デモ地点を使用します。緊急支援ではありません。",
   "form.situationLabel": "暑さの状況を説明してください",
   "form.characterCount": "{{currentCount}} / {{limit}} 文字",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} 文字 — {{overLimitCount}} 文字短くしてください",
   "form.situationHint":
-    "年齢、涼める環境の有無、移動のしやすさ、時間帯、関連する症状を簡潔に説明してください。",
+    "年齢 · 涼める環境 · 移動のしやすさ · 症状",
   "form.demoButton": "Barcelona デモを読み込む",
   "form.submitButton": "暑さ対策アクションプランを作成",
   "form.submittingButton": "プランを作成しています…",
@@ -92,10 +92,29 @@ export const JAPANESE_CATALOG = {
   "scenario.selfDescription": "自分の行動計画を作成する",
   "scenario.someoneTitle": "身近な人を助ける",
   "scenario.someoneDescription": "別の人のための計画を作成する",
-  "scenario.placeTitle": "近くの涼しい場所を探す",
-  "scenario.placeDescription": "最寄りの確認済み支援を表示する",
-  "scenario.nearestHelp": "最寄りの支援",
+  "scenario.placeTitle": "Barcelona のデモ区域で涼しい場所を探す",
+  "scenario.placeDescription": "場所に関する事実情報を検索する",
+  "scenario.nearestHelp": "Barcelona の場所情報",
   "scenario.importantNow": "今、大切なこと",
+  "scenario.initialTipCoolestSpot":
+    "今いる場所で利用できる最も涼しい所へ移動してください。",
+  "scenario.initialTipReduceEffort": "今は身体的な負担を減らしてください。",
+  "scenario.initialTipDrinkWater":
+    "安全にできる場合は、定期的に水を飲んでください。",
+
+  "placeLookup.searchAction": "Barcelona のデモ場所を検索",
+  "placeLookup.loading": "確認済みの場所データを検索しています…",
+  "placeLookup.resultsTitle": "Barcelona の場所検索結果",
+  "placeLookup.emptyTitle": "条件に合う場所が見つかりません",
+  "placeLookup.emptyMessage":
+    "固定デモ地点、現在の端末時刻、検索範囲に合う場所はありませんでした。",
+  "placeLookup.errorTitle": "場所情報を利用できません",
+  "placeLookup.errorMessage":
+    "場所情報を安全に表示できませんでした。ご自身で選択した場合にのみ再試行してください。",
+  "placeLookup.compactBoundary":
+    "Barcelona の固定デモ地点 · 直線距離 · 営業時間とアクセシビリティを確認",
+  "placeLookup.boundary":
+    "利用者の現在地ではなく、Barcelona の固定デモ地点を使用します。距離は直線距離であり、経路や到着予定時間ではありません。営業時間は端末時刻で評価されます。移動前に営業時間とアクセシビリティを確認してください。医療または緊急支援ではありません。",
 
   "validation.empty": "プランを作成する前に状況を説明してください。",
   "validation.overLimit": "説明が長すぎます。テキストを短くしてください。",
@@ -147,7 +166,7 @@ export const JAPANESE_CATALOG = {
   "place.linksAccessibleName": "場所の公式リンク",
   "place.informationLink": "公式情報",
   "place.sourceLink": "公式情報源",
-  "place.mapLink": "Google マップで経路を開く",
+  "place.mapLink": "Google マップで開く",
   "place.cautionsAccessibleName": "場所に関する注意事項",
   "place.addressUnavailable": "住所を利用できません",
   "place.accessibilityConfirmed": "情報源によりアクセシビリティを確認済み",

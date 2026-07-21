@@ -72,13 +72,13 @@ export const HEBREW_CATALOG = {
   "form.privacyDescription":
     "התיאור שלכם נשלח בצד השרת אל OpenAI לעיבוד באמצעות GPT-5.6. HeatRelay אינו שומר או מתעד במכוון את הטקסט הגולמי; ייתכן שמדיניות הטיפול בנתונים של הספק עדיין תחול.",
   "form.identityWarning":
-    "הטקסט נשלח אל OpenAI; HeatRelay אינו שומר או מתעד במכוון את הטקסט המקורי. אין לכלול שמות, פרטי קשר או כתובות. קואורדינטות הדגמה קבועות של Barcelona. אין זה ייעוץ רפואי או סיוע בחירום.",
+    "OpenAI מעבד את הטקסט הזה. אין להזין שמות, פרטי קשר או כתובות. נקודת הדגמה קבועה של Barcelona; אין זה סיוע בחירום.",
   "form.situationLabel": "תיאור המצב הקשור לחום",
   "form.characterCount": "{{currentCount}} / {{limit}} תווים",
   "form.characterCountOverLimit":
     "{{currentCount}} / {{limit}} תווים — יש לקצר ב־{{overLimitCount}}",
   "form.situationHint":
-    "תארו בקצרה גיל, גישה לקירור, ניידות, תזמון ותסמינים רלוונטיים.",
+    "גיל · גישה לקירור · ניידות · תסמינים",
   "form.demoButton": "טעינת הדגמת Barcelona",
   "form.submitButton": "יצירת תוכנית הפעולה שלי להתמודדות עם חום",
   "form.submittingButton": "התוכנית שלכם נוצרת…",
@@ -92,10 +92,29 @@ export const HEBREW_CATALOG = {
   "scenario.selfDescription": "יצירת תוכנית פעולה אישית",
   "scenario.someoneTitle": "עזרה לאדם קרוב",
   "scenario.someoneDescription": "יצירת תוכנית עבור אדם אחר",
-  "scenario.placeTitle": "מציאת מקום קריר בקרבת מקום",
-  "scenario.placeDescription": "הצגת העזרה המאומתת הקרובה ביותר",
-  "scenario.nearestHelp": "העזרה הקרובה ביותר",
+  "scenario.placeTitle": "מציאת מקום קריר באזור ההדגמה של Barcelona",
+  "scenario.placeDescription": "חיפוש מידע עובדתי על מקומות",
+  "scenario.nearestHelp": "מידע על מקומות ב-Barcelona",
   "scenario.importantNow": "חשוב עכשיו",
+  "scenario.initialTipCoolestSpot":
+    "עברו למקום הקריר ביותר שזמין במקום שבו אתם כבר נמצאים.",
+  "scenario.initialTipReduceEffort": "הפחיתו כרגע מאמץ גופני.",
+  "scenario.initialTipDrinkWater":
+    "שתו מים באופן סדיר אם תוכלו לעשות זאת בבטחה.",
+
+  "placeLookup.searchAction": "חיפוש מקומות בהדגמת Barcelona",
+  "placeLookup.loading": "מתבצע חיפוש בנתוני מקומות מאומתים…",
+  "placeLookup.resultsTitle": "תוצאות מקומות ב-Barcelona",
+  "placeLookup.emptyTitle": "לא נמצא מקום תואם",
+  "placeLookup.emptyMessage":
+    "אף מקום לא התאים לנקודת ההדגמה הקבועה, לשעת המכשיר הנוכחית ולמגבלות החיפוש.",
+  "placeLookup.errorTitle": "מידע על מקומות אינו זמין",
+  "placeLookup.errorMessage":
+    "לא ניתן היה להציג את המידע על המקומות בבטחה. נסו שוב רק אם תבחרו בכך.",
+  "placeLookup.compactBoundary":
+    "נקודת הדגמה קבועה של Barcelona · מרחק בקו ישר · בדקו שעות ונגישות",
+  "placeLookup.boundary":
+    "נעשה שימוש בנקודת ההדגמה הקבועה של Barcelona, לא במיקום שלכם. המרחקים הם בקו ישר, לא מסלולים או זמני הגעה משוערים. שעות הפתיחה נבדקות לפי שעת המכשיר. בדקו שעות ונגישות לפני הנסיעה. זו אינה עזרה רפואית או עזרת חירום.",
 
   "validation.empty": "תארו את המצב לפני יצירת תוכנית.",
   "validation.overLimit": "התיאור ארוך מדי. קצרו את הטקסט.",
@@ -147,7 +166,7 @@ export const HEBREW_CATALOG = {
   "place.linksAccessibleName": "קישורים רשמיים של המקום",
   "place.informationLink": "מידע רשמי",
   "place.sourceLink": "מקור רשמי",
-  "place.mapLink": "פתיחת המסלול ב-Google Maps",
+  "place.mapLink": "פתיחה ב-Google Maps",
   "place.cautionsAccessibleName": "אזהרות לגבי המקום",
   "place.addressUnavailable": "הכתובת אינה זמינה",
   "place.accessibilityConfirmed": "הנגישות אושרה על ידי המקור",
