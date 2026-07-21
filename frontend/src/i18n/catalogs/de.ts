@@ -18,9 +18,9 @@ export const GERMAN_CATALOG = {
   "visualMode.description":
     "Die verbesserte Sichtbarkeit ist für Menschen mit eingeschränktem Sehvermögen oder für alle gedacht, die größere und klarere Inhalte bevorzugen.",
 
-  "interfaceLanguage.label": "Sprache der Benutzeroberfläche",
+  "interfaceLanguage.label": "Sprache",
   "interfaceLanguage.description":
-    "Ändert Navigation, Formulare und Seitenbeschriftungen. Die Sprache des Aktionsplans wird dadurch nicht geändert.",
+    "Ändert die Benutzeroberfläche und die Sprache des nächsten Aktionsplans. Ihre Beschreibung wird nicht übersetzt und der angezeigte Plan nicht neu geschrieben.",
   "interfaceLanguage.optionWithEnglishName":
     "{{nativeName}} — {{englishName}}",
 
@@ -44,7 +44,7 @@ export const GERMAN_CATALOG = {
     "Der angezeigte Plan wird nicht neu geschrieben. Ihre gespeicherte Auswahl gilt für den nächsten Plan.",
   "languageContext.otherValue": "Eine andere Sprache",
   "languageContext.unknownValue": "Konnte nicht bestimmt werden",
-  "languageContext.changeAction": "Aktionsplansprache ändern",
+  "languageContext.changeAction": "Sprache ändern",
 
   "hero.eyebrow": "Barcelona-Pilotprojekt · Meilenstein 5",
   "hero.title": "Von der Hitzewarnung zum sicheren nächsten Schritt.",
@@ -68,17 +68,17 @@ export const GERMAN_CATALOG = {
   "form.title": "Erstelle deinen Hitze-Aktionsplan",
   "form.introduction":
     "Teile nur die Situationsangaben mit, die nötig sind, um einen begrenzten, vom Backend validierten Plan anzupassen. Eine Übermittlung führt zu genau einer Anfrage.",
-  "form.privacyTitle": "Vor dem Absenden",
+  "form.privacyTitle": "Datenschutz und Demo-Details",
   "form.privacyDescription":
     "Deine Beschreibung wird serverseitig an OpenAI zur Verarbeitung mit GPT-5.6 gesendet. HeatRelay speichert oder protokolliert den Rohtext nicht absichtlich; die Richtlinien des Anbieters zur Datenverarbeitung können dennoch gelten.",
   "form.identityWarning":
-    "Gib keine Namen, Kontaktdaten, Adressen oder andere identifizierende Angaben an.",
+    "Der Text wird an OpenAI gesendet; HeatRelay speichert oder protokolliert den Originaltext nicht absichtlich. Gib keine Namen, Kontaktdaten oder Adressen an. Feste Demo-Koordinaten für Barcelona. Keine medizinische Beratung oder Notfallhilfe.",
   "form.situationLabel": "Beschreibe die Hitzesituation",
-  "form.characterCount": "{{currentCount}} / {{limit}} Codepunkte",
+  "form.characterCount": "{{currentCount}} / {{limit}} Zeichen",
   "form.characterCountOverLimit":
-    "{{currentCount}} / {{limit}} Codepunkte — {{overLimitCount}} über dem Limit",
+    "{{currentCount}} / {{limit}} Zeichen — um {{overLimitCount}} kürzen",
   "form.situationHint":
-    "Verwende bis zu {{limit}} Unicode-Codepunkte. Du kannst Alter, Zugang zu Kühlung, Mobilität, Zeitpunkt oder einen begrenzten Umfang an Warnsymptomen beschreiben.",
+    "Beschreibe kurz Alter, Zugang zu Kühlung, Mobilität, Zeitpunkt und gegebenenfalls Symptome.",
   "form.demoButton": "Barcelona-Demo laden",
   "form.submitButton": "Meinen Hitze-Aktionsplan erstellen",
   "form.submittingButton": "Dein Plan wird erstellt…",
@@ -98,8 +98,7 @@ export const GERMAN_CATALOG = {
   "scenario.importantNow": "Jetzt wichtig",
 
   "validation.empty": "Beschreibe die Situation, bevor du einen Plan erstellst.",
-  "validation.overLimit":
-    "Halte die Beschreibung innerhalb von {{limit}} Unicode-Zeichen.",
+  "validation.overLimit": "Die Beschreibung ist zu lang. Kürze den Text.",
   "validation.serverInput": "Überprüfe die Beschreibung und versuche es erneut.",
 
   "status.creating": "Dein Aktionsplan wird erstellt.",
@@ -182,7 +181,7 @@ export const GERMAN_CATALOG = {
   "trust.privacyLabel": "Datenschutz",
   "trust.privacyTitle": "Keine identifizierenden Angaben machen",
   "trust.privacyDescription":
-    "Der Situationstext wird nicht im Browserspeicher gespeichert. Ausdrücklich ausgewählte Einstellungen für Darstellungsmodus, Sprache der Benutzeroberfläche und Sprache des Aktionsplans werden lokal gespeichert. Nur der gewählte Sprachcode des Aktionsplans wird in die Anfrage aufgenommen; Darstellungsmodus und Sprache der Benutzeroberfläche nicht. HeatRelay verwendet in dieser Demo keine Analysefunktionen, Cookies, URL-Parameter oder Geolokalisierung.",
+    "Der Situationstext wird nicht im Browserspeicher gespeichert. Ausdrücklich ausgewählte Einstellungen für Darstellungsmodus und Sprache werden lokal gespeichert. Nur der gewählte Sprachcode wird in die Aktionsplananfrage aufgenommen; der Darstellungsmodus nicht. HeatRelay verwendet in dieser Demo keine Analysefunktionen, Cookies, URL-Parameter oder Geolokalisierung.",
 
   "footer.description": "Barcelona-Demo · Feste Koordinaten",
 

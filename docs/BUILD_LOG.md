@@ -1680,3 +1680,58 @@ No provider call, application service, Fly app, Machine, secret, deployment, or
 billing change occurred during the offline gate. `flyctl` was not installed at
 that point, so CLI configuration validation was deferred until the separately
 gated official-CLI step. The incremental API/provider cost was `$0.00`.
+
+## Release-candidate UX correction — 2026-07-21
+
+A bounded frontend correction made all three localized scenario cards operate
+the same single form without adding a scenario field, storage, text rewriting,
+or a request. Scenario changes preserve the entered text, errors, preferences,
+and displayed result, focus the existing textarea, and are disabled only while
+a submission is pending. The exact request remains `situation_text`, `origin`,
+`maximum_distance_m`, and `output_locale`.
+
+The form now keeps one compact privacy, identity, fixed-Barcelona,
+OpenAI-processing, and medical/emergency-boundary notice visible before the
+primary action. The unchanged longer privacy and demo explanations remain in
+the existing native disclosure. All 25 interface catalogs retained exact key
+and interpolation parity. User-facing counters now say ordinary “characters”
+while the technical validation continues counting the trimmed submitted value
+as Unicode code points with the unchanged 2,000-point limit.
+
+The expanded native weather disclosure was constrained to its assigned grid
+area and given safe wrapping, removing the reproduced collision with current
+temperature and priority content while preserving the one native three-pair
+weather definition list. This correction did not change backend code, schemas,
+API fields, dependencies, provider behavior, or data.
+
+## Unified language selector and compact-content verification — 2026-07-21
+
+The two visible M6 language selectors were superseded by one labelled native
+selector with the same 25 registry-ordered native-name options. An explicit
+choice changes the i18next interface locale and the next action-plan
+`output_locale`, synchronizes the two legacy locale storage keys, makes no
+request, and does not translate input or rewrite a displayed response. Initial
+resolution prefers a valid stored interface locale, then a valid stored output
+locale, then browser matching, then English; automatic resolution does not
+write storage.
+
+The exact action-plan request remains the four fields `situation_text`,
+`origin`, `maximum_distance_m`, and `output_locale`. The existing language-
+context action now opens Settings when necessary and focuses the unified
+selector. The compact form hierarchy is shared across phone, tablet, and
+desktop: visible label, trimmed character counter, textarea, short hint,
+bounded safety/privacy notice, primary action, then a closed native disclosure
+containing the longer privacy/demo explanation and demo-text action. No
+backend, schema, dependency, Fly, Docker, security, data, or provider behavior
+changed.
+
+Focused App/i18n verification passed 1,369 tests. The required frontend and
+backend suites passed 1,369 and 2,673 tests respectively, and the combined
+target repeated both counts successfully. The production build, Python
+dependency check, npm dependency-tree check, and whitespace check passed; the
+existing informational large-chunk build warning remained. A loopback-only
+320px mock pass submitted one Russian and one Arabic request: exactly two
+strict four-field POSTs, zero retries, zero invalid or unexpected requests,
+correct LTR/RTL ownership, no horizontal overflow, and 48px Standard / 56px
+Enhanced control targets. Tablet and desktop initial-form checks used the same
+compact DOM hierarchy with the long copy closed inside the native disclosure.

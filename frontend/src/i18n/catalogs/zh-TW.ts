@@ -18,9 +18,9 @@ export const TRADITIONAL_CHINESE_CATALOG = {
   "visualMode.description":
     "增強可見性適合低視能者，以及任何偏好較大、更清晰內容的人。",
 
-  "interfaceLanguage.label": "介面語言",
+  "interfaceLanguage.label": "語言",
   "interfaceLanguage.description":
-    "變更導覽、表單和頁面標籤，不會變更行動計畫語言。",
+    "變更介面和下一份行動計畫的語言。不會翻譯您的描述，也不會改寫目前顯示的計畫。",
   "interfaceLanguage.optionWithEnglishName":
     "{{nativeName}} — {{englishName}}",
 
@@ -44,7 +44,7 @@ export const TRADITIONAL_CHINESE_CATALOG = {
     "目前顯示的計畫不會被改寫。您儲存的選擇將套用至下一份計畫。",
   "languageContext.otherValue": "其他語言",
   "languageContext.unknownValue": "無法判斷",
-  "languageContext.changeAction": "變更行動計畫語言",
+  "languageContext.changeAction": "變更語言",
 
   "hero.eyebrow": "Barcelona 試行 · 里程碑 5",
   "hero.title": "從高溫警告到安全的下一步。",
@@ -68,17 +68,17 @@ export const TRADITIONAL_CHINESE_CATALOG = {
   "form.title": "建立您的高溫行動計畫",
   "form.introduction":
     "只分享為了讓一份範圍明確且經後端驗證的計畫符合個人需求所需的情況細節。每次提交只會發出一個請求。",
-  "form.privacyTitle": "提交前請注意",
+  "form.privacyTitle": "隱私與示範詳情",
   "form.privacyDescription":
     "您的描述會傳送至伺服器端，由 OpenAI 使用 GPT-5.6 處理。HeatRelay 不會刻意儲存或記錄原始文字；但服務提供者的資料處理政策仍可能適用。",
   "form.identityWarning":
-    "請勿包含姓名、聯絡資料、地址或其他可識別身分的資訊。",
+    "文字會傳送至 OpenAI；HeatRelay 不會刻意儲存或記錄原始文字。請勿包含姓名、聯絡資料或地址。使用固定的 Barcelona 示範座標。這不是醫療建議或緊急協助。",
   "form.situationLabel": "描述高溫情況",
-  "form.characterCount": "{{currentCount}} / {{limit}} 個碼位",
+  "form.characterCount": "{{currentCount}} / {{limit}} 個字元",
   "form.characterCountOverLimit":
-    "{{currentCount}} / {{limit}} 個碼位 — 超出上限 {{overLimitCount}} 個",
+    "{{currentCount}} / {{limit}} 個字元 — 請縮短 {{overLimitCount}} 個字元",
   "form.situationHint":
-    "最多使用 {{limit}} 個 Unicode 碼位。您可以描述年齡、可取得的降溫資源、行動能力、時間安排，或範圍明確的警示症狀。",
+    "請簡要描述年齡、可取得的降溫資源、行動能力、時間，以及相關症狀。",
   "form.demoButton": "載入 Barcelona 示範",
   "form.submitButton": "建立我的高溫行動計畫",
   "form.submittingButton": "正在建立您的計畫……",
@@ -98,8 +98,7 @@ export const TRADITIONAL_CHINESE_CATALOG = {
   "scenario.importantNow": "現在很重要",
 
   "validation.empty": "請先描述情況，再建立計畫。",
-  "validation.overLimit":
-    "請將描述限制在 {{limit}} 個 Unicode 字元以內。",
+  "validation.overLimit": "描述太長。請縮短文字。",
   "validation.serverInput": "請檢查描述後再試一次。",
 
   "status.creating": "正在建立您的行動計畫。",
@@ -179,7 +178,7 @@ export const TRADITIONAL_CHINESE_CATALOG = {
   "trust.privacyLabel": "隱私",
   "trust.privacyTitle": "請勿提供可識別身分的詳細資料",
   "trust.privacyDescription":
-    "情況文字不會儲存在瀏覽器儲存空間。明確選擇的視覺模式、介面語言和行動計畫語言偏好會儲存在本機。只有所選行動計畫語言代碼會進入行動計畫請求；視覺模式和介面語言不會進入請求。此示範中的 HeatRelay 不使用分析工具、Cookie、URL 參數或地理位置。",
+    "情況文字不會儲存在瀏覽器儲存空間。明確選擇的視覺模式和語言偏好會儲存在本機。只有所選語言代碼會進入行動計畫請求；視覺模式不會進入請求。此示範中的 HeatRelay 不使用分析工具、Cookie、URL 參數或地理位置。",
 
   "footer.description": "Barcelona 示範 · 固定座標",
 

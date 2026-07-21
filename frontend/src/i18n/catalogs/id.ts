@@ -18,9 +18,9 @@ export const INDONESIAN_CATALOG = {
   "visualMode.description":
     "Visibilitas yang Ditingkatkan ditujukan bagi orang dengan penglihatan terbatas atau siapa pun yang memilih konten yang lebih besar dan lebih jelas.",
 
-  "interfaceLanguage.label": "Bahasa antarmuka",
+  "interfaceLanguage.label": "Bahasa",
   "interfaceLanguage.description":
-    "Mengubah navigasi, formulir, dan label halaman. Tidak mengubah bahasa rencana tindakan.",
+    "Mengubah bahasa antarmuka dan rencana tindakan berikutnya. Tidak menerjemahkan deskripsi Anda atau menulis ulang rencana yang ditampilkan.",
   "interfaceLanguage.optionWithEnglishName":
     "{{nativeName}} — {{englishName}}",
 
@@ -44,7 +44,7 @@ export const INDONESIAN_CATALOG = {
     "Rencana yang ditampilkan tidak ditulis ulang. Pilihan tersimpan Anda berlaku untuk rencana berikutnya.",
   "languageContext.otherValue": "Bahasa lain",
   "languageContext.unknownValue": "Tidak dapat ditentukan",
-  "languageContext.changeAction": "Ubah bahasa rencana tindakan",
+  "languageContext.changeAction": "Ubah bahasa",
 
   "hero.eyebrow": "Uji coba Barcelona · Tonggak 5",
   "hero.title": "Dari peringatan panas menuju langkah aman berikutnya.",
@@ -68,17 +68,17 @@ export const INDONESIAN_CATALOG = {
   "form.title": "Buat rencana tindakan menghadapi panas",
   "form.introduction":
     "Bagikan hanya detail situasi yang diperlukan untuk menyesuaikan rencana terbatas yang divalidasi backend. Satu pengiriman membuat satu permintaan.",
-  "form.privacyTitle": "Sebelum Anda mengirim",
+  "form.privacyTitle": "Privasi dan detail demo",
   "form.privacyDescription":
     "Deskripsi Anda dikirim dari sisi server ke OpenAI untuk diproses oleh GPT-5.6. HeatRelay tidak dengan sengaja menyimpan atau mencatat teks mentah tersebut; kebijakan penanganan data penyedia mungkin tetap berlaku.",
   "form.identityWarning":
-    "Jangan sertakan nama, detail kontak, alamat, atau informasi lain yang dapat mengidentifikasi seseorang.",
+    "Teks dikirim ke OpenAI; HeatRelay tidak dengan sengaja menyimpan atau mencatat teks asli. Jangan sertakan nama, kontak, atau alamat. Koordinat demo Barcelona yang tetap. Bukan saran medis atau bantuan darurat.",
   "form.situationLabel": "Jelaskan situasi panas",
-  "form.characterCount": "{{currentCount}} / {{limit}} titik kode",
+  "form.characterCount": "{{currentCount}} / {{limit}} karakter",
   "form.characterCountOverLimit":
-    "{{currentCount}} / {{limit}} titik kode — {{overLimitCount}} melebihi batas",
+    "{{currentCount}} / {{limit}} karakter — kurangi {{overLimitCount}}",
   "form.situationHint":
-    "Gunakan hingga {{limit}} titik kode Unicode. Anda dapat menjelaskan usia, akses ke tempat sejuk, mobilitas, waktu, atau gejala peringatan dalam batas yang ditentukan.",
+    "Jelaskan secara singkat usia, akses ke tempat sejuk, mobilitas, waktu, dan gejala jika relevan.",
   "form.demoButton": "Muat demo Barcelona",
   "form.submitButton": "Buat rencana tindakan panas saya",
   "form.submittingButton": "Membuat rencana Anda…",
@@ -98,8 +98,7 @@ export const INDONESIAN_CATALOG = {
   "scenario.importantNow": "Penting sekarang",
 
   "validation.empty": "Jelaskan situasinya sebelum membuat rencana.",
-  "validation.overLimit":
-    "Pastikan deskripsi tidak melebihi {{limit}} karakter Unicode.",
+  "validation.overLimit": "Deskripsi terlalu panjang. Pendekkan teks.",
   "validation.serverInput": "Tinjau deskripsi dan coba lagi.",
 
   "status.creating": "Membuat rencana tindakan Anda.",
@@ -182,7 +181,7 @@ export const INDONESIAN_CATALOG = {
   "trust.privacyLabel": "Privasi",
   "trust.privacyTitle": "Jangan sertakan detail yang dapat mengidentifikasi Anda",
   "trust.privacyDescription":
-    "Teks situasi tidak disimpan dalam penyimpanan browser. Preferensi mode visual, bahasa antarmuka, dan bahasa rencana tindakan yang dipilih secara eksplisit disimpan secara lokal. Hanya kode bahasa rencana tindakan yang dipilih yang masuk ke permintaan; mode visual dan bahasa antarmuka tidak. HeatRelay tidak menggunakan analitik, cookie, parameter URL, atau geolokasi dalam demo ini.",
+    "Teks situasi tidak disimpan dalam penyimpanan browser. Preferensi mode visual dan bahasa yang dipilih secara eksplisit disimpan secara lokal. Hanya kode bahasa yang dipilih yang masuk ke permintaan rencana tindakan; mode visual tidak. HeatRelay tidak menggunakan analitik, cookie, parameter URL, atau geolokasi dalam demo ini.",
 
   "footer.description": "Demo Barcelona · Koordinat tetap",
 

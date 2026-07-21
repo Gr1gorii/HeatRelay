@@ -18,9 +18,9 @@ export const VIETNAMESE_CATALOG = {
   "visualMode.description":
     "Chế độ Hiển thị tăng cường dành cho người có thị lực kém hoặc bất kỳ ai muốn nội dung lớn hơn và rõ ràng hơn.",
 
-  "interfaceLanguage.label": "Ngôn ngữ giao diện",
+  "interfaceLanguage.label": "Ngôn ngữ",
   "interfaceLanguage.description":
-    "Thay đổi nội dung điều hướng, biểu mẫu và nhãn trang. Không thay đổi ngôn ngữ của kế hoạch hành động.",
+    "Thay đổi ngôn ngữ giao diện và kế hoạch hành động tiếp theo. Không dịch phần mô tả hoặc viết lại kế hoạch đang hiển thị.",
   "interfaceLanguage.optionWithEnglishName":
     "{{nativeName}} — {{englishName}}",
 
@@ -44,7 +44,7 @@ export const VIETNAMESE_CATALOG = {
     "Kế hoạch đang hiển thị không được viết lại. Lựa chọn đã lưu của bạn sẽ áp dụng cho kế hoạch tiếp theo.",
   "languageContext.otherValue": "Một ngôn ngữ khác",
   "languageContext.unknownValue": "Không thể xác định",
-  "languageContext.changeAction": "Thay đổi ngôn ngữ kế hoạch hành động",
+  "languageContext.changeAction": "Thay đổi ngôn ngữ",
 
   "hero.eyebrow": "Thí điểm tại Barcelona · Cột mốc 5",
   "hero.title": "Từ cảnh báo nắng nóng đến bước tiếp theo an toàn.",
@@ -68,17 +68,17 @@ export const VIETNAMESE_CATALOG = {
   "form.title": "Tạo kế hoạch hành động ứng phó nắng nóng",
   "form.introduction":
     "Chỉ chia sẻ các chi tiết tình huống cần thiết để cá nhân hóa một kế hoạch có phạm vi giới hạn và được backend xác thực. Mỗi lần gửi chỉ tạo một yêu cầu.",
-  "form.privacyTitle": "Trước khi gửi",
+  "form.privacyTitle": "Quyền riêng tư và chi tiết bản demo",
   "form.privacyDescription":
     "Mô tả của bạn được gửi từ phía máy chủ đến OpenAI để GPT-5.6 xử lý. HeatRelay không chủ ý lưu trữ hoặc ghi nhật ký văn bản thô; chính sách xử lý dữ liệu của nhà cung cấp vẫn có thể được áp dụng.",
   "form.identityWarning":
-    "Không cung cấp tên, thông tin liên hệ, địa chỉ hoặc thông tin nhận dạng khác.",
+    "Văn bản được gửi đến OpenAI; HeatRelay không chủ ý lưu hoặc ghi nhật ký văn bản gốc. Không cung cấp tên, thông tin liên hệ hoặc địa chỉ. Tọa độ demo Barcelona cố định. Đây không phải lời khuyên y tế hay trợ giúp khẩn cấp.",
   "form.situationLabel": "Mô tả tình huống nắng nóng",
-  "form.characterCount": "{{currentCount}} / {{limit}} điểm mã",
+  "form.characterCount": "{{currentCount}} / {{limit}} ký tự",
   "form.characterCountOverLimit":
-    "{{currentCount}} / {{limit}} điểm mã — vượt giới hạn {{overLimitCount}}",
+    "{{currentCount}} / {{limit}} ký tự — rút ngắn {{overLimitCount}} ký tự",
   "form.situationHint":
-    "Sử dụng tối đa {{limit}} điểm mã Unicode. Bạn có thể mô tả tuổi, khả năng tiếp cận nơi làm mát, khả năng di chuyển, thời điểm hoặc các triệu chứng cảnh báo trong phạm vi giới hạn.",
+    "Mô tả ngắn gọn tuổi, khả năng tiếp cận nơi làm mát, khả năng di chuyển, thời điểm và triệu chứng nếu có liên quan.",
   "form.demoButton": "Tải bản demo Barcelona",
   "form.submitButton": "Tạo kế hoạch hành động ứng phó nắng nóng của tôi",
   "form.submittingButton": "Đang tạo kế hoạch của bạn…",
@@ -98,8 +98,7 @@ export const VIETNAMESE_CATALOG = {
   "scenario.importantNow": "Quan trọng lúc này",
 
   "validation.empty": "Hãy mô tả tình huống trước khi tạo kế hoạch.",
-  "validation.overLimit":
-    "Giữ nội dung mô tả trong giới hạn {{limit}} ký tự Unicode.",
+  "validation.overLimit": "Nội dung mô tả quá dài. Hãy rút ngắn văn bản.",
   "validation.serverInput": "Xem lại nội dung mô tả rồi thử lại.",
 
   "status.creating": "Đang tạo kế hoạch hành động của bạn.",
@@ -182,7 +181,7 @@ export const VIETNAMESE_CATALOG = {
   "trust.privacyLabel": "Quyền riêng tư",
   "trust.privacyTitle": "Không cung cấp thông tin nhận dạng",
   "trust.privacyDescription":
-    "Văn bản tình huống không được lưu trong bộ nhớ trình duyệt. Các lựa chọn rõ ràng về chế độ hiển thị, ngôn ngữ giao diện và ngôn ngữ kế hoạch hành động được lưu cục bộ. Chỉ mã ngôn ngữ kế hoạch hành động đã chọn được đưa vào yêu cầu; chế độ hiển thị và ngôn ngữ giao diện không được đưa vào. HeatRelay không sử dụng công cụ phân tích, cookie, tham số URL hoặc định vị địa lý trong bản demo này.",
+    "Văn bản tình huống không được lưu trong bộ nhớ trình duyệt. Các lựa chọn rõ ràng về chế độ hiển thị và ngôn ngữ được lưu cục bộ. Chỉ mã ngôn ngữ đã chọn được đưa vào yêu cầu kế hoạch hành động; chế độ hiển thị không được đưa vào. HeatRelay không sử dụng công cụ phân tích, cookie, tham số URL hoặc định vị địa lý trong bản demo này.",
 
   "footer.description": "Bản demo Barcelona · Tọa độ cố định",
 

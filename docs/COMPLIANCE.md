@@ -54,7 +54,7 @@ supplied publication reports, not inferred from Git author metadata.
 | Corrected-contract grounded-plan access | **Verified by one separately authorized final smoke on 2026-07-17** | Exactly one direct `GroundedPlanService` request with zero retries passed strict Pydantic, allowed-code, safe-model-metadata, and exact candidate-whitelist validation. It used 1,326 input and 171 output tokens; this single scenario is not a general accuracy evaluation. |
 | Live Milestone 4 browser workflow | **Verified for one bounded smoke on 2026-07-18** | One Chrome submission produced one observed action-plan POST and HTTP 200, rendering the normal `Prepare now` no-place result with zero retries. Extraction, Open-Meteo, and grounded-plan calls were inferred rather than independently provider-logged. Model metadata and token usage were unavailable; `$0.25` was a conservative authorized upper bound, not the actual measured charge. |
 | Milestone 5 accessibility and low-vision foundation | **Verified within the explicitly tested scope on 2026-07-18** | Offline automated tests and the production build passed. An isolated loopback harness verified corrected 320px reflow; actual Chrome verified 200% page zoom; runtime macOS Reduce Motion was exercised and restored; and one actual VoiceOver session was manually confirmed by the author. This is platform- and scenario-bounded evidence, not formal accessibility certification or a claim of complete conformance. |
-| Milestone 7 redesign | **Published and verified within the bounded offline/browser scope** | The approved red-and-white presentation, M7 High Contrast mode, urgent-first hierarchy, permanent form guidance, non-interactive scenario examples, accessible weather facts, and mobile Settings focus correction preserve the M5/M6 contracts. No release-readiness or complete-design-fidelity claim is made. |
+| Milestone 7 redesign | **Published and verified within the bounded offline/browser scope** | The approved red-and-white presentation, M7 High Contrast mode, urgent-first hierarchy, progressive form guidance, scenario-controlled placement of the unchanged form, accessible weather facts, and mobile Settings focus correction preserve the M5/M6 contracts. No release-readiness or complete-design-fidelity claim is made. |
 
 The Milestone 3 adversarial correction implementations and ordinary
 verification were deliberately offline. The later final smoke was a separate,
@@ -80,11 +80,11 @@ Barcelona municipal membership and not an administrative-boundary geofence.
 Situation text is kept only in React memory, accepted only in the JSON body,
 and sent server-side to OpenAI. The frontend does not use browser storage,
 cookies, analytics, logging, or URL parameters for that text. Explicit visual
-mode, interface language, and action-plan language preferences are stored
-locally under `heatrelay.visual-mode.v1`,
-`heatrelay.interface-locale.v1`, and `heatrelay.output-locale.v1`. Only the
-selected action-plan language code enters the four-field action-plan request;
-visual mode and interface locale do not. HeatRelay does not
+mode and one language preference are stored locally. Visual mode uses
+`heatrelay.visual-mode.v1`; for compatibility the unified language selection
+synchronizes `heatrelay.interface-locale.v1` and
+`heatrelay.output-locale.v1`. Only the selected language code enters the
+four-field action-plan request as `output_locale`; visual mode does not. HeatRelay does not
 intentionally log, persist, or echo the raw text, parsed sensitive fields,
 complete provider responses, or OpenAI response IDs. The
 public extraction output is a strict structured summary and explicitly is not
@@ -212,6 +212,14 @@ boundary, dependency, safety policy, weather, or place behavior. It is not
 browser, screen-reader, multilingual, RTL, or WCAG certification evidence by
 itself. At the close of M6.31, independent review, runtime QA, final
 verification, and publication remained pending.
+
+The current interface supersedes the separate M6 selectors with one native
+language control. An explicit choice changes the interface and next plan
+language and synchronizes both legacy locale keys. Initial resolution prefers
+the valid interface key, then the valid output key, then browser detection,
+then English; automatic resolution does not write storage. This UI correction
+does not change the separate detected-input and response-language facts, the
+strict backend output-locale boundary, or the four-field request.
 
 ## Milestone 6 bounded verification and provider-usage evidence
 
@@ -526,11 +534,15 @@ uses the same logical RTL-capable component tree. Enhanced necessary control
 boundaries meet the adjacent-background contrast target and Enhanced
 programmatic scrolling is automatic rather than smooth.
 
-The three scenario cards are non-interactive examples because the product and
-four-field request have no scenario field. Essential privacy, identity,
-fixed-origin, server-side OpenAI-processing, and demo guidance is permanently
-visible before submission. The normal weather summary uses one native `dl`
-with three exposed fact pairs. The urgent branch presents exactly one complete
+The three scenario headers are native buttons that move the same form between
+the localized cards. This presentation state is not stored, makes no request,
+does not alter the submitted text, and does not add a scenario field to the
+four-field request. One compact essential privacy, identity, fixed-origin,
+server-side OpenAI-processing, and demo-boundary notice is permanently visible;
+the existing detailed explanations use a native progressive disclosure. The
+normal weather summary uses one native `dl` with three exposed fact pairs, and
+its native disclosure cannot expand across the temperature grid. The urgent
+branch presents exactly one complete
 fixed `112` alert before its resubmission form and does not precede it with
 ordinary dashboard, place, weather, or normal-plan content. Normal and urgent
 completion continue focusing their result headings; errors focus their `h2`

@@ -18,9 +18,9 @@ export const SIMPLIFIED_CHINESE_CATALOG = {
   "visualMode.description":
     "增强可见性适用于低视力人士，也适用于任何偏好更大、更清晰内容的人。",
 
-  "interfaceLanguage.label": "界面语言",
+  "interfaceLanguage.label": "语言",
   "interfaceLanguage.description":
-    "更改导航、表单和页面标签，不会更改行动计划语言。",
+    "更改界面和下一份行动计划的语言。不会翻译您的描述，也不会改写当前显示的计划。",
   "interfaceLanguage.optionWithEnglishName":
     "{{nativeName}} — {{englishName}}",
 
@@ -44,7 +44,7 @@ export const SIMPLIFIED_CHINESE_CATALOG = {
     "当前显示的计划不会被改写。您保存的选择将应用于下一份计划。",
   "languageContext.otherValue": "其他语言",
   "languageContext.unknownValue": "无法确定",
-  "languageContext.changeAction": "更改行动计划语言",
+  "languageContext.changeAction": "更改语言",
 
   "hero.eyebrow": "Barcelona 试点 · 里程碑 5",
   "hero.title": "从高温警告到安全的下一步。",
@@ -68,17 +68,17 @@ export const SIMPLIFIED_CHINESE_CATALOG = {
   "form.title": "创建您的高温行动计划",
   "form.introduction":
     "仅分享个性化生成范围明确且经后端验证的计划所需的情况详情。每次提交仅发出一个请求。",
-  "form.privacyTitle": "提交前",
+  "form.privacyTitle": "隐私和演示详情",
   "form.privacyDescription":
     "您的描述将发送到服务器端，由 OpenAI 进行 GPT-5.6 处理。HeatRelay 不会有意存储或记录原始文本；但提供商的数据处理政策仍可能适用。",
   "form.identityWarning":
-    "请勿包含姓名、联系方式、地址或其他身份识别信息。",
+    "文本会发送至 OpenAI；HeatRelay 不会有意保存或记录原始文本。请勿包含姓名、联系方式或地址。使用固定的 Barcelona 演示坐标。这不是医疗建议或紧急援助。",
   "form.situationLabel": "描述高温情况",
-  "form.characterCount": "{{currentCount}} / {{limit}} 个代码点",
+  "form.characterCount": "{{currentCount}} / {{limit}} 个字符",
   "form.characterCountOverLimit":
-    "{{currentCount}} / {{limit}} 个代码点 — 超出限制 {{overLimitCount}} 个",
+    "{{currentCount}} / {{limit}} 个字符 — 请缩短 {{overLimitCount}} 个字符",
   "form.situationHint":
-    "最多使用 {{limit}} 个 Unicode 代码点。您可以描述年龄、降温条件、行动能力、时间安排或明确且有限的警示症状。",
+    "请简要描述年龄、降温条件、行动能力、时间，以及相关症状。",
   "form.demoButton": "加载 Barcelona 演示",
   "form.submitButton": "创建我的高温行动计划",
   "form.submittingButton": "正在创建您的计划……",
@@ -98,8 +98,7 @@ export const SIMPLIFIED_CHINESE_CATALOG = {
   "scenario.importantNow": "现在很重要",
 
   "validation.empty": "请先描述情况，再创建计划。",
-  "validation.overLimit":
-    "描述请勿超过 {{limit}} 个 Unicode 字符。",
+  "validation.overLimit": "描述过长。请缩短文本。",
   "validation.serverInput": "请检查描述后重试。",
 
   "status.creating": "正在创建您的行动计划。",
@@ -179,7 +178,7 @@ export const SIMPLIFIED_CHINESE_CATALOG = {
   "trust.privacyLabel": "隐私",
   "trust.privacyTitle": "请勿提供身份识别信息",
   "trust.privacyDescription":
-    "情况文本不会存入浏览器存储。明确选择的视觉模式、界面语言和行动计划语言偏好会保存在本地。只有所选行动计划语言代码会进入行动计划请求；视觉模式和界面语言不会进入请求。HeatRelay 在此演示中不使用分析工具、Cookie、URL 参数或地理位置。",
+    "情况文本不会存入浏览器存储。明确选择的视觉模式和语言偏好会保存在本地。只有所选语言代码会进入行动计划请求；视觉模式不会进入请求。HeatRelay 在此演示中不使用分析工具、Cookie、URL 参数或地理位置。",
 
   "footer.description": "Barcelona 演示 · 固定坐标",
 

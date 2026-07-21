@@ -10,7 +10,6 @@ import {
 import { I18nContext, useTranslation } from "react-i18next";
 import { ArrowRightIcon } from "@phosphor-icons/react/dist/csr/ArrowRight";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react/dist/csr/ArrowSquareOut";
-import { ChatTextIcon } from "@phosphor-icons/react/dist/csr/ChatText";
 import { ClockIcon } from "@phosphor-icons/react/dist/csr/Clock";
 import { DropIcon } from "@phosphor-icons/react/dist/csr/Drop";
 import { FanIcon } from "@phosphor-icons/react/dist/csr/Fan";
@@ -52,13 +51,10 @@ import {
   DEFAULT_INTERFACE_LOCALE,
   LOCALE_REGISTRY,
   SUPPORTED_INTERFACE_LOCALES,
-  SUPPORTED_OUTPUT_LOCALES,
   getLocaleDefinition,
   isInterfaceLocale,
   isOutputLocale,
-  persistInterfaceLocale,
-  persistOutputLocale,
-  resolveInitialOutputLocale,
+  persistUnifiedLocale,
   type InterfaceLocale,
   type OutputLocale,
 } from "./i18n/locale-registry";
@@ -321,55 +317,33 @@ function HeatRelayBrand({ footer = false }: { footer?: boolean }) {
 }
 
 function LanguageControl({
-  kind,
   value,
   disabled = false,
   selectRef,
   onChange,
 }: {
-  kind: "interface" | "output";
-  value: InterfaceLocale | OutputLocale;
+  value: InterfaceLocale;
   disabled?: boolean;
   selectRef?: RefObject<HTMLSelectElement | null>;
   onChange: (event: ChangeEvent<HTMLSelectElement>) => void;
 }) {
   const { t } = useTranslation();
-  const isOutput = kind === "output";
-  const id = isOutput
-    ? "output-language-select"
-    : "interface-language-select";
-  const descriptionId = isOutput
-    ? "output-language-description"
-    : "interface-language-description";
-  const options = isOutput
-    ? SUPPORTED_OUTPUT_LOCALES
-    : SUPPORTED_INTERFACE_LOCALES;
-  const SettingIcon = isOutput ? ChatTextIcon : GlobeIcon;
 
   return (
-    <div
-      className={
-        isOutput
-          ? "settings-control output-language-control"
-          : "settings-control interface-language-control"
-      }
-    >
-      <label htmlFor={id}>
-        {t(isOutput ? "outputLanguage.label" : "interfaceLanguage.label")}
-      </label>
+    <div className="settings-control language-control">
+      <label htmlFor="language-select">{t("interfaceLanguage.label")}</label>
       <div className="settings-select-wrap">
-        <SettingIcon aria-hidden="true" size={22} weight="bold" />
+        <GlobeIcon aria-hidden="true" size={22} weight="bold" />
         <select
           ref={selectRef}
-          id={id}
-          name={isOutput ? "output_locale" : undefined}
+          id="language-select"
           value={value}
           dir={LOCALE_REGISTRY[value].direction}
           disabled={disabled}
-          aria-describedby={descriptionId}
+          aria-describedby="language-description"
           onChange={onChange}
         >
-          {options.map((localeCode) => {
+          {SUPPORTED_INTERFACE_LOCALES.map((localeCode) => {
             const definition = LOCALE_REGISTRY[localeCode];
             return (
               <option
@@ -384,12 +358,8 @@ function LanguageControl({
           })}
         </select>
       </div>
-      <p id={descriptionId}>
-        {t(
-          isOutput
-            ? "outputLanguage.description"
-            : "interfaceLanguage.description",
-        )}
+      <p id="language-description">
+        {t("interfaceLanguage.description")}
       </p>
     </div>
   );
@@ -438,24 +408,20 @@ function VisualModeControl({
 function HeaderSettings({
   isOpen,
   setIsOpen,
-  interfaceLocale,
-  outputLocale,
+  locale,
   visualMode,
   isLoading,
-  outputLanguageSelectRef,
-  onInterfaceLocaleChange,
-  onOutputLocaleChange,
+  languageSelectRef,
+  onLocaleChange,
   onVisualModeChange,
 }: {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
-  interfaceLocale: InterfaceLocale;
-  outputLocale: OutputLocale;
+  locale: InterfaceLocale;
   visualMode: VisualMode;
   isLoading: boolean;
-  outputLanguageSelectRef: RefObject<HTMLSelectElement | null>;
-  onInterfaceLocaleChange: (event: ChangeEvent<HTMLSelectElement>) => void;
-  onOutputLocaleChange: (event: ChangeEvent<HTMLSelectElement>) => void;
+  languageSelectRef: RefObject<HTMLSelectElement | null>;
+  onLocaleChange: (event: ChangeEvent<HTMLSelectElement>) => void;
   onVisualModeChange: (mode: VisualMode) => void;
 }) {
   const { t } = useTranslation();
@@ -470,16 +436,10 @@ function HeaderSettings({
       <summary>{t("header.settings")}</summary>
       <div className="header-settings-grid">
         <LanguageControl
-          kind="interface"
-          value={interfaceLocale}
-          onChange={onInterfaceLocaleChange}
-        />
-        <LanguageControl
-          kind="output"
-          value={outputLocale}
+          value={locale}
           disabled={isLoading}
-          selectRef={outputLanguageSelectRef}
-          onChange={onOutputLocaleChange}
+          selectRef={languageSelectRef}
+          onChange={onLocaleChange}
         />
         <VisualModeControl
           value={visualMode}
@@ -526,13 +486,13 @@ function DescriptionLanguageValue({
 
 function LanguageContextNotice({
   response,
-  selectedOutputLocale,
-  onRequestOutputLanguageFocus,
+  selectedLocale,
+  onRequestLanguageFocus,
   showChangeAction,
 }: {
   response: ActionPlanResponse;
-  selectedOutputLocale: OutputLocale;
-  onRequestOutputLanguageFocus: () => void;
+  selectedLocale: OutputLocale;
+  onRequestLanguageFocus: () => void;
   showChangeAction: boolean;
 }) {
   const { t } = useTranslation();
@@ -540,7 +500,7 @@ function LanguageContextNotice({
     response.situation.detected_input_language,
     response.output_locale,
   );
-  const nextPlanDiffers = selectedOutputLocale !== response.output_locale;
+  const nextPlanDiffers = selectedLocale !== response.output_locale;
   if (classification === null && !nextPlanDiffers) {
     return null;
   }
@@ -578,7 +538,7 @@ function LanguageContextNotice({
           <div>
             <dt>{t("languageContext.nextLanguage")}</dt>
             <dd>
-              <RegisteredLanguageValue locale={selectedOutputLocale} />
+              <RegisteredLanguageValue locale={selectedLocale} />
             </dd>
           </div>
         ) : null}
@@ -587,7 +547,7 @@ function LanguageContextNotice({
         <button
           type="button"
           className="secondary-button"
-          onClick={onRequestOutputLanguageFocus}
+          onClick={onRequestLanguageFocus}
         >
           {t("languageContext.changeAction")}
         </button>
@@ -1156,7 +1116,7 @@ function SituationForm({
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
   const { t } = useTranslation();
-  const characterCount = countCodePoints(situationText);
+  const characterCount = countCodePoints(situationText.trim());
   const overLimitBy = Math.max(0, characterCount - SITUATION_TEXT_LIMIT);
   const isOverLimit = overLimitBy > 0;
   const formattedCharacterCount = formatNumber(characterCount, locale);
@@ -1164,12 +1124,11 @@ function SituationForm({
   const formattedOverLimitCount = formatNumber(overLimitBy, locale);
 
   return (
-    <div className="form-card">
+    <div id="scenario-form" className="form-card">
       <form
         className="plan-form"
         aria-labelledby="plan-title"
         aria-busy={isLoading}
-        aria-describedby="privacy-description identity-warning boundary-note"
         onSubmit={onSubmit}
       >
         <div className="field-group">
@@ -1202,7 +1161,7 @@ function SituationForm({
             value={situationText}
             disabled={isLoading}
             placeholder={t("form.demoText")}
-            aria-describedby={`privacy-description identity-warning situation-hint character-count boundary-note${fieldError ? " situation-error" : ""}`}
+            aria-describedby={`situation-hint character-count identity-warning${fieldError ? " situation-error" : ""}`}
             aria-invalid={fieldError || isOverLimit ? "true" : undefined}
             aria-errormessage={fieldError ? "situation-error" : undefined}
             onChange={(event) => {
@@ -1224,14 +1183,8 @@ function SituationForm({
         </div>
 
         <div className="permanent-form-guidance">
-          <div id="privacy-description" className="privacy-notice">
-            <p>{t("form.privacyDescription")}</p>
-          </div>
           <p id="identity-warning" className="identity-warning">
             {t("form.identityWarning")}
-          </p>
-          <p id="boundary-note" className="boundary-note">
-            {t("form.boundaryNote")}
           </p>
         </div>
 
@@ -1250,6 +1203,12 @@ function SituationForm({
 
         <details className="form-disclosure">
           <summary>{t("form.privacyTitle")}</summary>
+          <div id="privacy-description" className="privacy-notice">
+            <p>{t("form.privacyDescription")}</p>
+          </div>
+          <p id="boundary-note" className="boundary-note">
+            {t("form.boundaryNote")}
+          </p>
           <button
             type="button"
             className="secondary-button demo-button"
@@ -1268,21 +1227,25 @@ function SituationForm({
 
 function ScenarioDashboard({
   response,
+  activeScenario,
   situationText,
   fieldError,
   isLoading,
   textareaRef,
   locale,
   onTextChange,
+  onScenarioChange,
   onSubmit,
 }: {
   response?: NormalActionPlanResponse;
+  activeScenario: AssistanceScenario;
   situationText: string;
   fieldError: FieldErrorKind | null;
   isLoading: boolean;
   textareaRef: RefObject<HTMLTextAreaElement | null>;
   locale: InterfaceLocale;
   onTextChange: (value: string) => void;
+  onScenarioChange: (scenario: AssistanceScenario) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
   const { t } = useTranslation();
@@ -1296,23 +1259,32 @@ function ScenarioDashboard({
         <div className="scenario-list">
           {SCENARIO_ORDER.map((scenario) => {
             const content = SCENARIO_CONTENT[scenario];
-            const primary = scenario === "self";
+            const active = scenario === activeScenario;
             const ScenarioIcon = content.Icon;
             return (
               <section
                 className="scenario-option"
-                data-primary={primary}
+                data-active={active}
                 key={scenario}
               >
-                <div className="scenario-example">
+                <button
+                  type="button"
+                  className="scenario-example"
+                  aria-expanded={active}
+                  aria-controls="scenario-form"
+                  disabled={isLoading}
+                  onClick={() => {
+                    onScenarioChange(scenario);
+                  }}
+                >
                   <ScenarioIcon aria-hidden="true" size={38} weight="regular" />
                   <span className="scenario-copy">
                     <strong>{t(content.title)}</strong>
                     <span>{t(content.description)}</span>
                   </span>
-                </div>
+                </button>
 
-                {primary ? (
+                {active ? (
                   <SituationForm
                     situationText={situationText}
                     fieldError={fieldError}
@@ -1381,23 +1353,23 @@ export default function App() {
   const [visualMode, setVisualMode] = useState<VisualMode>(
     resolveInitialVisualMode,
   );
-  const [outputLocale, setOutputLocale] = useState<OutputLocale>(
-    resolveInitialOutputLocale,
-  );
   const [settingsOpen, setSettingsOpen] = useState(
     () =>
       typeof window === "undefined" ||
       window.innerWidth > MOBILE_SETTINGS_BREAKPOINT,
   );
   const [situationText, setSituationText] = useState("");
+  const [activeScenario, setActiveScenario] =
+    useState<AssistanceScenario>("self");
   const [fieldError, setFieldError] = useState<FieldErrorKind | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<ActionPlanResponse | null>(null);
   const [error, setError] = useState<UiErrorKind | null>(null);
   const submissionInFlight = useRef(false);
   const situationTextareaRef = useRef<HTMLTextAreaElement>(null);
-  const outputLanguageSelectRef = useRef<HTMLSelectElement>(null);
-  const focusOutputLanguageAfterSettingsOpen = useRef(false);
+  const languageSelectRef = useRef<HTMLSelectElement>(null);
+  const focusLanguageAfterSettingsOpen = useRef(false);
+  const focusSituationAfterScenarioChange = useRef(false);
   const resultHeadingRef = useRef<HTMLHeadingElement>(null);
   const errorHeadingRef = useRef<HTMLHeadingElement>(null);
 
@@ -1412,11 +1384,18 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (settingsOpen && focusOutputLanguageAfterSettingsOpen.current) {
-      focusOutputLanguageAfterSettingsOpen.current = false;
-      outputLanguageSelectRef.current?.focus();
+    if (settingsOpen && focusLanguageAfterSettingsOpen.current) {
+      focusLanguageAfterSettingsOpen.current = false;
+      languageSelectRef.current?.focus();
     }
   }, [settingsOpen]);
+
+  useEffect(() => {
+    if (focusSituationAfterScenarioChange.current) {
+      focusSituationAfterScenarioChange.current = false;
+      situationTextareaRef.current?.focus();
+    }
+  }, [activeScenario]);
 
   useEffect(() => {
     if (error) {
@@ -1447,15 +1426,26 @@ export default function App() {
     setResult(null);
   }
 
-  async function handleInterfaceLocaleChange(
+  function handleScenarioChange(scenario: AssistanceScenario) {
+    if (isLoading || scenario === activeScenario) {
+      return;
+    }
+    focusSituationAfterScenarioChange.current = true;
+    setActiveScenario(scenario);
+  }
+
+  async function handleLocaleChange(
     event: ChangeEvent<HTMLSelectElement>,
   ) {
     const selectedLocale = event.currentTarget.value;
-    if (!isInterfaceLocale(selectedLocale)) {
+    if (isLoading || !isInterfaceLocale(selectedLocale)) {
       return;
     }
 
     const previousLocale = activeInterfaceLocale(i18n.resolvedLanguage);
+    if (selectedLocale === previousLocale) {
+      return;
+    }
     try {
       await i18n.changeLanguage(selectedLocale);
     } catch {
@@ -1481,21 +1471,7 @@ export default function App() {
     }
 
     synchronizeDocumentLocalization(i18n);
-    persistInterfaceLocale(selectedLocale);
-  }
-
-  function handleOutputLocaleChange(event: ChangeEvent<HTMLSelectElement>) {
-    const selectedLocale = event.currentTarget.value;
-    if (
-      isLoading ||
-      !isOutputLocale(selectedLocale) ||
-      selectedLocale === outputLocale
-    ) {
-      return;
-    }
-
-    setOutputLocale(selectedLocale);
-    persistOutputLocale(selectedLocale);
+    persistUnifiedLocale(selectedLocale);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -1504,7 +1480,7 @@ export default function App() {
       return;
     }
     const trimmedText = situationText.trim();
-    const requestedOutputLocale = outputLocale;
+    const requestedOutputLocale = locale;
     const length = countCodePoints(trimmedText);
     if (length === 0 || length > SITUATION_TEXT_LIMIT) {
       showSituationError(length === 0 ? "empty" : "over_limit");
@@ -1545,12 +1521,12 @@ export default function App() {
     persistVisualMode(mode);
   }
 
-  function requestOutputLanguageFocus() {
+  function requestLanguageFocus() {
     if (settingsOpen) {
-      outputLanguageSelectRef.current?.focus();
+      languageSelectRef.current?.focus();
       return;
     }
-    focusOutputLanguageAfterSettingsOpen.current = true;
+    focusLanguageAfterSettingsOpen.current = true;
     setSettingsOpen(true);
   }
 
@@ -1566,15 +1542,13 @@ export default function App() {
           <HeaderSettings
             isOpen={settingsOpen}
             setIsOpen={setSettingsOpen}
-            interfaceLocale={locale}
-            outputLocale={outputLocale}
+            locale={locale}
             visualMode={visualMode}
             isLoading={isLoading}
-            outputLanguageSelectRef={outputLanguageSelectRef}
-            onInterfaceLocaleChange={(event) => {
-              void handleInterfaceLocaleChange(event);
+            languageSelectRef={languageSelectRef}
+            onLocaleChange={(event) => {
+              void handleLocaleChange(event);
             }}
-            onOutputLocaleChange={handleOutputLocaleChange}
             onVisualModeChange={handleVisualModeChange}
           />
         </div>
@@ -1593,12 +1567,14 @@ export default function App() {
             <NormalResult response={result} headingRef={resultHeadingRef}>
               <ScenarioDashboard
                 response={result}
+                activeScenario={activeScenario}
                 situationText={situationText}
                 fieldError={fieldError}
                 isLoading={isLoading}
                 textareaRef={situationTextareaRef}
                 locale={locale}
                 onTextChange={changeSituationText}
+                onScenarioChange={handleScenarioChange}
                 onSubmit={handleSubmit}
               />
             </NormalResult>
@@ -1607,8 +1583,8 @@ export default function App() {
               <EmergencyResult response={result} headingRef={resultHeadingRef} />
               <LanguageContextNotice
                 response={result}
-                selectedOutputLocale={outputLocale}
-                onRequestOutputLanguageFocus={requestOutputLanguageFocus}
+                selectedLocale={locale}
+                onRequestLanguageFocus={requestLanguageFocus}
                 showChangeAction={false}
               />
               <div className="post-urgent-form">
@@ -1625,12 +1601,14 @@ export default function App() {
             </>
           ) : (
             <ScenarioDashboard
+              activeScenario={activeScenario}
               situationText={situationText}
               fieldError={fieldError}
               isLoading={isLoading}
               textareaRef={situationTextareaRef}
               locale={locale}
               onTextChange={changeSituationText}
+              onScenarioChange={handleScenarioChange}
               onSubmit={handleSubmit}
             />
           )}
@@ -1653,8 +1631,8 @@ export default function App() {
           {result?.branch === "normal" ? (
             <LanguageContextNotice
               response={result}
-              selectedOutputLocale={outputLocale}
-              onRequestOutputLanguageFocus={requestOutputLanguageFocus}
+              selectedLocale={locale}
+              onRequestLanguageFocus={requestLanguageFocus}
               showChangeAction
             />
           ) : null}

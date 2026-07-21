@@ -58,6 +58,7 @@ import {
   isOutputLocale,
   persistInterfaceLocale,
   persistOutputLocale,
+  persistUnifiedLocale,
   resolveInitialInterfaceLocale,
   resolveInitialOutputLocale,
   type InterfaceLocale,
@@ -1200,6 +1201,85 @@ describe("typed locale registry and persistence", () => {
     ).toBe("es");
   });
 
+  it("uses the legacy output locale when the interface locale is unavailable", () => {
+    const storage = createStorage({
+      [OUTPUT_LOCALE_STORAGE_KEY]: "ru",
+    });
+
+    expect(
+      resolveInitialInterfaceLocale(environment(storage, ["ar-EG"])),
+    ).toBe("ru");
+    expect(storage.setItem).not.toHaveBeenCalled();
+  });
+
+  it("continues to the legacy output locale when the interface-key read throws", () => {
+    const storage = createStorage({
+      [OUTPUT_LOCALE_STORAGE_KEY]: "he",
+    });
+    vi.mocked(storage.getItem).mockImplementation((key) => {
+      if (key === INTERFACE_LOCALE_STORAGE_KEY) {
+        throw new Error("Synthetic blocked interface-key read");
+      }
+      return storage.values.get(key) ?? null;
+    });
+
+    expect(
+      resolveInitialInterfaceLocale(environment(storage, ["es-MX"])),
+    ).toBe("he");
+    expect(storage.setItem).not.toHaveBeenCalled();
+  });
+
+  it("lets a valid stored interface locale win a legacy-key conflict", () => {
+    const storage = createStorage({
+      [INTERFACE_LOCALE_STORAGE_KEY]: "es",
+      [OUTPUT_LOCALE_STORAGE_KEY]: "he",
+    });
+
+    expect(
+      resolveInitialInterfaceLocale(environment(storage, ["ar-EG"])),
+    ).toBe("es");
+    expect(storage.getItem).toHaveBeenCalledOnce();
+    expect(storage.setItem).not.toHaveBeenCalled();
+  });
+
+  it.each(SUPPORTED_INTERFACE_LOCALES)(
+    "persists explicit unified locale %s to both legacy keys",
+    (locale) => {
+      const storage = createStorage();
+
+      persistUnifiedLocale(locale, storage);
+
+      expect(storage.setItem).toHaveBeenNthCalledWith(
+        1,
+        INTERFACE_LOCALE_STORAGE_KEY,
+        locale,
+      );
+      expect(storage.setItem).toHaveBeenNthCalledWith(
+        2,
+        OUTPUT_LOCALE_STORAGE_KEY,
+        locale,
+      );
+      expect(storage.values).toEqual(
+        new Map([
+          [INTERFACE_LOCALE_STORAGE_KEY, locale],
+          [OUTPUT_LOCALE_STORAGE_KEY, locale],
+        ]),
+      );
+    },
+  );
+
+  it("ignores invalid unified values and tolerates storage write failures", () => {
+    const invalidStorage = createStorage();
+    persistUnifiedLocale("en-US" as InterfaceLocale, invalidStorage);
+    expect(invalidStorage.setItem).not.toHaveBeenCalled();
+
+    const blockedStorage = createStorage();
+    vi.mocked(blockedStorage.setItem).mockImplementation(() => {
+      throw new Error("Synthetic blocked unified-locale write");
+    });
+    expect(() => persistUnifiedLocale("ar", blockedStorage)).not.toThrow();
+  });
+
   it.each([
     "hi-IN",
     "AR",
@@ -1492,6 +1572,77 @@ describe("canonical catalogs and bundled runtime", () => {
     }
   });
 
+  it("uses compact disclosure and ordinary character copy without changing catalog parity", () => {
+    expect(
+      Object.fromEntries(
+        [
+          "form.privacyTitle",
+          "form.identityWarning",
+          "form.characterCount",
+          "form.characterCountOverLimit",
+          "form.situationHint",
+          "validation.overLimit",
+        ].map((key) => [key, ENGLISH_CATALOG[key as MessageKey]]),
+      ),
+    ).toEqual({
+      "form.privacyTitle": "Privacy and demo details",
+      "form.identityWarning":
+        "Sent to OpenAI; HeatRelay does not intentionally save or log the original text. Do not include names, contacts, or addresses. Fixed Barcelona demo coordinates. Not medical or emergency advice.",
+      "form.characterCount": "{{currentCount}} / {{limit}} characters",
+      "form.characterCountOverLimit":
+        "{{currentCount}} / {{limit}} characters — shorten by {{overLimitCount}}",
+      "form.situationHint":
+        "Briefly describe age, access to cooling, mobility, timing, and symptoms if relevant.",
+      "validation.overLimit": "The description is too long. Shorten the text.",
+    });
+    expect(RUSSIAN_CATALOG["form.privacyTitle"]).toBe(
+      "Конфиденциальность и условия демоверсии",
+    );
+    expect(RUSSIAN_CATALOG["form.identityWarning"]).toBe(
+      "Текст передаётся в OpenAI; HeatRelay намеренно не сохраняет и не журналирует исходный текст. Не указывайте имена, контакты или адреса. Фиксированные координаты Barcelona. Это не медицинская или экстренная помощь.",
+    );
+    expect(RUSSIAN_CATALOG["form.characterCount"]).toBe(
+      "{{currentCount}} / {{limit}} символов",
+    );
+    expect(RUSSIAN_CATALOG["form.characterCountOverLimit"]).toBe(
+      "{{currentCount}} / {{limit}} символов — сократите на {{overLimitCount}}",
+    );
+    expect(RUSSIAN_CATALOG["form.situationHint"]).toBe(
+      "Кратко укажите возраст, возможность охладиться, подвижность, время и симптомы, если они есть.",
+    );
+    expect(RUSSIAN_CATALOG["validation.overLimit"]).toBe(
+      "Описание слишком длинное. Сократите текст.",
+    );
+
+    const revisedKeys = [
+      "form.privacyTitle",
+      "form.identityWarning",
+      "form.characterCount",
+      "form.characterCountOverLimit",
+      "form.situationHint",
+      "validation.overLimit",
+    ] as const;
+    for (const locale of SUPPORTED_INTERFACE_LOCALES) {
+      for (const key of revisedKeys) {
+        const value = LOCALE_REGISTRY[locale].catalog[key];
+        expect(value.trim()).not.toBe("");
+        expect(value).not.toBe(key);
+        expect(interpolationNames(value)).toEqual(
+          interpolationNames(ENGLISH_CATALOG[key]),
+        );
+      }
+      expect(LOCALE_REGISTRY[locale].catalog["form.identityWarning"]).toContain(
+        "OpenAI",
+      );
+      expect(LOCALE_REGISTRY[locale].catalog["form.identityWarning"]).toContain(
+        "HeatRelay",
+      );
+      expect(LOCALE_REGISTRY[locale].catalog["form.identityWarning"]).toContain(
+        "Barcelona",
+      );
+    }
+  });
+
   it("allows only the reviewed exact English equalities in non-English catalogs", () => {
     const sharedEqualities = [
       "app.name",
@@ -1586,7 +1737,7 @@ describe("canonical catalogs and bundled runtime", () => {
         "The displayed plan is not rewritten. Your saved choice applies to the next plan.",
       "languageContext.otherValue": "Another language",
       "languageContext.unknownValue": "Could not be determined",
-      "languageContext.changeAction": "Change action-plan language",
+      "languageContext.changeAction": "Change language",
     });
 
     for (const locale of SUPPORTED_INTERFACE_LOCALES) {

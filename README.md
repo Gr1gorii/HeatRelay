@@ -17,7 +17,7 @@ Visibility application with a defensively persisted presentation preference,
 stronger semantic interaction, and verified low-vision and accessibility
 foundations without changing the backend or API contract. Milestone 6 adds 25
 bundled interface catalogs, 25 immutable deterministic backend action-plan
-catalogs, independent interface and output-language preferences, strict
+catalogs, one unified language preference for the interface and next plan, strict
 locale propagation, and deterministic language-context information. Its
 implementation is verified within the explicitly tested scope and published
 through the repository commit containing this revision. Milestone 7 implements
@@ -63,12 +63,13 @@ Included in the implemented scope:
   preference takes precedence, while first load uses `prefers-contrast: more`
   when no valid value is stored and otherwise falls back to Standard. No
   account is required, and no visual-mode field enters the action-plan request.
-- Independent interface- and action-plan-language controls. Interface language
-  uses `heatrelay.interface-locale.v1`; action-plan language uses
-  `heatrelay.output-locale.v1`, accepts the exact 25 supported locale codes,
-  and otherwise starts in English. Output selection does not inspect browser
-  languages or follow the interface language, and it applies only to the next
-  submission rather than rewriting an existing result.
+- One unified native language control accepts the exact 25 supported locale
+  codes and changes both the interface and the next plan language. For legacy
+  compatibility it synchronizes `heatrelay.interface-locale.v1` and
+  `heatrelay.output-locale.v1`; initial resolution prefers a valid interface
+  value, then a valid output value, then browser matching, then English.
+  Automatic detection and fallback do not write storage, and a selection never
+  translates the description or rewrites an existing result.
 - Complete registered interface and action-plan output support for 25 locales:
   21 left-to-right locales and the four right-to-left locales `ar`, `ur`,
   `fa`, and `he`. The backend hydrates only immutable registered prose; it
@@ -95,8 +96,8 @@ Included in the implemented scope:
 
 The browser calls only the action-plan endpoint for this flow. Its request has
 exactly the trimmed situation text, fixed Barcelona origin, 3,000-metre maximum
-distance, and selected action-plan language code. It does not send visual mode
-or interface locale. It uses fixed coordinates rather than browser location
+distance, and selected unified language code as `output_locale`. It does not
+send visual mode or another locale field. It uses fixed coordinates rather than browser location
 and does not call the situation, weather, or places endpoints separately.
 Official heat-warning retrieval, medical diagnosis or risk scoring, free-form
 medical or emergency decision logic, embedded maps, route calculation, ETAs, browser
@@ -135,10 +136,12 @@ cross-browser compatibility, or release readiness.
 ## Localization and language contracts
 
 The interface and action-plan output registries each contain the same 25 exact
-locale codes. Interface language changes navigation, controls, and page labels;
-action-plan language is a separate saved preference for the next submission.
-Invalid or inaccessible stored frontend preferences resolve deterministically
-to English without repairing storage. The backend is stricter: an unsupported
+locale codes. One explicit language selection changes navigation, controls,
+page labels, and the next submission's `output_locale`; it does not alter the
+description or rewrite displayed response prose. The two legacy storage keys
+are synchronized after an explicit selection. Invalid or inaccessible stored
+frontend preferences continue through the defined precedence to browser
+matching and then English without repairing storage. The backend is stricter: an unsupported
 or non-exact output locale is rejected rather than normalized, inferred,
 silently translated, or replaced with English.
 
@@ -167,14 +170,21 @@ human-reviewed or release-ready.
 ## Milestone 7 redesign boundary
 
 The redesign keeps one logical page heading followed by focused result
-headings, permanently visible privacy, identity, fixed-origin,
-OpenAI-processing, and demo-boundary guidance, three non-interactive localized
-scenario examples, and one native three-pair weather description list. An
+headings, a compact permanently visible privacy/identity/demo-boundary notice,
+three localized scenario buttons that move the same form without changing its
+text or request, and one native three-pair weather description list. The full
+privacy and demo explanation remains available through a native disclosure. An
 urgent response places the complete fixed `112` alert before its resubmission
 form and does not render ordinary scenario, weather, place, or normal-plan
 surfaces ahead of the alert. On mobile, the normal-result language action opens
-Settings before focusing the existing native output-language select; it
+Settings before focusing the existing native language select; it
 preserves the result and makes no request.
+
+Scenario selection is presentation state only: it is not stored, does not make
+a request, adds no request field, and never prefixes or rewrites
+`situation_text`. The displayed counter uses ordinary character wording while
+the enforced technical limit remains 2,000 Unicode code points on the trimmed
+submitted value.
 
 The visual mockup's Listen/speech control, embedded map preview, calculated
 route or ETA, permanent emergency strip, and unverified third initial safety
@@ -1095,13 +1105,13 @@ stored in browser storage. It is then sent in the action-plan JSON body and
 from the backend to OpenAI for structured extraction. The frontend does not
 put it in browser storage, cookies, analytics, logs, or URLs. Explicit
 preferences are stored locally: visual mode uses
-`heatrelay.visual-mode.v1`, the interface-language preference uses
-`heatrelay.interface-locale.v1`, and the action-plan-language preference uses
-`heatrelay.output-locale.v1`. Only the selected action-plan language code
-enters the action-plan request; visual mode and interface locale remain
-local-only. A valid exact stored output locale is restored, otherwise English
-is used without repairing storage. Output resolution does not inspect browser
-languages or derive from interface locale. HeatRelay uses no analytics,
+`heatrelay.visual-mode.v1`, while the unified language preference synchronizes
+the legacy `heatrelay.interface-locale.v1` and
+`heatrelay.output-locale.v1` keys. Only that selected language code enters the
+action-plan request as `output_locale`; visual mode remains local-only. Initial
+language resolution uses a valid stored interface value, then a valid stored
+output value, then browser matching, then English, without automatically
+repairing storage. HeatRelay uses no analytics,
 cookies, URL parameters, geolocation, or account for these preferences.
 HeatRelay does not intentionally log or persist the raw text, complete model
 response, parsed sensitive fields, API response IDs, or request and response
@@ -1125,7 +1135,7 @@ confidence or other model-internal value is exposed.
 
 The language information is a passive section, not a live region or alert.
 After a normal result it can offer a button that only focuses the existing
-action-plan-language select. After an urgent result it follows the complete
+unified language select. After an urgent result it follows the complete
 fixed urgent content and offers no change-language action. Changing the select
 does not rewrite the displayed response and applies only to the next explicit
 submission. This frontend-only behavior changes no backend, schema, storage

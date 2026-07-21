@@ -18,9 +18,9 @@ export const HEBREW_CATALOG = {
   "visualMode.description":
     "נראות משופרת מיועדת לאנשים עם ראייה ירודה או לכל מי שמעדיפים תוכן גדול וברור יותר.",
 
-  "interfaceLanguage.label": "שפת הממשק",
+  "interfaceLanguage.label": "שפה",
   "interfaceLanguage.description":
-    "משנה את הניווט, הטפסים ותוויות הדף. אינה משנה את שפת תוכנית הפעולה.",
+    "משנה את שפת הממשק ואת שפת תוכנית הפעולה הבאה. אינה מתרגמת את התיאור או משכתבת את התוכנית המוצגת.",
   "interfaceLanguage.optionWithEnglishName":
     "{{nativeName}} — {{englishName}}",
 
@@ -44,7 +44,7 @@ export const HEBREW_CATALOG = {
     "התוכנית המוצגת אינה נכתבת מחדש. הבחירה השמורה שלכם תחול על התוכנית הבאה.",
   "languageContext.otherValue": "שפה אחרת",
   "languageContext.unknownValue": "לא ניתן היה לקבוע",
-  "languageContext.changeAction": "שינוי שפת תוכנית הפעולה",
+  "languageContext.changeAction": "שינוי שפה",
 
   "hero.eyebrow": "פיילוט Barcelona · אבן דרך 5",
   "hero.title": "מאזהרת חום לצעד הבא הבטוח.",
@@ -68,17 +68,17 @@ export const HEBREW_CATALOG = {
   "form.title": "יצירת תוכנית הפעולה שלכם להתמודדות עם חום",
   "form.introduction":
     "שתפו רק את פרטי המצב הדרושים להתאמה אישית של תוכנית מוגבלת שאומתה במערכת האחורית. כל שליחה יוצרת בקשה אחת.",
-  "form.privacyTitle": "לפני השליחה",
+  "form.privacyTitle": "פרטיות ופרטי ההדגמה",
   "form.privacyDescription":
     "התיאור שלכם נשלח בצד השרת אל OpenAI לעיבוד באמצעות GPT-5.6. HeatRelay אינו שומר או מתעד במכוון את הטקסט הגולמי; ייתכן שמדיניות הטיפול בנתונים של הספק עדיין תחול.",
   "form.identityWarning":
-    "אין לכלול שמות, פרטי קשר, כתובות או מידע מזהה אחר.",
+    "הטקסט נשלח אל OpenAI; HeatRelay אינו שומר או מתעד במכוון את הטקסט המקורי. אין לכלול שמות, פרטי קשר או כתובות. קואורדינטות הדגמה קבועות של Barcelona. אין זה ייעוץ רפואי או סיוע בחירום.",
   "form.situationLabel": "תיאור המצב הקשור לחום",
-  "form.characterCount": "{{currentCount}} / {{limit}} נקודות קוד",
+  "form.characterCount": "{{currentCount}} / {{limit}} תווים",
   "form.characterCountOverLimit":
-    "{{currentCount}} / {{limit}} נקודות קוד — {{overLimitCount}} מעבר למגבלה",
+    "{{currentCount}} / {{limit}} תווים — יש לקצר ב־{{overLimitCount}}",
   "form.situationHint":
-    "אפשר להשתמש בעד {{limit}} נקודות קוד של Unicode. אפשר לתאר גיל, גישה לקירור, ניידות, תזמון או תסמיני אזהרה מוגבלים.",
+    "תארו בקצרה גיל, גישה לקירור, ניידות, תזמון ותסמינים רלוונטיים.",
   "form.demoButton": "טעינת הדגמת Barcelona",
   "form.submitButton": "יצירת תוכנית הפעולה שלי להתמודדות עם חום",
   "form.submittingButton": "התוכנית שלכם נוצרת…",
@@ -98,8 +98,7 @@ export const HEBREW_CATALOG = {
   "scenario.importantNow": "חשוב עכשיו",
 
   "validation.empty": "תארו את המצב לפני יצירת תוכנית.",
-  "validation.overLimit":
-    "שמרו את התיאור בגבול של {{limit}} תווי Unicode.",
+  "validation.overLimit": "התיאור ארוך מדי. קצרו את הטקסט.",
   "validation.serverInput": "בדקו את התיאור ונסו שוב.",
 
   "status.creating": "תוכנית הפעולה שלכם נוצרת.",
@@ -182,7 +181,7 @@ export const HEBREW_CATALOG = {
   "trust.privacyLabel": "פרטיות",
   "trust.privacyTitle": "אין לכלול פרטים מזהים",
   "trust.privacyDescription":
-    "טקסט המצב אינו נשמר באחסון הדפדפן. העדפות מפורשות של מצב התצוגה, שפת הממשק ושפת תוכנית הפעולה נשמרות מקומית. רק קוד השפה שנבחר לתוכנית הפעולה נכלל בבקשה; מצב התצוגה ושפת הממשק אינם נכללים. HeatRelay אינו משתמש באנליטיקה, בקובצי Cookie, בפרמטרים של URL או במיקום גאוגרפי בהדגמה זו.",
+    "טקסט המצב אינו נשמר באחסון הדפדפן. העדפות מפורשות של מצב התצוגה והשפה נשמרות מקומית. רק קוד השפה שנבחר נכלל בבקשת תוכנית הפעולה; מצב התצוגה אינו נכלל. HeatRelay אינו משתמש באנליטיקה, בקובצי Cookie, בפרמטרים של URL או במיקום גאוגרפי בהדגמה זו.",
 
   "footer.description": "הדגמת Barcelona · קואורדינטות קבועות",
 

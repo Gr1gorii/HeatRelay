@@ -18,9 +18,9 @@ export const KOREAN_CATALOG = {
   "visualMode.description":
     "향상된 가시성은 저시력인 분이나 더 크고 선명한 콘텐츠를 선호하는 누구나 사용할 수 있습니다.",
 
-  "interfaceLanguage.label": "인터페이스 언어",
+  "interfaceLanguage.label": "언어",
   "interfaceLanguage.description":
-    "탐색, 양식 및 페이지 레이블의 언어를 변경합니다. 행동 계획의 언어는 변경하지 않습니다.",
+    "인터페이스와 다음 행동 계획의 언어를 변경합니다. 설명을 번역하거나 표시된 계획을 다시 작성하지 않습니다.",
   "interfaceLanguage.optionWithEnglishName":
     "{{nativeName}} — {{englishName}}",
 
@@ -44,7 +44,7 @@ export const KOREAN_CATALOG = {
     "표시된 계획은 다시 작성되지 않습니다. 저장한 선택은 다음 계획에 적용됩니다.",
   "languageContext.otherValue": "다른 언어",
   "languageContext.unknownValue": "판별할 수 없음",
-  "languageContext.changeAction": "행동 계획 언어 변경",
+  "languageContext.changeAction": "언어 변경",
 
   "hero.eyebrow": "Barcelona 파일럿 · 마일스톤 5",
   "hero.title": "폭염 경보에서 안전한 다음 단계로.",
@@ -68,17 +68,17 @@ export const KOREAN_CATALOG = {
   "form.title": "폭염 행동 계획 만들기",
   "form.introduction":
     "범위가 한정되고 백엔드에서 검증되는 계획을 맞춤화하는 데 필요한 상황 정보만 공유해 주세요. 한 번 제출하면 한 번만 요청합니다.",
-  "form.privacyTitle": "제출하기 전에",
+  "form.privacyTitle": "개인정보 보호 및 데모 세부정보",
   "form.privacyDescription":
     "사용자의 설명은 GPT-5.6 처리를 위해 서버를 통해 OpenAI로 전송됩니다. HeatRelay는 원문을 의도적으로 저장하거나 기록하지 않지만, 제공업체의 데이터 처리 정책이 적용될 수 있습니다.",
   "form.identityWarning":
-    "이름, 연락처, 주소 또는 개인을 식별할 수 있는 기타 정보를 포함하지 마세요.",
+    "텍스트는 OpenAI로 전송됩니다. HeatRelay는 원문을 의도적으로 저장하거나 기록하지 않습니다. 이름, 연락처 또는 주소를 포함하지 마세요. Barcelona의 고정 데모 좌표를 사용합니다. 의료 조언이나 응급 지원이 아닙니다.",
   "form.situationLabel": "폭염 상황 설명",
-  "form.characterCount": "{{currentCount}} / {{limit}} 코드 포인트",
+  "form.characterCount": "{{currentCount}} / {{limit}}자",
   "form.characterCountOverLimit":
-    "{{currentCount}} / {{limit}} 코드 포인트 — 제한보다 {{overLimitCount}}개 초과",
+    "{{currentCount}} / {{limit}}자 — {{overLimitCount}}자 줄이세요",
   "form.situationHint":
-    "Unicode 코드 포인트를 {{limit}}개까지 사용할 수 있습니다. 나이, 냉방 이용 가능 여부, 이동 능력, 시간 또는 범위가 한정된 경고 증상을 설명할 수 있습니다.",
+    "나이, 냉방 이용 가능 여부, 이동 능력, 시간 및 관련 증상을 간단히 설명하세요.",
   "form.demoButton": "Barcelona 데모 불러오기",
   "form.submitButton": "내 폭염 행동 계획 만들기",
   "form.submittingButton": "계획을 만드는 중…",
@@ -98,8 +98,7 @@ export const KOREAN_CATALOG = {
   "scenario.importantNow": "지금 중요한 일",
 
   "validation.empty": "계획을 만들기 전에 상황을 설명해 주세요.",
-  "validation.overLimit":
-    "설명은 Unicode 문자 {{limit}}개 이내로 작성해 주세요.",
+  "validation.overLimit": "설명이 너무 깁니다. 텍스트를 줄이세요.",
   "validation.serverInput": "설명을 검토한 후 다시 시도해 주세요.",
 
   "status.creating": "행동 계획을 만드는 중입니다.",
@@ -182,7 +181,7 @@ export const KOREAN_CATALOG = {
   "trust.privacyLabel": "개인정보 보호",
   "trust.privacyTitle": "개인 식별 정보는 입력하지 마세요",
   "trust.privacyDescription":
-    "상황 설명은 브라우저 저장소에 저장되지 않습니다. 명시적으로 선택한 시각 모드, 인터페이스 언어, 행동 계획 언어 설정은 로컬에 저장됩니다. 선택한 행동 계획 언어 코드만 요청에 포함되며 시각 모드와 인터페이스 언어는 포함되지 않습니다. 이 데모에서 HeatRelay는 분석 도구, 쿠키, URL 매개변수 또는 지오로케이션을 사용하지 않습니다.",
+    "상황 설명은 브라우저 저장소에 저장되지 않습니다. 명시적으로 선택한 시각 모드와 언어 설정은 로컬에 저장됩니다. 선택한 언어 코드만 행동 계획 요청에 포함되며 시각 모드는 포함되지 않습니다. 이 데모에서 HeatRelay는 분석 도구, 쿠키, URL 매개변수 또는 지오로케이션을 사용하지 않습니다.",
 
   "footer.description": "Barcelona 데모 · 고정 좌표",
 

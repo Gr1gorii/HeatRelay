@@ -79,8 +79,9 @@ locale must work in both Standard and Enhanced Visibility.
    local persistence contracts.
 2. **Implemented:** 25 bundled interface catalogs and 25 independent immutable
    backend action-plan output catalogs.
-3. **Implemented:** accessible native interface- and action-plan-language
-   selectors using native names and no flags.
+3. **Implemented:** one accessible native language selector using native names
+   and no flags; it controls the interface and the next plan locale while the
+   visual-mode selector remains separate.
 4. **Implemented and boundedly verified:** `lang`, `dir`, four RTL locales,
    logical CSS, and deterministic `Intl` formatting.
 5. **Implemented:** separate typed interface locale, detected input language,
@@ -166,14 +167,17 @@ published at `6866b4c31649751ecea665c8045d028e228796fb`.
 - M5 Standard and Enhanced Visibility remain intact. High Contrast is the M7
   third visual mode under the same strict storage, state, request, target-size,
   focus, and RTL contracts; it is not retroactively attributed to M5.
-- The form keeps essential privacy, identity, fixed-origin, OpenAI-processing,
-  and demo boundaries permanently available before submission. Scenario cards
-  are localized non-interactive examples and add no request field.
+- The form keeps one compact essential privacy, identity, fixed-origin,
+  OpenAI-processing, and demo-boundary notice permanently available before
+  submission, with the longer facts in a native disclosure. Native scenario
+  buttons move the same form without storage, requests, text rewriting, or a
+  scenario request field.
 - Normal weather is one accessible native three-pair definition list. Urgent
   results put the one complete fixed `112` alert before any resubmission form
   and omit ordinary dashboard/normal-result surfaces ahead of it.
 - A normal-result language action opens mobile Settings before focusing the
-  native output selector, preserves the displayed result, and makes no request.
+  native unified language selector, preserves the displayed result, and makes
+  no request.
 - The Google Maps boundary is one HTTPS new-tab link for a backend-verified
   selected-place address only. It is not an embedded map, geolocation, route,
   ETA, or navigation feature.

@@ -92,9 +92,10 @@ from another locale. Verified facts, IDs, official names, addresses, phone
 numbers, URLs, schedules, timestamps, coordinates, distances, weather values,
 ordering, and provenance remain backend-owned and locale-independent.
 
-Frontend preference recovery and API validation intentionally differ. An
-invalid, absent, inaccessible, or throwing stored interface/output preference
-falls back locally to English without repairing storage. The API accepts only
+Frontend preference recovery and API validation intentionally differ. The
+current unified selector resolves an exact stored interface locale first, then
+an exact stored output locale, then browser matching, then English. Automatic
+detection and fallback do not repair storage. The API accepts only
 an exact member of the output registry and rejects unsupported, padded,
 case-altered, aliased, or regional values before downstream work. It neither
 normalizes nor silently falls back.
@@ -183,6 +184,24 @@ multilingual and RTL browser and assistive-technology QA, human linguistic and
 safety review, final Milestone 6 verification, and publication remained
 pending.
 
+## Current unified language preference
+
+The current Settings surface has one labelled native language selector and a
+separate visual-mode selector. Its 25 native-name options come from the shared
+locale registry. An explicit selection changes the i18next interface locale
+and supplies the next request's `output_locale`; it does not translate the
+situation text or rewrite a displayed response. Result prose retains the
+validated response's language and direction, while detected input language
+remains an independent response fact.
+
+For storage compatibility, explicit selections write the same exact code to
+`heatrelay.interface-locale.v1` and `heatrelay.output-locale.v1`. Initial
+resolution prefers a valid interface-key value, then a valid output-key value,
+then existing browser-language matching, then English. No automatic branch
+writes storage, and storage failures do not invalidate the in-memory session.
+The API body remains exactly `situation_text`, `origin`,
+`maximum_distance_m`, and `output_locale`.
+
 ## Milestone 6 verification boundary
 
 The completed offline and bounded runtime evidence now includes catalog and
@@ -214,11 +233,14 @@ request noninterference, state preservation, Standard 48px and Enhanced 56px
 targets, logical properties, and RTL behavior.
 
 The task region owns one `h1` before focused normal, urgent, and error `h2`
-headings. The three localized scenario cards are non-interactive examples;
-they do not create a scenario request field. Essential privacy, identity,
-fixed-origin, server-side OpenAI-processing, and demo-boundary guidance remains
-permanently visible and connected to the form before submission. Normal weather
-facts use one native `dl` with three ordered, exposed `dt`/`dd` pairs. Enhanced
+headings. The three localized scenario headers are native buttons that select
+where the same form is rendered; the selection is not stored, does not change
+or prefix the text, makes no request, and creates no scenario request field. A
+compact essential privacy, identity, fixed-origin, server-side OpenAI-processing,
+and demo-boundary notice remains visible before submission, while the existing
+long explanations are available in a closed native disclosure. Normal weather
+facts use one native `dl` with three ordered, exposed `dt`/`dd` pairs; the native
+weather disclosure stays within its assigned grid area when expanded. Enhanced
 Visibility uses a control-boundary color above the 3:1 adjacent-background
 target and automatic programmatic scrolling.
 

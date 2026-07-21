@@ -16,9 +16,9 @@ export const ENGLISH_CATALOG = {
   "visualMode.description":
     "Enhanced Visibility is intended for people with low vision or anyone who prefers larger and clearer content.",
 
-  "interfaceLanguage.label": "Interface language",
+  "interfaceLanguage.label": "Language",
   "interfaceLanguage.description":
-    "Changes navigation, forms, and page labels. It does not change the action-plan language.",
+    "Changes the interface and the language of the next action plan. It does not translate your description or rewrite the displayed plan.",
   "interfaceLanguage.optionWithEnglishName":
     "{{nativeName}} — {{englishName}}",
 
@@ -42,7 +42,7 @@ export const ENGLISH_CATALOG = {
     "The displayed plan is not rewritten. Your saved choice applies to the next plan.",
   "languageContext.otherValue": "Another language",
   "languageContext.unknownValue": "Could not be determined",
-  "languageContext.changeAction": "Change action-plan language",
+  "languageContext.changeAction": "Change language",
 
   "hero.eyebrow": "Barcelona pilot · Milestone 5",
   "hero.title": "From heat warning to a safe next step.",
@@ -66,17 +66,17 @@ export const ENGLISH_CATALOG = {
   "form.title": "Create your heat action plan",
   "form.introduction":
     "Share only the situation details needed to personalize a bounded, backend-validated plan. One submission makes one request.",
-  "form.privacyTitle": "Before you submit",
+  "form.privacyTitle": "Privacy and demo details",
   "form.privacyDescription":
     "Your description is sent server-side to OpenAI for GPT-5.6 processing. HeatRelay does not intentionally store or log the raw text; provider data-handling policies may still apply.",
   "form.identityWarning":
-    "Do not include names, contact details, addresses, or other identifying information.",
+    "Sent to OpenAI; HeatRelay does not intentionally save or log the original text. Do not include names, contacts, or addresses. Fixed Barcelona demo coordinates. Not medical or emergency advice.",
   "form.situationLabel": "Describe the heat situation",
-  "form.characterCount": "{{currentCount}} / {{limit}} code points",
+  "form.characterCount": "{{currentCount}} / {{limit}} characters",
   "form.characterCountOverLimit":
-    "{{currentCount}} / {{limit}} code points — {{overLimitCount}} over limit",
+    "{{currentCount}} / {{limit}} characters — shorten by {{overLimitCount}}",
   "form.situationHint":
-    "Use up to {{limit}} Unicode code points. You can describe age, cooling access, mobility, timing, or bounded warning symptoms.",
+    "Briefly describe age, access to cooling, mobility, timing, and symptoms if relevant.",
   "form.demoButton": "Load Barcelona demo",
   "form.submitButton": "Create my heat action plan",
   "form.submittingButton": "Creating your plan…",
@@ -96,8 +96,7 @@ export const ENGLISH_CATALOG = {
   "scenario.importantNow": "Important now",
 
   "validation.empty": "Describe the situation before creating a plan.",
-  "validation.overLimit":
-    "Keep the description within {{limit}} Unicode characters.",
+  "validation.overLimit": "The description is too long. Shorten the text.",
   "validation.serverInput": "Review the description and try again.",
 
   "status.creating": "Creating your action plan.",
@@ -180,7 +179,7 @@ export const ENGLISH_CATALOG = {
   "trust.privacyLabel": "Privacy",
   "trust.privacyTitle": "Keep identifying details out",
   "trust.privacyDescription":
-    "Situation text is not stored in browser storage. Explicit visual-mode, interface-language, and action-plan-language preferences are stored locally. Only the selected action-plan language code enters the action-plan request; visual mode and interface locale do not. HeatRelay does not use analytics, cookies, URL parameters, or geolocation in this demo.",
+    "Situation text is not stored in browser storage. Explicit visual-mode and language preferences are stored locally. Only the selected language code enters the action-plan request; visual mode does not. HeatRelay does not use analytics, cookies, URL parameters, or geolocation in this demo.",
 
   "footer.description": "Barcelona demo · Fixed coordinates",
 

@@ -71,7 +71,7 @@ localization, privacy, API, or safety contracts.
 2. `Button` — Style × Size × State
 3. `Toolbar control` — standard/enhanced and focus states
 4. `Textarea` — default/focus/error/disabled
-5. `Scenario example card` — non-interactive localized content
+5. `Scenario card` — localized native-button header with one expanded form
 6. `Temperature status`
 7. `Place card`
 8. `Feature row`
@@ -107,17 +107,23 @@ localization, privacy, API, or safety contracts.
 
 ## M7 implementation reconciliation
 
-The M7 code keeps scenario cards as non-interactive examples because the API
-has no scenario field. It exposes essential form guidance permanently, uses one
-native three-pair weather definition list, places fixed urgent `112` content
-before any resubmission form, and opens mobile Settings before focusing the
-existing output-language select. The only Google Maps surface is an HTTPS
+The current code uses each localized scenario header as a native button and
+renders the same single form beneath the active card. Scenario selection is
+presentation-only: it is not stored, makes no request, does not rewrite input,
+and adds no scenario field. One compact essential form notice stays visible,
+the existing longer guidance uses a native disclosure, and one native
+three-pair weather definition list retains its own non-overlapping disclosure.
+Fixed urgent `112` content appears before any resubmission form, and mobile
+Settings opens before focus moves to the existing unified language select. The
+only Google Maps surface is an HTTPS
 new-tab link containing a backend-verified address; it is not a map, route,
 ETA, geolocation, or navigation product.
 
 High Contrast belongs to M7 rather than M5. Standard remains at least 48px,
 Enhanced remains at least 56px with automatic programmatic scrolling, and all
 three modes preserve strict storage validation, current state, request
-noninterference, focus, and RTL behavior. The implementation is verified within
-the bounded offline and loopback-browser scope, remains uncommitted and
-unpublished, and does not claim complete design fidelity or release readiness.
+noninterference, focus, and RTL behavior. At the time this verification record
+was written, the implementation was verified within the bounded offline and
+loopback-browser scope and remained uncommitted and unpublished. The correction
+is published through the repository commit containing this revision and does
+not claim complete design fidelity or release readiness.

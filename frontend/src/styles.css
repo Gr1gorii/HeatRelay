@@ -295,7 +295,7 @@ summary {
 
 .header-settings-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(8.5rem, 1fr));
+  grid-template-columns: repeat(2, minmax(8.5rem, 1fr));
   gap: var(--space-3);
   align-items: end;
 }
@@ -1085,26 +1085,36 @@ summary {
   overflow: hidden;
 }
 
-.scenario-option[data-primary="true"] {
+.scenario-option[data-active="true"] {
   border: var(--border-width-strong) solid var(--color-action);
   background: var(--color-danger-surface);
 }
 
 .scenario-example {
   display: grid;
+  width: 100%;
   min-height: var(--target-control-size);
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
+  border: 0;
+  background: transparent;
   color: var(--color-text-primary);
+  cursor: pointer;
+  font: inherit;
+  text-align: start;
+}
+
+.scenario-example:disabled {
+  cursor: default;
 }
 
 .scenario-example > svg {
   color: var(--color-verified);
 }
 
-.scenario-option[data-primary="true"] .scenario-example > svg {
+.scenario-option[data-active="true"] .scenario-example > svg {
   color: var(--color-action);
 }
 
@@ -1306,6 +1316,7 @@ summary {
 .temperature-status .weather-details {
   grid-area: details;
   min-width: 11rem;
+  overflow-wrap: anywhere;
 }
 
 .weather-details summary {
@@ -1316,8 +1327,9 @@ summary {
   text-underline-offset: 0.18em;
 }
 
-.weather-details[open] {
-  grid-column: 1 / -1;
+.weather-boundary {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .evaluation-time {
@@ -1924,7 +1936,7 @@ html[dir="rtl"] .brand img {
   }
 
   .header-settings-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     margin-block-start: var(--space-3);
     padding-block: var(--space-4);
     border-block-start: var(--border-width) solid var(--color-border);
@@ -1955,7 +1967,7 @@ html[dir="rtl"] .brand img {
   }
 
   .header-settings-grid {
-    grid-template-columns: repeat(3, minmax(7.5rem, 1fr));
+    grid-template-columns: repeat(2, minmax(7.5rem, 1fr));
   }
 
   .brand {

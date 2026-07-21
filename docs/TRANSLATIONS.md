@@ -146,13 +146,17 @@ are separate concepts.
 
 The successful action-plan schema is `1.16.0`, with nested situation schema
 `1.1.0`. The request has exactly `situation_text`, `origin`,
-`maximum_distance_m`, and `output_locale`. Frontend preference recovery falls
-back deterministically to English for invalid or unavailable stored values;
-the API itself accepts only exact registered output codes and rejects
+`maximum_distance_m`, and `output_locale`. The current interface exposes one
+native language selector: an explicit choice changes the i18next interface and
+the next request's output locale without translating input or rewriting an
+existing result. For compatibility it writes the same exact code to the legacy
+interface- and output-locale keys. Initial resolution prefers a valid stored
+interface locale, then a valid stored output locale, then browser matching,
+then English, without an automatic storage write. The API itself accepts only exact registered output codes and rejects
 unsupported variants. Catalog hydration changes only registered prose.
 Verified facts, IDs, official names, addresses, phone numbers, URLs, schedules,
 timestamps, coordinates, distances, weather values, order, and provenance
-remain backend-owned. Selecting a different next output language does not
+remain backend-owned. Selecting a different language does not
 rewrite an existing result, and deterministic language-context information is
 passive rather than alerting.
 

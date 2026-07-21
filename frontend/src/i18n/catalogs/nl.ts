@@ -18,9 +18,9 @@ export const DUTCH_CATALOG = {
   "visualMode.description":
     "Verbeterde zichtbaarheid is bedoeld voor mensen met een verminderd gezichtsvermogen of voor iedereen die de voorkeur geeft aan grotere en duidelijkere inhoud.",
 
-  "interfaceLanguage.label": "Interfacetaal",
+  "interfaceLanguage.label": "Taal",
   "interfaceLanguage.description":
-    "Wijzigt de navigatie, formulieren en paginalabels. Wijzigt niet de taal van het actieplan.",
+    "Wijzigt de interface en de taal van het volgende actieplan. Vertaalt je beschrijving niet en herschrijft het getoonde plan niet.",
   "interfaceLanguage.optionWithEnglishName":
     "{{nativeName}} — {{englishName}}",
 
@@ -44,7 +44,7 @@ export const DUTCH_CATALOG = {
     "Het weergegeven plan wordt niet herschreven. Uw opgeslagen keuze geldt voor het volgende plan.",
   "languageContext.otherValue": "Een andere taal",
   "languageContext.unknownValue": "Kon niet worden vastgesteld",
-  "languageContext.changeAction": "Taal van het actieplan wijzigen",
+  "languageContext.changeAction": "Taal wijzigen",
 
   "hero.eyebrow": "Barcelona-pilot · Mijlpaal 5",
   "hero.title": "Van hittewaarschuwing naar een veilige volgende stap.",
@@ -68,17 +68,17 @@ export const DUTCH_CATALOG = {
   "form.title": "Maak uw hitteactieplan",
   "form.introduction":
     "Deel alleen de gegevens over de situatie die nodig zijn om een begrensd, door de backend gevalideerd plan te personaliseren. Eén inzending doet één aanvraag.",
-  "form.privacyTitle": "Voordat u verzendt",
+  "form.privacyTitle": "Privacy- en demodetails",
   "form.privacyDescription":
     "Uw beschrijving wordt aan de serverzijde naar OpenAI gestuurd voor verwerking door GPT-5.6. HeatRelay slaat de ruwe tekst niet opzettelijk op en registreert die ook niet opzettelijk; het beleid van de aanbieder voor gegevensverwerking kan nog steeds van toepassing zijn.",
   "form.identityWarning":
-    "Vermeld geen namen, contactgegevens, adressen of andere identificerende informatie.",
+    "De tekst wordt naar OpenAI gestuurd; HeatRelay slaat de oorspronkelijke tekst niet opzettelijk op en registreert die niet opzettelijk. Vermeld geen namen, contactgegevens of adressen. Vaste democoördinaten voor Barcelona. Geen medisch advies of noodhulp.",
   "form.situationLabel": "Beschrijf de hittesituatie",
-  "form.characterCount": "{{currentCount}} / {{limit}} codepunten",
+  "form.characterCount": "{{currentCount}} / {{limit}} tekens",
   "form.characterCountOverLimit":
-    "{{currentCount}} / {{limit}} codepunten — {{overLimitCount}} boven de limiet",
+    "{{currentCount}} / {{limit}} tekens — kort in met {{overLimitCount}}",
   "form.situationHint":
-    "Gebruik maximaal {{limit}} Unicode-codepunten. U kunt leeftijd, toegang tot verkoeling, mobiliteit, tijdstip of begrensde waarschuwingssymptomen beschrijven.",
+    "Beschrijf kort leeftijd, toegang tot verkoeling, mobiliteit, tijdstip en relevante symptomen.",
   "form.demoButton": "Laad Barcelona-demo",
   "form.submitButton": "Maak mijn hitteactieplan",
   "form.submittingButton": "Uw plan wordt gemaakt…",
@@ -98,8 +98,7 @@ export const DUTCH_CATALOG = {
   "scenario.importantNow": "Nu belangrijk",
 
   "validation.empty": "Beschrijf de situatie voordat u een plan maakt.",
-  "validation.overLimit":
-    "Houd de beschrijving binnen {{limit}} Unicode-tekens.",
+  "validation.overLimit": "De beschrijving is te lang. Kort de tekst in.",
   "validation.serverInput": "Controleer de beschrijving en probeer het opnieuw.",
 
   "status.creating": "Uw actieplan wordt gemaakt.",
@@ -182,7 +181,7 @@ export const DUTCH_CATALOG = {
   "trust.privacyLabel": "Privacy",
   "trust.privacyTitle": "Laat identificerende gegevens weg",
   "trust.privacyDescription":
-    "Situatietekst wordt niet in de browseropslag bewaard. Expliciete voorkeuren voor de visuele modus, interfacetaal en taal van het actieplan worden lokaal opgeslagen. Alleen de code van de gekozen actieplantaal komt in de aanvraag; de visuele modus en interfacetaal niet. HeatRelay gebruikt in deze demo geen analytics, cookies, URL-parameters of geolocatie.",
+    "Situatietekst wordt niet in de browseropslag bewaard. Expliciete voorkeuren voor de visuele modus en taal worden lokaal opgeslagen. Alleen de code van de gekozen taal komt in de actieplanaanvraag; de visuele modus niet. HeatRelay gebruikt in deze demo geen analytics, cookies, URL-parameters of geolocatie.",
 
   "footer.description": "Barcelona-demo · Vaste coördinaten",
 

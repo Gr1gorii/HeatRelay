@@ -18,9 +18,9 @@ export const JAPANESE_CATALOG = {
   "visualMode.description":
     "見やすさを向上するモードは、弱視の方や、より大きく明瞭な表示を希望する方を対象としています。",
 
-  "interfaceLanguage.label": "インターフェース言語",
+  "interfaceLanguage.label": "言語",
   "interfaceLanguage.description":
-    "ナビゲーション、フォーム、ページ上のラベルを変更します。アクションプランの言語は変更しません。",
+    "インターフェースと次のアクションプランの言語を変更します。説明を翻訳したり、表示中のプランを書き換えたりはしません。",
   "interfaceLanguage.optionWithEnglishName":
     "{{nativeName}} — {{englishName}}",
 
@@ -44,7 +44,7 @@ export const JAPANESE_CATALOG = {
     "表示中のプランは書き換えられません。保存した選択は次のプランに適用されます。",
   "languageContext.otherValue": "別の言語",
   "languageContext.unknownValue": "判定できませんでした",
-  "languageContext.changeAction": "アクションプランの言語を変更",
+  "languageContext.changeAction": "言語を変更",
 
   "hero.eyebrow": "Barcelona パイロット版 · マイルストーン5",
   "hero.title": "暑さに関する警告から、安全な次の行動へ。",
@@ -68,17 +68,17 @@ export const JAPANESE_CATALOG = {
   "form.title": "暑さ対策アクションプランを作成",
   "form.introduction":
     "範囲が限定され、バックエンドで検証されるプランを調整するために必要な状況だけを共有してください。1回の送信につき、リクエストは1回です。",
-  "form.privacyTitle": "送信する前に",
+  "form.privacyTitle": "プライバシーとデモの詳細",
   "form.privacyDescription":
     "入力した説明は、GPT-5.6 で処理するためサーバー側から OpenAI に送信されます。HeatRelay は生のテキストを意図的に保存または記録しませんが、プロバイダーのデータ取り扱いポリシーが適用される場合があります。",
   "form.identityWarning":
-    "氏名、連絡先、住所、その他の個人を特定できる情報を含めないでください。",
+    "テキストは OpenAI に送信されます。HeatRelay は元のテキストを意図的に保存または記録しません。氏名、連絡先、住所を含めないでください。Barcelona の固定デモ座標を使用します。医療上の助言や緊急支援ではありません。",
   "form.situationLabel": "暑さの状況を説明してください",
-  "form.characterCount": "{{currentCount}} / {{limit}} コードポイント",
+  "form.characterCount": "{{currentCount}} / {{limit}} 文字",
   "form.characterCountOverLimit":
-    "{{currentCount}} / {{limit}} コードポイント — 上限を {{overLimitCount}} 超過",
+    "{{currentCount}} / {{limit}} 文字 — {{overLimitCount}} 文字短くしてください",
   "form.situationHint":
-    "最大 {{limit}} Unicode コードポイントで入力してください。年齢、涼める環境の有無、移動のしやすさ、時間帯、限定的な注意症状などを説明できます。",
+    "年齢、涼める環境の有無、移動のしやすさ、時間帯、関連する症状を簡潔に説明してください。",
   "form.demoButton": "Barcelona デモを読み込む",
   "form.submitButton": "暑さ対策アクションプランを作成",
   "form.submittingButton": "プランを作成しています…",
@@ -98,8 +98,7 @@ export const JAPANESE_CATALOG = {
   "scenario.importantNow": "今、大切なこと",
 
   "validation.empty": "プランを作成する前に状況を説明してください。",
-  "validation.overLimit":
-    "説明は {{limit}} Unicode 文字以内にしてください。",
+  "validation.overLimit": "説明が長すぎます。テキストを短くしてください。",
   "validation.serverInput": "説明を確認して、もう一度お試しください。",
 
   "status.creating": "アクションプランを作成しています。",
@@ -182,7 +181,7 @@ export const JAPANESE_CATALOG = {
   "trust.privacyLabel": "プライバシー",
   "trust.privacyTitle": "個人を特定できる情報は入力しないでください",
   "trust.privacyDescription":
-    "状況のテキストはブラウザーのストレージに保存されません。明示的に選択した表示モード、インターフェース言語、アクションプラン言語の設定はローカルに保存されます。アクションプランのリクエストに入るのは選択した言語コードだけで、表示モードとインターフェース言語は入りません。このデモでは、HeatRelay はアクセス解析、Cookie、URLパラメーター、位置情報を使用しません。",
+    "状況のテキストはブラウザーのストレージに保存されません。明示的に選択した表示モードと言語の設定はローカルに保存されます。アクションプランのリクエストに入るのは選択した言語コードだけで、表示モードは入りません。このデモでは、HeatRelay はアクセス解析、Cookie、URLパラメーター、位置情報を使用しません。",
 
   "footer.description": "Barcelona デモ · 固定座標",
 

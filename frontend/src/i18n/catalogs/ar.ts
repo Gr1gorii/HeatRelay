@@ -18,9 +18,9 @@ export const ARABIC_CATALOG = {
   "visualMode.description":
     "وضع الوضوح المحسّن مخصص للأشخاص ذوي ضعف البصر أو لأي شخص يفضّل محتوى أكبر حجمًا وأكثر وضوحًا.",
 
-  "interfaceLanguage.label": "لغة الواجهة",
+  "interfaceLanguage.label": "اللغة",
   "interfaceLanguage.description":
-    "تغيّر عناصر التنقل والنماذج وتسميات الصفحة. ولا تغيّر لغة خطة العمل.",
+    "تغيّر لغة الواجهة وخطة العمل التالية. ولا تترجم وصفك أو تعيد كتابة الخطة المعروضة.",
   "interfaceLanguage.optionWithEnglishName":
     "{{nativeName}} — {{englishName}}",
 
@@ -44,7 +44,7 @@ export const ARABIC_CATALOG = {
     "لن تُعاد كتابة الخطة المعروضة. يسري اختيارك المحفوظ على الخطة التالية.",
   "languageContext.otherValue": "لغة أخرى",
   "languageContext.unknownValue": "تعذر تحديدها",
-  "languageContext.changeAction": "تغيير لغة خطة العمل",
+  "languageContext.changeAction": "تغيير اللغة",
 
   "hero.eyebrow": "مشروع Barcelona التجريبي · المرحلة 5",
   "hero.title": "من التحذير من الحر إلى خطوة تالية آمنة.",
@@ -68,17 +68,17 @@ export const ARABIC_CATALOG = {
   "form.title": "أنشئ خطة عملك لمواجهة الحر",
   "form.introduction":
     "شارك فقط تفاصيل الموقف اللازمة لتخصيص خطة محدودة النطاق وتتحقق منها الواجهة الخلفية. يؤدي كل إرسال إلى طلب واحد.",
-  "form.privacyTitle": "قبل الإرسال",
+  "form.privacyTitle": "تفاصيل الخصوصية والعرض التجريبي",
   "form.privacyDescription":
     "يُرسل وصفك من جانب الخادم إلى OpenAI لمعالجته باستخدام GPT-5.6. لا يتعمد HeatRelay تخزين النص الخام أو تسجيله؛ ومع ذلك، قد تظل سياسات مزود الخدمة لمعالجة البيانات سارية.",
   "form.identityWarning":
-    "لا تُدرج أسماء أو تفاصيل اتصال أو عناوين أو أي معلومات أخرى تكشف الهوية.",
+    "يُرسل النص إلى OpenAI؛ ولا يتعمد HeatRelay حفظ النص الأصلي أو تسجيله. لا تُدرج أسماء أو معلومات اتصال أو عناوين. إحداثيات عرض Barcelona التجريبي ثابتة. هذه ليست نصيحة طبية ولا مساعدة طارئة.",
   "form.situationLabel": "صِف الموقف المتعلق بالحر",
-  "form.characterCount": "{{currentCount}} / {{limit}} نقطة ترميز",
+  "form.characterCount": "{{currentCount}} / {{limit}} حرفًا",
   "form.characterCountOverLimit":
-    "{{currentCount}} / {{limit}} نقطة ترميز — تجاوز الحد بمقدار {{overLimitCount}}",
+    "{{currentCount}} / {{limit}} حرفًا — اختصر بمقدار {{overLimitCount}}",
   "form.situationHint":
-    "استخدم ما يصل إلى {{limit}} نقطة ترميز Unicode. يمكنك وصف العمر أو إمكانية الوصول إلى مكان للتبريد أو القدرة على الحركة أو التوقيت أو أعراض التحذير المحدودة النطاق.",
+    "صِف بإيجاز العمر وإمكانية التبريد والقدرة على الحركة والتوقيت والأعراض إن كانت ذات صلة.",
   "form.demoButton": "تحميل عرض Barcelona التجريبي",
   "form.submitButton": "إنشاء خطة عملي لمواجهة الحر",
   "form.submittingButton": "جارٍ إنشاء خطتك…",
@@ -98,8 +98,7 @@ export const ARABIC_CATALOG = {
   "scenario.importantNow": "مهم الآن",
 
   "validation.empty": "صِف الموقف قبل إنشاء خطة.",
-  "validation.overLimit":
-    "أبقِ الوصف ضمن {{limit}} حرف Unicode.",
+  "validation.overLimit": "الوصف طويل جدًا. اختصر النص.",
   "validation.serverInput": "راجع الوصف وحاول مرة أخرى.",
 
   "status.creating": "جارٍ إنشاء خطة عملك.",
@@ -182,7 +181,7 @@ export const ARABIC_CATALOG = {
   "trust.privacyLabel": "الخصوصية",
   "trust.privacyTitle": "لا تُدرج تفاصيل تكشف الهوية",
   "trust.privacyDescription":
-    "لا يُخزن نص الموقف في مساحة تخزين المتصفح. تُحفظ محليًا تفضيلات الوضع المرئي ولغة الواجهة ولغة خطة العمل المحددة صراحةً. لا يدخل في طلب خطة العمل سوى رمز لغة خطة العمل المحددة؛ ولا يدخل الوضع المرئي أو لغة الواجهة. لا يستخدم HeatRelay التحليلات أو ملفات تعريف الارتباط أو معلمات URL أو تحديد الموقع الجغرافي في هذا العرض التجريبي.",
+    "لا يُخزن نص الموقف في مساحة تخزين المتصفح. تُحفظ محليًا تفضيلات الوضع المرئي واللغة المحددة صراحةً. لا يدخل في طلب خطة العمل سوى رمز اللغة المحددة؛ ولا يدخل الوضع المرئي. لا يستخدم HeatRelay التحليلات أو ملفات تعريف الارتباط أو معلمات URL أو تحديد الموقع الجغرافي في هذا العرض التجريبي.",
 
   "footer.description": "عرض Barcelona التجريبي · إحداثيات ثابتة",
 

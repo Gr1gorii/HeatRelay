@@ -1420,21 +1420,11 @@ function visualModeSelect(): HTMLSelectElement {
   return select;
 }
 
-function interfaceLanguageSelect(): HTMLSelectElement {
-  const select = document.getElementById("interface-language-select");
+function languageSelect(): HTMLSelectElement {
+  const select = document.getElementById("language-select");
   if (!(select instanceof HTMLSelectElement)) {
     throw new Error(
-      "Synthetic test setup expected the interface-language select.",
-    );
-  }
-  return select;
-}
-
-function outputLanguageSelect(): HTMLSelectElement {
-  const select = document.getElementById("output-language-select");
-  if (!(select instanceof HTMLSelectElement)) {
-    throw new Error(
-      "Synthetic test setup expected the output-language select.",
+      "Synthetic test setup expected the unified language select.",
     );
   }
   return select;
@@ -1540,22 +1530,17 @@ function submitSituation(value = SYNTHETIC_SITUATION): void {
   fireEvent.click(submitButton);
 }
 
-async function selectInterfaceLanguage(locale: InterfaceLocale): Promise<void> {
-  fireEvent.change(interfaceLanguageSelect(), { target: { value: locale } });
+async function selectLanguage(locale: InterfaceLocale): Promise<void> {
+  fireEvent.change(languageSelect(), { target: { value: locale } });
   await waitFor(() => {
     expect(testI18n.resolvedLanguage).toBe(locale);
-    expect(interfaceLanguageSelect().value).toBe(locale);
+    expect(languageSelect().value).toBe(locale);
     expect(
       document.querySelector<HTMLLabelElement>(
-        'label[for="interface-language-select"]',
+        'label[for="language-select"]',
       )?.textContent,
     ).toBe(LOCALE_REGISTRY[locale].catalog["interfaceLanguage.label"]);
   });
-}
-
-function selectOutputLanguage(locale: OutputLocale): void {
-  fireEvent.change(outputLanguageSelect(), { target: { value: locale } });
-  expect(outputLanguageSelect().value).toBe(locale);
 }
 
 const fetchMock = vi.fn<typeof globalThis.fetch>();
@@ -1765,19 +1750,20 @@ describe("Visual mode preference foundation", () => {
     submitSituation();
 
     expect(visualModeSelect().disabled).toBe(false);
-    expect(interfaceLanguageSelect().disabled).toBe(false);
-    expect(outputLanguageSelect().disabled).toBe(true);
+    expect(languageSelect().disabled).toBe(true);
     fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } });
-    fireEvent.change(interfaceLanguageSelect(), { target: { value: "en" } });
+    fireEvent.change(languageSelect(), { target: { value: "en" } });
     expectVisualMode("enhanced");
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       resolveFetch(jsonResponse(normalResponse));
     });
-    await screen.findByRole("heading", { name: "Act now" });
+    await screen.findByRole("heading", {
+      name: ENGLISH_CATALOG["priority.actNow"],
+    });
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(outputLanguageSelect().disabled).toBe(false);
+    expect(languageSelect().disabled).toBe(false);
   });
 
   it.each(["normal", "urgent", "error"] as const)(
@@ -1802,10 +1788,9 @@ describe("Visual mode preference foundation", () => {
       const requestCount = fetchMock.mock.calls.length;
 
       expect(visualModeSelect().disabled).toBe(false);
-      expect(interfaceLanguageSelect().disabled).toBe(false);
-      expect(outputLanguageSelect().disabled).toBe(false);
+      expect(languageSelect().disabled).toBe(false);
       fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } });
-      fireEvent.change(interfaceLanguageSelect(), { target: { value: "en" } });
+      fireEvent.change(languageSelect(), { target: { value: "en" } });
       expectVisualMode("enhanced");
       expect(terminal.isConnected).toBe(true);
       expect(situationField().value).toBe(SYNTHETIC_SITUATION);
@@ -1819,38 +1804,36 @@ describe("Visual mode preference foundation", () => {
     render(<App />);
 
     submitSituation(SYNTHETIC_SITUATION);
-    await screen.findByRole("heading", { name: "Act now" });
+    await screen.findByRole("heading", {
+      name: ENGLISH_CATALOG["priority.actNow"],
+    });
 
     expect(storageWrite).not.toHaveBeenCalled();
     expect(window.localStorage.getItem(INTERFACE_LOCALE_STORAGE_KEY)).toBeNull();
   });
 });
 
-describe("Interface language foundation", () => {
-  it("renders exactly three independently named native selectors", () => {
+describe("Unified language preference", () => {
+  it("renders one language selector beside the separate visual-mode selector", () => {
     render(<App />);
 
     const selectors = screen.getAllByRole("combobox");
-    const languageSelect = interfaceLanguageSelect();
-    const outputSelect = outputLanguageSelect();
-    expect(selectors).toHaveLength(3);
+    const select = languageSelect();
+    expect(selectors).toHaveLength(2);
     expect(selectors).toContain(visualModeSelect());
-    expect(selectors).toContain(languageSelect);
-    expect(selectors).toContain(outputSelect);
-    expect(languageSelect.tagName).toBe("SELECT");
-    expect(outputSelect.tagName).toBe("SELECT");
-    expect(languageSelect.getAttribute("role")).toBeNull();
-    expect(outputSelect.getAttribute("role")).toBeNull();
-    expect(languageSelect.onkeydown).toBeNull();
-    expect(outputSelect.onkeydown).toBeNull();
-    expect(languageSelect.disabled).toBe(false);
-    expect(outputSelect.disabled).toBe(false);
+    expect(selectors).toContain(select);
+    expect(select.tagName).toBe("SELECT");
+    expect(select.getAttribute("role")).toBeNull();
+    expect(select.onkeydown).toBeNull();
+    expect(select.disabled).toBe(false);
+    expect(document.getElementById("interface-language-select")).toBeNull();
+    expect(document.getElementById("output-language-select")).toBeNull();
   });
 
   it("renders exactly 25 ordered native-name-only interface options from the registry", () => {
     render(<App />);
 
-    const select = interfaceLanguageSelect();
+    const select = languageSelect();
     expect(select.value).toBe("en");
     expect(
       Array.from(select.options, (option) => [
@@ -1906,10 +1889,10 @@ describe("Interface language foundation", () => {
     expect(select.textContent).not.toMatch(/[\u{1F1E6}-\u{1F1FF}]/u);
     expect(select.querySelector("img, svg")).toBeNull();
     expect(select.getAttribute("aria-describedby")).toBe(
-      "interface-language-description",
+      "language-description",
     );
-    expect(document.getElementById("interface-language-description")?.textContent).toBe(
-      "Changes navigation, forms, and page labels. It does not change the action-plan language.",
+    expect(document.getElementById("language-description")?.textContent).toBe(
+      ENGLISH_CATALOG["interfaceLanguage.description"],
     );
   });
 
@@ -1919,15 +1902,15 @@ describe("Interface language foundation", () => {
     expect(
       screen.getByRole("heading", { name: ENGLISH_CATALOG["scenario.heading"] }),
     ).toBeTruthy();
-    await selectInterfaceLanguage("es");
+    await selectLanguage("es");
 
     expect(
       screen.getByRole("combobox", {
         name: SPANISH_CATALOG["interfaceLanguage.label"],
       }),
-    ).toBe(interfaceLanguageSelect());
+    ).toBe(languageSelect());
     expect(
-      document.getElementById("interface-language-description")?.textContent,
+      document.getElementById("language-description")?.textContent,
     ).toBe(SPANISH_CATALOG["interfaceLanguage.description"]);
     expect(
       screen.getByRole("heading", { name: SPANISH_CATALOG["scenario.heading"] }),
@@ -1938,7 +1921,7 @@ describe("Interface language foundation", () => {
     expect(document.documentElement.lang).toBe("es");
     expect(document.documentElement.dir).toBe("ltr");
 
-    await selectInterfaceLanguage("en");
+    await selectLanguage("en");
 
     expect(
       screen.getByRole("heading", { name: ENGLISH_CATALOG["scenario.heading"] }),
@@ -1953,12 +1936,12 @@ describe("Interface language foundation", () => {
 
     render(<App />);
 
-    expect(interfaceLanguageSelect().value).toBe("en");
+    expect(languageSelect().value).toBe("en");
     expect(storageWrite).not.toHaveBeenCalled();
     expect(window.localStorage.getItem(INTERFACE_LOCALE_STORAGE_KEY)).toBeNull();
   });
 
-  it("persists only an explicit Spanish selection and synchronizes the document", async () => {
+  it("persists an explicit Spanish selection to both legacy keys and synchronizes the document", async () => {
     const storageWrite = vi.spyOn(window.localStorage, "setItem");
     const existingDescription = document.head.querySelector<HTMLMetaElement>(
       'meta[name="description"]',
@@ -1981,7 +1964,7 @@ describe("Interface language foundation", () => {
 
     try {
       render(<App />);
-      await selectInterfaceLanguage("es");
+      await selectLanguage("es");
 
       await waitFor(() =>
         expect(storageWrite).toHaveBeenCalledWith(
@@ -1989,7 +1972,10 @@ describe("Interface language foundation", () => {
           "es",
         ),
       );
-      expect(storageWrite).toHaveBeenCalledTimes(1);
+      expect(storageWrite.mock.calls).toEqual([
+        [INTERFACE_LOCALE_STORAGE_KEY, "es"],
+        [OUTPUT_LOCALE_STORAGE_KEY, "es"],
+      ]);
       expect(document.documentElement.lang).toBe("es");
       expect(document.documentElement.dir).toBe("ltr");
       expect(document.title).toBe(SPANISH_CATALOG["metadata.title"]);
@@ -2014,21 +2000,21 @@ describe("Interface language foundation", () => {
     });
 
     expect(() =>
-      fireEvent.change(interfaceLanguageSelect(), { target: { value: "es" } }),
+      fireEvent.change(languageSelect(), { target: { value: "es" } }),
     ).not.toThrow();
     await waitFor(() => {
-      expect(interfaceLanguageSelect().value).toBe("es");
+      expect(languageSelect().value).toBe("es");
       expect(testI18n.resolvedLanguage).toBe("es");
       expect(document.documentElement.lang).toBe("es");
     });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("ignores an invalid interface-language value without persistence or a request", () => {
+  it("ignores an invalid unified-language value without persistence or a request", () => {
     render(<App />);
     const storageWrite = vi.spyOn(window.localStorage, "setItem");
 
-    fireEvent.change(interfaceLanguageSelect(), { target: { value: "eo" } });
+    fireEvent.change(languageSelect(), { target: { value: "eo" } });
 
     expect(storageWrite).not.toHaveBeenCalled();
     expect(testI18n.resolvedLanguage).toBe("en");
@@ -2044,7 +2030,7 @@ describe("Interface language foundation", () => {
     fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } });
     const storageWrite = vi.spyOn(window.localStorage, "setItem");
     storageWrite.mockClear();
-    const languageSelect = interfaceLanguageSelect();
+    const select = languageSelect();
     synchronizeDocumentLocalization(testI18n);
     const documentLocalization = {
       lang: document.documentElement.lang,
@@ -2054,12 +2040,12 @@ describe("Interface language foundation", () => {
         document.head.querySelector<HTMLMetaElement>('meta[name="description"]')
           ?.content ?? null,
     };
-    fireEvent.change(languageSelect, { target: { value: "es" } });
+    fireEvent.change(select, { target: { value: "es" } });
 
     await waitFor(() => expect(changeLanguage).toHaveBeenCalledWith("es"));
     expect(storageWrite).not.toHaveBeenCalled();
     expect(testI18n.resolvedLanguage).toBe("en");
-    expect(languageSelect.value).toBe("en");
+    expect(select.value).toBe("en");
     expect(situationField().value).toBe(SYNTHETIC_SITUATION);
     expectVisualMode("enhanced");
     expect(document.documentElement.lang).toBe(documentLocalization.lang);
@@ -2072,22 +2058,22 @@ describe("Interface language foundation", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("keeps interface locale unchanged when visual mode switches", async () => {
+  it("keeps the unified locale unchanged when visual mode switches", async () => {
     render(<App />);
-    await selectInterfaceLanguage("es");
+    await selectLanguage("es");
     expect(window.localStorage.getItem(INTERFACE_LOCALE_STORAGE_KEY)).toBe(
       "es",
     );
 
     fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } });
 
-    expect(interfaceLanguageSelect().value).toBe("es");
+    expect(languageSelect().value).toBe("es");
     expect(window.localStorage.getItem(INTERFACE_LOCALE_STORAGE_KEY)).toBe("es");
     expectVisualMode("enhanced");
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("preserves pending request state while changing language without another fetch", async () => {
+  it("disables the unified language selector during a pending request", async () => {
     let resolveFetch!: (response: Response) => void;
     fetchMock.mockReturnValue(
       new Promise<Response>((resolve) => {
@@ -2098,25 +2084,22 @@ describe("Interface language foundation", () => {
     fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } });
     submitSituation();
 
-    await selectInterfaceLanguage("es");
-
-    expect(interfaceLanguageSelect().disabled).toBe(false);
-    expect(outputLanguageSelect().disabled).toBe(true);
+    expect(languageSelect().disabled).toBe(true);
     expect(situationField().value).toBe(SYNTHETIC_SITUATION);
     expectVisualMode("enhanced");
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("status").textContent).toBe(
-      SPANISH_CATALOG["status.creating"],
+      ENGLISH_CATALOG["status.creating"],
     );
 
     await act(async () => {
       resolveFetch(jsonResponse(normalResponse));
     });
     await screen.findByRole("heading", {
-      name: SPANISH_CATALOG["priority.actNow"],
+      name: ENGLISH_CATALOG["priority.actNow"],
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(outputLanguageSelect().disabled).toBe(false);
+    expect(languageSelect().disabled).toBe(false);
   });
 
   it("preserves client-side validation state when language is reselected", async () => {
@@ -2132,7 +2115,7 @@ describe("Interface language foundation", () => {
     expect(textarea.getAttribute("aria-invalid")).toBe("true");
     expect(textarea.getAttribute("aria-errormessage")).toBe("situation-error");
 
-    await selectInterfaceLanguage("es");
+    await selectLanguage("es");
 
     expect(fieldError.isConnected).toBe(true);
     expect(fieldError.textContent).toBe(SPANISH_CATALOG["validation.empty"]);
@@ -2178,9 +2161,9 @@ describe("Interface language foundation", () => {
             ? await screen.findByRole("heading", { name: "Urgent help" })
             : await screen.findByRole("alert");
 
-      await selectInterfaceLanguage("es");
+      await selectLanguage("es");
 
-      expect(interfaceLanguageSelect().disabled).toBe(false);
+      expect(languageSelect().disabled).toBe(false);
       expect(terminal.isConnected).toBe(true);
       expect(situationField().value).toBe(SYNTHETIC_SITUATION);
       expectVisualMode("enhanced");
@@ -2202,14 +2185,13 @@ describe("Interface language foundation", () => {
   );
 });
 
-describe("Action-plan language preference", () => {
-  it("renders the exact described native selector immediately before the situation field", () => {
+describe("Unified request-language behavior", () => {
+  it("renders the exact labelled native selector in Settings", () => {
     render(<App />);
 
-    const select = outputLanguageSelect();
-    const textarea = situationField();
+    const select = languageSelect();
     expect(select.tagName).toBe("SELECT");
-    expect(select.name).toBe("output_locale");
+    expect(select.id).toBe("language-select");
     expect(select.value).toBe("en");
     expect(select.dir).toBe("ltr");
     expect(select.getAttribute("role")).toBeNull();
@@ -2217,29 +2199,24 @@ describe("Action-plan language preference", () => {
     expect(select.disabled).toBe(false);
     expect(
       document.querySelector<HTMLLabelElement>(
-        'label[for="output-language-select"]',
+        'label[for="language-select"]',
       )?.textContent,
-    ).toBe("Action-plan language");
+    ).toBe("Language");
     expect(select.getAttribute("aria-describedby")).toBe(
-      "output-language-description",
+      "language-description",
     );
-    expect(document.getElementById("output-language-description")?.textContent).toBe(
-      "Chooses the language for the next action plan. This preference is saved in this browser and sent with the action-plan request. It does not change the interface language or translate your description.",
+    expect(document.getElementById("language-description")?.textContent).toBe(
+      ENGLISH_CATALOG["interfaceLanguage.description"],
     );
-    expect(
-      Boolean(
-        select.compareDocumentPosition(textarea) &
-          Node.DOCUMENT_POSITION_FOLLOWING,
-      ),
-    ).toBe(true);
     expect(select.closest("header")).not.toBeNull();
-    expect(textarea.closest("form")).not.toBeNull();
+    expect(document.getElementById("interface-language-select")).toBeNull();
+    expect(document.getElementById("output-language-select")).toBeNull();
   });
 
-  it("renders exactly 25 ordered native-name-only output options from the shared registry", () => {
+  it("renders exactly 25 ordered native-name-only options from the shared registry", () => {
     render(<App />);
 
-    const select = outputLanguageSelect();
+    const select = languageSelect();
     expect(
       Array.from(select.options, (option) => [
         option.value,
@@ -2248,7 +2225,7 @@ describe("Action-plan language preference", () => {
         option.dir,
       ]),
     ).toEqual(
-      SUPPORTED_OUTPUT_LOCALES.map((locale) => {
+      SUPPORTED_INTERFACE_LOCALES.map((locale) => {
         const definition = LOCALE_REGISTRY[locale];
         return [
           definition.code,
@@ -2259,33 +2236,9 @@ describe("Action-plan language preference", () => {
       }),
     );
     expect(select.options).toHaveLength(25);
-    expect(Array.from(select.options, (option) => option.value)).toEqual([
-      "en",
-      "es",
-      "zh-CN",
-      "zh-TW",
-      "hi",
-      "bn",
-      "ar",
-      "pt-BR",
-      "fr",
-      "it",
-      "de",
-      "nl",
-      "ru",
-      "uk",
-      "pl",
-      "ja",
-      "ko",
-      "id",
-      "vi",
-      "th",
-      "tr",
-      "sw",
-      "ur",
-      "fa",
-      "he",
-    ]);
+    expect(Array.from(select.options, (option) => option.value)).toEqual(
+      SUPPORTED_INTERFACE_LOCALES,
+    );
     expect(
       Array.from(select.options, (option) => option.textContent).every(
         (label) => !label.includes(" — "),
@@ -2295,30 +2248,31 @@ describe("Action-plan language preference", () => {
     expect(select.querySelector("img, svg")).toBeNull();
   });
 
-  it("uses English initially without automatically persisting it", () => {
+  it("uses English initially without automatically persisting either legacy key", () => {
     const storageWrite = vi.spyOn(window.localStorage, "setItem");
 
     render(<App />);
 
     expect(OUTPUT_LOCALE_STORAGE_KEY).toBe("heatrelay.output-locale.v1");
-    expect(outputLanguageSelect().value).toBe("en");
+    expect(languageSelect().value).toBe("en");
     expect(storageWrite).not.toHaveBeenCalled();
+    expect(window.localStorage.getItem(INTERFACE_LOCALE_STORAGE_KEY)).toBeNull();
     expect(window.localStorage.getItem(OUTPUT_LOCALE_STORAGE_KEY)).toBeNull();
   });
 
-  it("restores an exact stored RTL output locale without changing document localization", () => {
+  it("restores one exact RTL locale for both interface and next request", async () => {
     window.localStorage.setItem(OUTPUT_LOCALE_STORAGE_KEY, "he");
-    document.documentElement.lang = "en";
-    document.documentElement.dir = "ltr";
+    testI18n = await createI18nRuntime("he");
+    synchronizeDocumentLocalization(testI18n);
     const storageWrite = vi.spyOn(window.localStorage, "setItem");
 
     render(<App />);
 
-    expect(outputLanguageSelect().value).toBe("he");
-    expect(outputLanguageSelect().dir).toBe("rtl");
-    expect(document.documentElement.lang).toBe("en");
-    expect(document.documentElement.dir).toBe("ltr");
-    expect(testI18n.resolvedLanguage).toBe("en");
+    expect(languageSelect().value).toBe("he");
+    expect(languageSelect().dir).toBe("rtl");
+    expect(document.documentElement.lang).toBe("he");
+    expect(document.documentElement.dir).toBe("rtl");
+    expect(testI18n.resolvedLanguage).toBe("he");
     expect(storageWrite).not.toHaveBeenCalled();
   });
 
@@ -2328,71 +2282,72 @@ describe("Action-plan language preference", () => {
 
     render(<App />);
 
-    expect(outputLanguageSelect().value).toBe("en");
+    expect(languageSelect().value).toBe("en");
     expect(window.localStorage.getItem(OUTPUT_LOCALE_STORAGE_KEY)).toBe(
       "he-IL",
     );
     expect(storageWrite).not.toHaveBeenCalled();
   });
 
-  it("persists only a changed explicit output locale and makes no request", () => {
+  it("persists a changed explicit locale to both legacy keys and makes no request", async () => {
     render(<App />);
     const storageWrite = vi.spyOn(window.localStorage, "setItem");
 
-    selectOutputLanguage("es");
+    await selectLanguage("es");
 
     expect(storageWrite.mock.calls).toEqual([
+      [INTERFACE_LOCALE_STORAGE_KEY, "es"],
       [OUTPUT_LOCALE_STORAGE_KEY, "es"],
     ]);
     expect(Array.from({ length: window.localStorage.length }, (_, index) =>
       window.localStorage.key(index),
-    )).toEqual([OUTPUT_LOCALE_STORAGE_KEY]);
+    )).toEqual([INTERFACE_LOCALE_STORAGE_KEY, OUTPUT_LOCALE_STORAGE_KEY]);
     expect(fetchMock).not.toHaveBeenCalled();
 
-    fireEvent.change(outputLanguageSelect(), { target: { value: "es" } });
-    expect(storageWrite).toHaveBeenCalledTimes(1);
+    fireEvent.change(languageSelect(), { target: { value: "es" } });
+    expect(storageWrite).toHaveBeenCalledTimes(2);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("keeps a valid in-memory selection when persistence throws", () => {
+  it("keeps a valid in-memory selection when persistence throws", async () => {
     render(<App />);
     vi.spyOn(window.localStorage, "setItem").mockImplementation(() => {
       throw new Error("Synthetic blocked output-locale persistence");
     });
 
-    expect(() => selectOutputLanguage("he")).not.toThrow();
-    expect(outputLanguageSelect().value).toBe("he");
-    expect(outputLanguageSelect().dir).toBe("rtl");
+    fireEvent.change(languageSelect(), { target: { value: "he" } });
+    await waitFor(() => expect(languageSelect().value).toBe("he"));
+    expect(languageSelect().dir).toBe("rtl");
+    expect(document.documentElement.lang).toBe("he");
+    expect(document.documentElement.dir).toBe("rtl");
     expect(window.localStorage.getItem(OUTPUT_LOCALE_STORAGE_KEY)).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("keeps output, interface, direction, visual mode, text, and focus independent", async () => {
+  it("updates interface and next-plan locale together while preserving other state", async () => {
     render(<App />);
     fireEvent.change(situationField(), { target: { value: SYNTHETIC_SITUATION } });
-    selectOutputLanguage("he");
+    await selectLanguage("he");
     fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } });
-    await selectInterfaceLanguage("es");
 
-    expect(outputLanguageSelect().value).toBe("he");
-    expect(outputLanguageSelect().dir).toBe("rtl");
-    expect(interfaceLanguageSelect().value).toBe("es");
+    expect(languageSelect().value).toBe("he");
+    expect(languageSelect().dir).toBe("rtl");
     expectVisualMode("enhanced");
     expect(situationField().value).toBe(SYNTHETIC_SITUATION);
-    expect(document.documentElement.lang).toBe("es");
-    expect(document.documentElement.dir).toBe("ltr");
+    expect(document.documentElement.lang).toBe("he");
+    expect(document.documentElement.dir).toBe("rtl");
 
-    outputLanguageSelect().focus();
-    selectOutputLanguage("fa");
-    expect(document.activeElement).toBe(outputLanguageSelect());
-    expect(document.documentElement.lang).toBe("es");
-    expect(document.documentElement.dir).toBe("ltr");
-    expect(testI18n.resolvedLanguage).toBe("es");
+    languageSelect().focus();
+    await selectLanguage("fa");
+    expect(document.activeElement).toBe(languageSelect());
+    expect(document.documentElement.lang).toBe("fa");
+    expect(document.documentElement.dir).toBe("rtl");
+    expect(testI18n.resolvedLanguage).toBe("fa");
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it.each(["validation", "normal", "urgent", "error"] as const)(
-    "preserves the %s state when the next action-plan language changes",
+    "preserves the %s state when the unified language changes",
     async (state) => {
       fetchMock.mockResolvedValue(
         state === "normal"
@@ -2426,10 +2381,10 @@ describe("Action-plan language preference", () => {
       }
       const requestCount = fetchMock.mock.calls.length;
 
-      outputLanguageSelect().focus();
-      selectOutputLanguage("es");
+      languageSelect().focus();
+      await selectLanguage("es");
 
-      expect(document.activeElement).toBe(outputLanguageSelect());
+      expect(document.activeElement).toBe(languageSelect());
       expect(preservedState.isConnected).toBe(true);
       expect(situationField().value).toBe(
         state === "validation" ? "" : SYNTHETIC_SITUATION,
@@ -2438,7 +2393,7 @@ describe("Action-plan language preference", () => {
     },
   );
 
-  it("disables only the output selector during submission and restores it afterward", async () => {
+  it("disables the unified selector during submission and restores it afterward", async () => {
     let resolveFetch!: (response: Response) => void;
     fetchMock.mockReturnValue(
       new Promise<Response>((resolve) => {
@@ -2446,19 +2401,20 @@ describe("Action-plan language preference", () => {
       }),
     );
     render(<App />);
-    selectOutputLanguage("es");
+    await selectLanguage("es");
     submitSituation();
 
-    expect(outputLanguageSelect().disabled).toBe(true);
+    expect(languageSelect().disabled).toBe(true);
     expect(visualModeSelect().disabled).toBe(false);
-    expect(interfaceLanguageSelect().disabled).toBe(false);
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
     await act(async () => {
       resolveFetch(jsonResponse(spanishNormalResponse));
     });
-    await screen.findByRole("heading", { name: "Act now" });
-    expect(outputLanguageSelect().disabled).toBe(false);
+    await screen.findByRole("heading", {
+      name: SPANISH_CATALOG["priority.actNow"],
+    });
+    expect(languageSelect().disabled).toBe(false);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -2470,14 +2426,12 @@ describe("Action-plan language preference", () => {
     async (locale, response, direction) => {
       fetchMock.mockResolvedValue(jsonResponse(response));
       render(<App />);
-      const interfaceLocalization = {
-        lang: document.documentElement.lang,
-        dir: document.documentElement.dir,
-      };
-      selectOutputLanguage(locale);
+      await selectLanguage(locale);
       submitSituation(`  ${SYNTHETIC_SITUATION}  `);
 
-      await screen.findByRole("heading", { name: "Act now" });
+      await screen.findByRole("heading", {
+        name: LOCALE_REGISTRY[locale].catalog["priority.actNow"],
+      });
       expect(fetchMock).toHaveBeenCalledTimes(1);
       const [, options] = fetchMock.mock.calls[0];
       const body = JSON.parse(String(options?.body));
@@ -2496,8 +2450,11 @@ describe("Action-plan language preference", () => {
       expect(
         document.querySelector(`[lang="${locale}"][dir="${direction}"]`),
       ).not.toBeNull();
-      expect(document.documentElement.lang).toBe(interfaceLocalization.lang);
-      expect(document.documentElement.dir).toBe(interfaceLocalization.dir);
+      expect(document.documentElement.lang).toBe(locale);
+      expect(document.documentElement.dir).toBe(direction);
+      expect(window.localStorage.getItem(INTERFACE_LOCALE_STORAGE_KEY)).toBe(
+        locale,
+      );
       expect(window.localStorage.getItem(OUTPUT_LOCALE_STORAGE_KEY)).toBe(
         locale,
       );
@@ -2508,14 +2465,16 @@ describe("Action-plan language preference", () => {
   it("fails safely when the response locale differs from the submitted snapshot", async () => {
     fetchMock.mockResolvedValue(jsonResponse(normalResponse));
     render(<App />);
-    selectOutputLanguage("he");
+    await selectLanguage("he");
     submitSituation();
 
     const alert = await screen.findByRole("alert");
-    expect(alert.textContent).toMatch(/response could not be safely displayed/i);
+    expect(alert.textContent).toContain(
+      HEBREW_CATALOG["error.malformedMessage"],
+    );
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(outputLanguageSelect().value).toBe("he");
-    expect(outputLanguageSelect().disabled).toBe(false);
+    expect(languageSelect().value).toBe("he");
+    expect(languageSelect().disabled).toBe(false);
   });
 });
 
@@ -2663,7 +2622,7 @@ describe("Deterministic language context", () => {
     expect(document.querySelector(".language-context-note")).toBeNull();
   });
 
-  it("keeps displayed language response-owned while selector changes only add next-plan context", async () => {
+  it("keeps displayed backend prose response-owned while selection adds next-plan context", async () => {
     fetchMock.mockResolvedValue(jsonResponse(normalResponse));
     render(<App />);
     submitSituation();
@@ -2672,27 +2631,33 @@ describe("Deterministic language context", () => {
     if (!result) {
       throw new Error("Synthetic test setup expected a normal result.");
     }
-    const resultMarkup = result.outerHTML;
-    const resultNodes = Array.from(result.querySelectorAll("*"));
+    const backendProse = Array.from(
+      result.querySelectorAll<HTMLElement>('[lang="en"][dir="ltr"]'),
+      (node) => node.textContent,
+    );
     expect(document.querySelector(".language-context-note")).toBeNull();
 
-    selectOutputLanguage("he");
+    await selectLanguage("he");
 
-    expect(result.outerHTML).toBe(resultMarkup);
-    expect(Array.from(result.querySelectorAll("*"))).toEqual(resultNodes);
+    expect(
+      Array.from(
+        result.querySelectorAll<HTMLElement>('[lang="en"][dir="ltr"]'),
+        (node) => node.textContent,
+      ),
+    ).toEqual(backendProse);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const note = languageContextSection();
     expect(
       Array.from(note.querySelectorAll("dt"), (term) => term.textContent),
     ).toEqual([
-      ENGLISH_CATALOG["languageContext.displayedLanguage"],
-      ENGLISH_CATALOG["languageContext.nextLanguage"],
+      HEBREW_CATALOG["languageContext.displayedLanguage"],
+      HEBREW_CATALOG["languageContext.nextLanguage"],
     ]);
     expect(note.textContent).not.toContain(
-      ENGLISH_CATALOG["languageContext.descriptionLanguage"],
+      HEBREW_CATALOG["languageContext.descriptionLanguage"],
     );
     expect(note.textContent).toContain(
-      ENGLISH_CATALOG["languageContext.nextSelection"],
+      HEBREW_CATALOG["languageContext.nextSelection"],
     );
     expect(note.querySelector('bdi[lang="en"][dir="ltr"]')?.textContent).toBe(
       "English",
@@ -2700,7 +2665,8 @@ describe("Deterministic language context", () => {
     expect(note.querySelector('bdi[lang="he"][dir="rtl"]')?.textContent).toBe(
       "עברית",
     );
-    expect(document.documentElement.dir).not.toBe("rtl");
+    expect(document.documentElement.lang).toBe("he");
+    expect(document.documentElement.dir).toBe("rtl");
   });
 
   it("opens mobile Settings and focuses the existing selector without any other mutation", async () => {
@@ -2743,9 +2709,9 @@ describe("Deterministic language context", () => {
 
     await waitFor(() => {
       expect(settings.open).toBe(true);
-      expect(document.activeElement).toBe(outputLanguageSelect());
+      expect(document.activeElement).toBe(languageSelect());
     });
-    expect(outputLanguageSelect().value).toBe("en");
+    expect(languageSelect().value).toBe("en");
     expect(result.outerHTML).toBe(resultMarkup);
     expect(situationField().value).toBe(SYNTHETIC_SITUATION);
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -2761,8 +2727,11 @@ describe("Deterministic language context", () => {
     render(<App />);
     submitSituation();
     const alert = await screen.findByRole("alert");
-    const alertMarkup = alert.outerHTML;
-    const alertNodes = Array.from(alert.querySelectorAll("*"));
+    const fixedUrgentContent = [
+      urgentResponse.urgent_contact.instruction,
+      ...urgentResponse.actions.map((action) => action.text),
+      ...urgentResponse.notices,
+    ];
     const officialLink = screen.getByRole("link", {
       name: ENGLISH_CATALOG["urgent.sourceLink"],
     });
@@ -2786,14 +2755,15 @@ describe("Deterministic language context", () => {
       }),
     ).toBeNull();
 
-    selectOutputLanguage("he");
+    await selectLanguage("he");
 
-    expect(alert.outerHTML).toBe(alertMarkup);
-    expect(Array.from(alert.querySelectorAll("*"))).toEqual(alertNodes);
+    for (const content of fixedUrgentContent) {
+      expect(alert.textContent).toContain(content);
+    }
     expect(alert.textContent).toContain("112");
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(note.textContent).toContain(
-      ENGLISH_CATALOG["languageContext.nextSelection"],
+      HEBREW_CATALOG["languageContext.nextSelection"],
     );
     expect(note.querySelector('bdi[lang="he"][dir="rtl"]')?.textContent).toBe(
       "עברית",
@@ -2808,10 +2778,12 @@ describe("Deterministic language context", () => {
     submitSituation();
     await screen.findByRole("heading", { name: "Act now" });
 
-    selectOutputLanguage("es");
+    await selectLanguage("es");
     expect(fetchMock).toHaveBeenCalledTimes(1);
     fireEvent.click(
-      screen.getByRole("button", { name: "Create my heat action plan" }),
+      screen.getByRole("button", {
+        name: SPANISH_CATALOG["form.submitButton"],
+      }),
     );
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
@@ -2830,7 +2802,7 @@ describe("Deterministic language context", () => {
     });
   });
 
-  it("translates context through LTR and RTL interfaces without changing response or output selection", async () => {
+  it("translates context while preserving response-owned prose", async () => {
     fetchMock.mockResolvedValue(
       jsonResponse(withDetectedLanguage(normalResponse, "es")),
     );
@@ -2842,23 +2814,23 @@ describe("Deterministic language context", () => {
     );
     expect(backendProse).not.toBeNull();
 
-    await selectInterfaceLanguage("es");
+    await selectLanguage("es");
     expect(
       screen.getByRole("region", {
         name: SPANISH_CATALOG["languageContext.title"],
       }),
     ).toBeTruthy();
-    expect(outputLanguageSelect().value).toBe("en");
+    expect(languageSelect().value).toBe("es");
     expect(backendProse?.lang).toBe("en");
     expect(backendProse?.dir).toBe("ltr");
 
-    await selectInterfaceLanguage("ar");
+    await selectLanguage("ar");
     const note = screen.getByRole("region", {
       name: ARABIC_CATALOG["languageContext.title"],
     });
     expect(document.documentElement.lang).toBe("ar");
     expect(document.documentElement.dir).toBe("rtl");
-    expect(outputLanguageSelect().value).toBe("en");
+    expect(languageSelect().value).toBe("ar");
     expect(note.querySelector('bdi[lang="es"][dir="ltr"]')?.textContent).toBe(
       "Español",
     );
@@ -2910,7 +2882,7 @@ describe("Spanish interface pilot", () => {
   it("loads the Spanish synthetic demo only after an explicit Spanish action", async () => {
     const storageWrite = vi.spyOn(window.localStorage, "setItem");
     render(<App />);
-    await selectInterfaceLanguage("es");
+    await selectLanguage("es");
     storageWrite.mockClear();
 
     fireEvent.click(
@@ -2924,15 +2896,15 @@ describe("Spanish interface pilot", () => {
     expect(storageWrite).not.toHaveBeenCalled();
   });
 
-  it("preserves state, sends English output locale, and marks selected-place prose precisely", async () => {
-    fetchMock.mockResolvedValue(jsonResponse(normalResponse));
+  it("preserves state, sends Spanish output locale, and marks selected-place prose precisely", async () => {
+    fetchMock.mockResolvedValue(jsonResponse(spanishNormalResponse));
     render(<App />);
     fireEvent.change(situationField(), {
       target: { value: `  ${SYNTHETIC_SITUATION}  ` },
     });
     fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } });
 
-    await selectInterfaceLanguage("es");
+    await selectLanguage("es");
 
     expect(situationField().value).toBe(`  ${SYNTHETIC_SITUATION}  `);
     expectVisualMode("enhanced");
@@ -2952,9 +2924,9 @@ describe("Spanish interface pilot", () => {
       situation_text: SYNTHETIC_SITUATION,
       origin: { latitude: 41.3874, longitude: 2.1686 },
       maximum_distance_m: 3000,
-      output_locale: "en",
+      output_locale: "es",
     });
-    expect(normalResponse.output_locale).toBe("en");
+    expect(spanishNormalResponse.output_locale).toBe("es");
     expect(heading.closest(".result-section")?.hasAttribute("lang")).toBe(
       false,
     );
@@ -2963,23 +2935,23 @@ describe("Spanish interface pilot", () => {
       document.querySelectorAll<HTMLOListElement>("ol.action-list"),
     );
     expect(phaseLists).toHaveLength(3);
-    expect(phaseLists.every((list) => list.lang === "en")).toBe(true);
+    expect(phaseLists.every((list) => list.lang === "es")).toBe(true);
     expect(
       Array.from(document.querySelectorAll(".phase-card h3")).every(
         (phaseHeading) => !phaseHeading.hasAttribute("lang"),
       ),
     ).toBe(true);
     expect(document.querySelector<HTMLElement>("p.weather-boundary")?.lang).toBe(
-      "en",
+      "es",
     );
     expect(document.querySelector<HTMLElement>("ul.bring-list")?.lang).toBe(
-      "en",
+      "es",
     );
     expect(
       document.querySelector<HTMLElement>("ul.explanation-list")?.lang,
-    ).toBe("en");
+    ).toBe("es");
     const warningList = document.querySelector<HTMLElement>("ul.warning-list");
-    expect(warningList?.lang).toBe("en");
+    expect(warningList?.lang).toBe("es");
     expect(warningList?.hasAttribute("aria-label")).toBe(false);
     expect(warningList?.getAttribute("aria-labelledby")).toBe(
       "selected-place-cautions-label",
@@ -2990,18 +2962,20 @@ describe("Spanish interface pilot", () => {
     expect(warningLabel?.textContent).toBe(
       SPANISH_CATALOG["place.cautionsAccessibleName"],
     );
-    expect(warningLabel?.closest('[lang="en"]')).toBeNull();
+    expect(warningLabel?.hasAttribute("lang")).toBe(false);
     expect(
       screen.getByRole("list", {
         name: SPANISH_CATALOG["place.cautionsAccessibleName"],
       }),
     ).toBe(warningList);
     expect(document.querySelector<HTMLElement>("ul.notice-list")?.lang).toBe(
-      "en",
+      "es",
     );
 
-    expect(screen.getByText(normalResponse.plan.now.actions[0].text)).toBeTruthy();
-    expect(screen.getAllByText(normalResponse.weather.notice)).toHaveLength(2);
+    expect(
+      screen.getByText(spanishNormalResponse.plan.now.actions[0].text),
+    ).toBeTruthy();
+    expect(screen.getAllByText(spanishNormalResponse.weather.notice)).toHaveLength(2);
     expect(
       document.querySelector(".evaluation-time time")?.textContent,
     ).toContain("17 jul 2026, 10:00");
@@ -3010,7 +2984,7 @@ describe("Spanish interface pilot", () => {
     expect(screen.getByText("15 jul 2026")).toBeTruthy();
 
     const officialName = screen.getByRole("heading", {
-      name: normalResponse.selected_place.name,
+      name: spanishNormalResponse.selected_place.name,
     });
     const officialAddress = document.querySelector(".place-address");
     expect(officialName.hasAttribute("lang")).toBe(false);
@@ -3020,9 +2994,9 @@ describe("Spanish interface pilot", () => {
     );
     const phrase = document.querySelector("blockquote");
     expect(phrase?.getAttribute("lang")).toBe("ca");
-    expect(phrase?.textContent).toBe(normalResponse.plan.local_phrase.text);
+    expect(phrase?.textContent).toBe(spanishNormalResponse.plan.local_phrase.text);
 
-    await selectInterfaceLanguage("en");
+    await selectLanguage("en");
     expect(
       screen.getByRole("heading", { name: ENGLISH_CATALOG["priority.actNow"] }),
     ).toBeTruthy();
@@ -3032,8 +3006,12 @@ describe("Spanish interface pilot", () => {
   it("keeps no-place backend prose English inside a Spanish result", async () => {
     fetchMock.mockResolvedValue(jsonResponse(noPlaceResponse));
     render(<App />);
-    await selectInterfaceLanguage("es");
     submitSituation();
+
+    await screen.findByRole("heading", {
+      name: ENGLISH_CATALOG["result.noPlaceTitle"],
+    });
+    await selectLanguage("es");
 
     const heading = await screen.findByRole("heading", {
       name: SPANISH_CATALOG["result.noPlaceTitle"],
@@ -3053,8 +3031,12 @@ describe("Spanish interface pilot", () => {
   it("marks only urgent backend prose and the Catalan service label", async () => {
     fetchMock.mockResolvedValue(jsonResponse(urgentResponse));
     render(<App />);
-    await selectInterfaceLanguage("es");
     submitSituation();
+
+    await screen.findByRole("heading", {
+      name: ENGLISH_CATALOG["urgent.title"],
+    });
+    await selectLanguage("es");
 
     const heading = await screen.findByRole("heading", {
       name: SPANISH_CATALOG["urgent.title"],
@@ -3088,9 +3070,9 @@ describe("Spanish interface pilot", () => {
     const spanishPhrase = "Necesito un lugar fresco, por favor.";
     fetchMock.mockResolvedValue(
       jsonResponse({
-        ...normalResponse,
+        ...spanishNormalResponse,
         plan: {
-          ...normalResponse.plan,
+          ...spanishNormalResponse.plan,
           local_phrase: {
             code: "spanish_request_cool_space",
             language: "es",
@@ -3100,7 +3082,7 @@ describe("Spanish interface pilot", () => {
       }),
     );
     render(<App />);
-    await selectInterfaceLanguage("es");
+    await selectLanguage("es");
     submitSituation();
 
     await screen.findByRole("heading", {
@@ -3119,7 +3101,7 @@ describe("Representative LTR catalog batch", () => {
     const description = documentDescriptionMeta();
     render(<App />);
 
-    await selectInterfaceLanguage("zh-CN");
+    await selectLanguage("zh-CN");
 
     await waitFor(() =>
       expect(storageWrite).toHaveBeenCalledWith(
@@ -3128,7 +3110,7 @@ describe("Representative LTR catalog batch", () => {
       ),
     );
     expectVisualMode("standard");
-    expect(interfaceLanguageSelect().value).toBe("zh-CN");
+    expect(languageSelect().value).toBe("zh-CN");
     expect(document.documentElement.lang).toBe("zh-CN");
     expect(document.documentElement.dir).toBe("ltr");
     expect(document.title).toBe(catalog["metadata.title"]);
@@ -3140,13 +3122,13 @@ describe("Representative LTR catalog batch", () => {
       screen.getByRole("combobox", {
         name: catalog["interfaceLanguage.label"],
       }),
-    ).toBe(interfaceLanguageSelect());
+    ).toBe(languageSelect());
     expect(
-      document.getElementById("interface-language-description")?.textContent,
+      document.getElementById("language-description")?.textContent,
     ).toBe(catalog["interfaceLanguage.description"]);
     expect(fetchMock).not.toHaveBeenCalled();
 
-    await selectInterfaceLanguage("en");
+    await selectLanguage("en");
 
     expect(document.documentElement.lang).toBe("en");
     expect(document.documentElement.dir).toBe("ltr");
@@ -3165,12 +3147,13 @@ describe("Representative LTR catalog batch", () => {
     const storageWrite = vi.spyOn(window.localStorage, "setItem");
     storageWrite.mockClear();
 
-    await selectInterfaceLanguage("zh-TW");
+    await selectLanguage("zh-TW");
 
     expect(storageWrite.mock.calls).toEqual([
-      [INTERFACE_LOCALE_STORAGE_KEY, "zh-TW"],
-    ]);
-    expect(interfaceLanguageSelect().value).toBe("zh-TW");
+        [INTERFACE_LOCALE_STORAGE_KEY, "zh-TW"],
+        [OUTPUT_LOCALE_STORAGE_KEY, "zh-TW"],
+      ]);
+    expect(languageSelect().value).toBe("zh-TW");
     expect(document.documentElement.lang).toBe("zh-TW");
     expect(document.documentElement.dir).toBe("ltr");
     expect(document.title).toBe(catalog["metadata.title"]);
@@ -3182,15 +3165,15 @@ describe("Representative LTR catalog batch", () => {
       screen.getByRole("combobox", {
         name: catalog["interfaceLanguage.label"],
       }),
-    ).toBe(interfaceLanguageSelect());
+    ).toBe(languageSelect());
     expect(
-      document.getElementById("interface-language-description")?.textContent,
+      document.getElementById("language-description")?.textContent,
     ).toBe(catalog["interfaceLanguage.description"]);
     expectVisualMode("enhanced");
     expect(situationField().value).toBe(SYNTHETIC_SITUATION);
     expect(fetchMock).not.toHaveBeenCalled();
 
-    await selectInterfaceLanguage("en");
+    await selectLanguage("en");
 
     expect(document.documentElement.lang).toBe("en");
     expect(document.documentElement.dir).toBe("ltr");
@@ -3209,11 +3192,11 @@ describe("Representative LTR catalog batch", () => {
     });
     fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } });
 
-    await selectInterfaceLanguage("ru");
+    await selectLanguage("ru");
 
     expectVisualMode("enhanced");
     expect(situationField().value).toBe(SYNTHETIC_SITUATION);
-    expect(interfaceLanguageSelect().value).toBe("ru");
+    expect(languageSelect().value).toBe("ru");
     expect(document.documentElement.lang).toBe("ru");
     expect(document.documentElement.dir).toBe("ltr");
     expect(
@@ -3228,7 +3211,7 @@ describe("Representative LTR catalog batch", () => {
     render(<App />);
     fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } });
 
-    await selectInterfaceLanguage("ja");
+    await selectLanguage("ja");
 
     expectVisualMode("enhanced");
     expect(document.documentElement.lang).toBe("ja");
@@ -3242,9 +3225,9 @@ describe("Representative LTR catalog batch", () => {
     const catalog = LOCALE_REGISTRY.de.catalog;
     render(<App />);
 
-    await selectInterfaceLanguage("de");
+    await selectLanguage("de");
 
-    expect(interfaceLanguageSelect().value).toBe("de");
+    expect(languageSelect().value).toBe("de");
     expect(document.documentElement.lang).toBe("de");
     expect(document.documentElement.dir).toBe("ltr");
     expect(document.title).toBe(catalog["metadata.title"]);
@@ -3252,17 +3235,17 @@ describe("Representative LTR catalog batch", () => {
       screen.getByText(catalog["trust.privacyDescription"]),
     ).toBeTruthy();
     expect(
-      document.getElementById("interface-language-description")?.textContent,
+      document.getElementById("language-description")?.textContent,
     ).toBe(catalog["interfaceLanguage.description"]);
     expectNoLocalizationLeak();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("keeps English backend prose and the exact API contract in a Chinese normal result", async () => {
+  it("keeps Simplified Chinese backend prose and the exact API contract in a Chinese normal result", async () => {
     const catalog = LOCALE_REGISTRY["zh-CN"].catalog;
-    fetchMock.mockResolvedValue(jsonResponse(normalResponse));
+    fetchMock.mockResolvedValue(jsonResponse(simplifiedChineseNormalResponse));
     render(<App />);
-    await selectInterfaceLanguage("zh-CN");
+    await selectLanguage("zh-CN");
 
     submitSituation(`  ${SYNTHETIC_SITUATION}  `);
 
@@ -3276,9 +3259,9 @@ describe("Representative LTR catalog batch", () => {
       situation_text: SYNTHETIC_SITUATION,
       origin: { latitude: 41.3874, longitude: 2.1686 },
       maximum_distance_m: 3000,
-      output_locale: "en",
+      output_locale: "zh-CN",
     });
-    expect(normalResponse.output_locale).toBe("en");
+    expect(simplifiedChineseNormalResponse.output_locale).toBe("zh-CN");
     expect(heading.closest(".result-section")?.hasAttribute("lang")).toBe(
       false,
     );
@@ -3286,33 +3269,33 @@ describe("Representative LTR catalog batch", () => {
       screen.getByRole("heading", { name: catalog["result.phaseNow"] }),
     ).toBeTruthy();
     expect(
-      screen.getByText(normalResponse.plan.now.actions[0].text),
+      screen.getByText(simplifiedChineseNormalResponse.plan.now.actions[0].text),
     ).toBeTruthy();
     expect(
       Array.from(document.querySelectorAll<HTMLOListElement>("ol.action-list"))
-        .every((list) => list.lang === "en"),
+        .every((list) => list.lang === "zh-CN"),
     ).toBe(true);
     expect(document.querySelector<HTMLElement>("p.weather-boundary")?.lang).toBe(
-      "en",
+      "zh-CN",
     );
     expect(document.querySelector<HTMLElement>("ul.bring-list")?.lang).toBe(
-      "en",
+      "zh-CN",
     );
     expect(
       document.querySelector<HTMLElement>("ul.explanation-list")?.lang,
-    ).toBe("en");
+    ).toBe("zh-CN");
     const warningList = document.querySelector<HTMLElement>("ul.warning-list");
-    expect(warningList?.lang).toBe("en");
+    expect(warningList?.lang).toBe("zh-CN");
     expect(
       screen.getByRole("list", {
         name: catalog["place.cautionsAccessibleName"],
       }),
     ).toBe(warningList);
     expect(document.querySelector<HTMLElement>("ul.notice-list")?.lang).toBe(
-      "en",
+      "zh-CN",
     );
     const officialName = screen.getByRole("heading", {
-      name: normalResponse.selected_place.name,
+      name: simplifiedChineseNormalResponse.selected_place.name,
     });
     expect(officialName.hasAttribute("lang")).toBe(false);
     expect(document.querySelector(".place-address")?.hasAttribute("lang")).toBe(
@@ -3329,11 +3312,12 @@ describe("M6.8 Hindi, Bengali, and Korean catalog batch", () => {
     const storageWrite = vi.spyOn(window.localStorage, "setItem");
     render(<App />);
 
-    await selectInterfaceLanguage("hi");
+    await selectLanguage("hi");
 
     expect(storageWrite.mock.calls).toEqual([
-      [INTERFACE_LOCALE_STORAGE_KEY, "hi"],
-    ]);
+        [INTERFACE_LOCALE_STORAGE_KEY, "hi"],
+        [OUTPUT_LOCALE_STORAGE_KEY, "hi"],
+      ]);
     expectVisualMode("standard");
     expect(document.documentElement.lang).toBe("hi");
     expect(document.documentElement.dir).toBe("ltr");
@@ -3346,10 +3330,10 @@ describe("M6.8 Hindi, Bengali, and Korean catalog batch", () => {
       screen.getByRole("combobox", {
         name: catalog["interfaceLanguage.label"],
       }),
-    ).toBe(interfaceLanguageSelect());
+    ).toBe(languageSelect());
     expect(fetchMock).not.toHaveBeenCalled();
 
-    await selectInterfaceLanguage("en");
+    await selectLanguage("en");
 
     expect(document.documentElement.lang).toBe("en");
     expect(document.documentElement.dir).toBe("ltr");
@@ -3366,7 +3350,7 @@ describe("M6.8 Hindi, Bengali, and Korean catalog batch", () => {
     });
     fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } });
 
-    await selectInterfaceLanguage("bn");
+    await selectLanguage("bn");
 
     const expectedCount = testI18n.t("form.characterCount", {
       currentCount: formatNumber(Array.from(SYNTHETIC_SITUATION).length, "bn"),
@@ -3391,7 +3375,7 @@ describe("M6.8 Hindi, Bengali, and Korean catalog batch", () => {
     const description = documentDescriptionMeta();
     render(<App />);
 
-    await selectInterfaceLanguage("ko");
+    await selectLanguage("ko");
 
     expect(document.documentElement.lang).toBe("ko");
     expect(document.documentElement.dir).toBe("ltr");
@@ -3401,17 +3385,17 @@ describe("M6.8 Hindi, Bengali, and Korean catalog batch", () => {
       screen.getByRole("heading", { name: catalog["scenario.heading"] }),
     ).toBeTruthy();
     expect(
-      document.getElementById("interface-language-description")?.textContent,
+      document.getElementById("language-description")?.textContent,
     ).toBe(catalog["interfaceLanguage.description"]);
     expectNoLocalizationLeak();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("keeps English backend prose and the exact API contract in a Hindi submission", async () => {
+  it("keeps Hindi backend prose and the exact API contract in a Hindi submission", async () => {
     const catalog = LOCALE_REGISTRY.hi.catalog;
-    fetchMock.mockResolvedValue(jsonResponse(normalResponse));
+    fetchMock.mockResolvedValue(jsonResponse(hindiNormalResponse));
     render(<App />);
-    await selectInterfaceLanguage("hi");
+    await selectLanguage("hi");
 
     submitSituation(`  ${SYNTHETIC_SITUATION}  `);
 
@@ -3425,21 +3409,21 @@ describe("M6.8 Hindi, Bengali, and Korean catalog batch", () => {
       situation_text: SYNTHETIC_SITUATION,
       origin: { latitude: 41.3874, longitude: 2.1686 },
       maximum_distance_m: 3000,
-      output_locale: "en",
+      output_locale: "hi",
     });
-    expect(normalResponse.output_locale).toBe("en");
+    expect(hindiNormalResponse.output_locale).toBe("hi");
     expect(heading.closest(".result-section")?.hasAttribute("lang")).toBe(
       false,
     );
     expect(
-      screen.getByText(normalResponse.plan.now.actions[0].text),
+      screen.getByText(hindiNormalResponse.plan.now.actions[0].text),
     ).toBeTruthy();
     expect(
       Array.from(document.querySelectorAll<HTMLOListElement>("ol.action-list"))
-        .every((list) => list.lang === "en"),
+        .every((list) => list.lang === "hi"),
     ).toBe(true);
     expect(document.querySelector<HTMLElement>("p.weather-boundary")?.lang).toBe(
-      "en",
+      "hi",
     );
     const officialName = screen.getByRole("heading", {
       name: normalResponse.selected_place.name,
@@ -3464,12 +3448,13 @@ describe("M6.9 Thai catalog and calendar contract", () => {
     const storageWrite = vi.spyOn(window.localStorage, "setItem");
     storageWrite.mockClear();
 
-    await selectInterfaceLanguage("th");
+    await selectLanguage("th");
 
     expect(storageWrite.mock.calls).toEqual([
-      [INTERFACE_LOCALE_STORAGE_KEY, "th"],
-    ]);
-    expect(interfaceLanguageSelect().value).toBe("th");
+        [INTERFACE_LOCALE_STORAGE_KEY, "th"],
+        [OUTPUT_LOCALE_STORAGE_KEY, "th"],
+      ]);
+    expect(languageSelect().value).toBe("th");
     expect(document.documentElement.lang).toBe("th");
     expect(document.documentElement.dir).toBe("ltr");
     expect(document.title).toBe(catalog["metadata.title"]);
@@ -3481,15 +3466,15 @@ describe("M6.9 Thai catalog and calendar contract", () => {
       screen.getByRole("combobox", {
         name: catalog["interfaceLanguage.label"],
       }),
-    ).toBe(interfaceLanguageSelect());
+    ).toBe(languageSelect());
     expect(
-      document.getElementById("interface-language-description")?.textContent,
+      document.getElementById("language-description")?.textContent,
     ).toBe(catalog["interfaceLanguage.description"]);
     expectVisualMode("enhanced");
     expect(situationField().value).toBe(SYNTHETIC_SITUATION);
     expect(fetchMock).not.toHaveBeenCalled();
 
-    await selectInterfaceLanguage("en");
+    await selectLanguage("en");
 
     expect(document.documentElement.lang).toBe("en");
     expect(document.documentElement.dir).toBe("ltr");
@@ -3500,11 +3485,11 @@ describe("M6.9 Thai catalog and calendar contract", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("renders Buddhist-calendar Thai text while preserving Gregorian machine values and the English API contract", async () => {
+  it("renders Buddhist-calendar Thai text while preserving Gregorian machine values and the exact API contract", async () => {
     const catalog = LOCALE_REGISTRY.th.catalog;
-    fetchMock.mockResolvedValue(jsonResponse(normalResponse));
+    fetchMock.mockResolvedValue(jsonResponse(thaiNormalResponse));
     render(<App />);
-    await selectInterfaceLanguage("th");
+    await selectLanguage("th");
 
     submitSituation(`  ${SYNTHETIC_SITUATION}  `);
 
@@ -3518,9 +3503,9 @@ describe("M6.9 Thai catalog and calendar contract", () => {
       situation_text: SYNTHETIC_SITUATION,
       origin: { latitude: 41.3874, longitude: 2.1686 },
       maximum_distance_m: 3000,
-      output_locale: "en",
+      output_locale: "th",
     });
-    expect(normalResponse.output_locale).toBe("en");
+    expect(thaiNormalResponse.output_locale).toBe("th");
 
     const evaluationTime = document.querySelector<HTMLTimeElement>(
       'time[datetime="2026-07-17T08:00:00Z"]',
@@ -3528,10 +3513,10 @@ describe("M6.9 Thai catalog and calendar contract", () => {
     const lastChecked = document.querySelector<HTMLTimeElement>(
       'time[datetime="2026-07-15"]',
     );
-    expect(evaluationTime?.dateTime).toBe(normalResponse.evaluation_time);
+    expect(evaluationTime?.dateTime).toBe(thaiNormalResponse.evaluation_time);
     expect(evaluationTime?.textContent).toContain("17 ก.ค. 2569 10:00");
     expect(lastChecked?.dateTime).toBe(
-      normalResponse.selected_place.last_checked,
+      thaiNormalResponse.selected_place.last_checked,
     );
     expect(lastChecked?.textContent).toBe("15 ก.ค. 2569");
     expect(evaluationTime?.textContent).not.toContain("2026");
@@ -3544,17 +3529,17 @@ describe("M6.9 Thai catalog and calendar contract", () => {
       screen.getByRole("heading", { name: catalog["result.phaseNow"] }),
     ).toBeTruthy();
     expect(
-      screen.getByText(normalResponse.plan.now.actions[0].text),
+      screen.getByText(thaiNormalResponse.plan.now.actions[0].text),
     ).toBeTruthy();
     expect(
       Array.from(document.querySelectorAll<HTMLOListElement>("ol.action-list"))
-        .every((list) => list.lang === "en"),
+        .every((list) => list.lang === "th"),
     ).toBe(true);
     expect(document.querySelector<HTMLElement>("p.weather-boundary")?.lang).toBe(
-      "en",
+      "th",
     );
     const officialName = screen.getByRole("heading", {
-      name: normalResponse.selected_place.name,
+      name: thaiNormalResponse.selected_place.name,
     });
     expect(officialName.hasAttribute("lang")).toBe(false);
     expect(document.querySelector(".place-address")?.hasAttribute("lang")).toBe(
@@ -3573,12 +3558,13 @@ describe("M6.10 Portuguese, French, Italian, and Dutch catalog batch", () => {
       const storageWrite = vi.spyOn(window.localStorage, "setItem");
       render(<App />);
 
-      await selectInterfaceLanguage(locale);
+      await selectLanguage(locale);
 
       expect(storageWrite.mock.calls).toEqual([
         [INTERFACE_LOCALE_STORAGE_KEY, locale],
+        [OUTPUT_LOCALE_STORAGE_KEY, locale],
       ]);
-      expect(interfaceLanguageSelect().value).toBe(locale);
+      expect(languageSelect().value).toBe(locale);
       expect(document.documentElement.lang).toBe(locale);
       expect(document.documentElement.dir).toBe("ltr");
       expect(document.title).toBe(catalog["metadata.title"]);
@@ -3590,13 +3576,13 @@ describe("M6.10 Portuguese, French, Italian, and Dutch catalog batch", () => {
         screen.getByRole("combobox", {
           name: catalog["interfaceLanguage.label"],
         }),
-      ).toBe(interfaceLanguageSelect());
+      ).toBe(languageSelect());
       expect(
-        document.getElementById("interface-language-description")?.textContent,
+        document.getElementById("language-description")?.textContent,
       ).toBe(catalog["interfaceLanguage.description"]);
       expect(fetchMock).not.toHaveBeenCalled();
 
-      await selectInterfaceLanguage("en");
+      await selectLanguage("en");
 
       expect(document.documentElement.lang).toBe("en");
       expect(document.documentElement.dir).toBe("ltr");
@@ -3616,7 +3602,7 @@ describe("M6.10 Portuguese, French, Italian, and Dutch catalog batch", () => {
     });
     fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } });
 
-    await selectInterfaceLanguage("fr");
+    await selectLanguage("fr");
 
     expectVisualMode("enhanced");
     expect(situationField().value).toBe(SYNTHETIC_SITUATION);
@@ -3626,17 +3612,17 @@ describe("M6.10 Portuguese, French, Italian, and Dutch catalog batch", () => {
       screen.getByText(catalog["trust.privacyDescription"]),
     ).toBeTruthy();
     expect(
-      document.getElementById("interface-language-description")?.textContent,
+      document.getElementById("language-description")?.textContent,
     ).toBe(catalog["interfaceLanguage.description"]);
     expectNoLocalizationLeak();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("keeps English backend prose and the exact API contract in an Italian normal result", async () => {
+  it("keeps Italian backend prose and the exact API contract in an Italian normal result", async () => {
     const catalog = LOCALE_REGISTRY.it.catalog;
-    fetchMock.mockResolvedValue(jsonResponse(normalResponse));
+    fetchMock.mockResolvedValue(jsonResponse(italianNormalResponse));
     render(<App />);
-    await selectInterfaceLanguage("it");
+    await selectLanguage("it");
 
     submitSituation(`  ${SYNTHETIC_SITUATION}  `);
 
@@ -3650,12 +3636,12 @@ describe("M6.10 Portuguese, French, Italian, and Dutch catalog batch", () => {
       situation_text: SYNTHETIC_SITUATION,
       origin: { latitude: 41.3874, longitude: 2.1686 },
       maximum_distance_m: 3000,
-      output_locale: "en",
+      output_locale: "it",
     });
     expect(JSON.stringify(JSON.parse(String(options?.body)))).not.toMatch(
       /interface_locale|visual_mode|storage|heatrelay\.interface-locale/i,
     );
-    expect(normalResponse.output_locale).toBe("en");
+    expect(italianNormalResponse.output_locale).toBe("it");
     expect(heading.closest(".result-section")?.hasAttribute("lang")).toBe(
       false,
     );
@@ -3663,29 +3649,29 @@ describe("M6.10 Portuguese, French, Italian, and Dutch catalog batch", () => {
       screen.getByRole("heading", { name: catalog["result.phaseNow"] }),
     ).toBeTruthy();
     expect(
-      screen.getByText(normalResponse.plan.now.actions[0].text),
+      screen.getByText(italianNormalResponse.plan.now.actions[0].text),
     ).toBeTruthy();
     expect(
       Array.from(document.querySelectorAll<HTMLOListElement>("ol.action-list"))
-        .every((list) => list.lang === "en"),
+        .every((list) => list.lang === "it"),
     ).toBe(true);
     expect(document.querySelector<HTMLElement>("p.weather-boundary")?.lang).toBe(
-      "en",
+      "it",
     );
     expect(document.querySelector<HTMLElement>("ul.bring-list")?.lang).toBe(
-      "en",
+      "it",
     );
     expect(
       document.querySelector<HTMLElement>("ul.explanation-list")?.lang,
-    ).toBe("en");
+    ).toBe("it");
     expect(document.querySelector<HTMLElement>("ul.warning-list")?.lang).toBe(
-      "en",
+      "it",
     );
     expect(document.querySelector<HTMLElement>("ul.notice-list")?.lang).toBe(
-      "en",
+      "it",
     );
     const officialName = screen.getByRole("heading", {
-      name: normalResponse.selected_place.name,
+      name: italianNormalResponse.selected_place.name,
     });
     expect(officialName.hasAttribute("lang")).toBe(false);
     expect(document.querySelector(".place-address")?.hasAttribute("lang")).toBe(
@@ -3704,12 +3690,13 @@ describe("M6.11 final required LTR catalog batch", () => {
       const storageWrite = vi.spyOn(window.localStorage, "setItem");
       render(<App />);
 
-      await selectInterfaceLanguage(locale);
+      await selectLanguage(locale);
 
       expect(storageWrite.mock.calls).toEqual([
         [INTERFACE_LOCALE_STORAGE_KEY, locale],
+        [OUTPUT_LOCALE_STORAGE_KEY, locale],
       ]);
-      expect(interfaceLanguageSelect().value).toBe(locale);
+      expect(languageSelect().value).toBe(locale);
       expect(document.documentElement.lang).toBe(locale);
       expect(document.documentElement.dir).toBe("ltr");
       expect(document.title).toBe(catalog["metadata.title"]);
@@ -3721,10 +3708,10 @@ describe("M6.11 final required LTR catalog batch", () => {
         screen.getByRole("combobox", {
           name: catalog["interfaceLanguage.label"],
         }),
-      ).toBe(interfaceLanguageSelect());
+      ).toBe(languageSelect());
       expect(fetchMock).not.toHaveBeenCalled();
 
-      await selectInterfaceLanguage("en");
+      await selectLanguage("en");
 
       expect(document.documentElement.lang).toBe("en");
       expect(document.documentElement.dir).toBe("ltr");
@@ -3746,7 +3733,7 @@ describe("M6.11 final required LTR catalog batch", () => {
     );
     const fieldError = await screen.findByText(ENGLISH_CATALOG["validation.empty"]);
 
-    await selectInterfaceLanguage("uk");
+    await selectLanguage("uk");
 
     expectVisualMode("enhanced");
     expect(situationField().value).toBe("");
@@ -3776,7 +3763,7 @@ describe("M6.11 final required LTR catalog batch", () => {
     const terminal = await screen.findByRole("alert");
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
-    await selectInterfaceLanguage("uk");
+    await selectLanguage("uk");
 
     expect(terminal.isConnected).toBe(true);
     expect(terminal.textContent).toContain(
@@ -3787,11 +3774,11 @@ describe("M6.11 final required LTR catalog batch", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("keeps English backend prose and the exact API contract in a Swahili normal result", async () => {
+  it("keeps Swahili backend prose and the exact API contract in a Swahili normal result", async () => {
     const catalog = LOCALE_REGISTRY.sw.catalog;
-    fetchMock.mockResolvedValue(jsonResponse(normalResponse));
+    fetchMock.mockResolvedValue(jsonResponse(swahiliNormalResponse));
     render(<App />);
-    await selectInterfaceLanguage("sw");
+    await selectLanguage("sw");
 
     submitSituation(`  ${SYNTHETIC_SITUATION}  `);
 
@@ -3805,9 +3792,9 @@ describe("M6.11 final required LTR catalog batch", () => {
       situation_text: SYNTHETIC_SITUATION,
       origin: { latitude: 41.3874, longitude: 2.1686 },
       maximum_distance_m: 3000,
-      output_locale: "en",
+      output_locale: "sw",
     });
-    expect(normalResponse.output_locale).toBe("en");
+    expect(swahiliNormalResponse.output_locale).toBe("sw");
     expect(formatDistance(725, "sw")).toBe("mita 725");
     expect(formatDistance(1200, "sw")).toBe("km 1.2");
     const distanceLabel = screen.getByText(catalog["place.distanceLabel"]);
@@ -3818,29 +3805,29 @@ describe("M6.11 final required LTR catalog batch", () => {
       false,
     );
     expect(
-      screen.getByText(normalResponse.plan.now.actions[0].text),
+      screen.getByText(swahiliNormalResponse.plan.now.actions[0].text),
     ).toBeTruthy();
     expect(
       Array.from(document.querySelectorAll<HTMLOListElement>("ol.action-list"))
-        .every((list) => list.lang === "en"),
+        .every((list) => list.lang === "sw"),
     ).toBe(true);
     expect(document.querySelector<HTMLElement>("p.weather-boundary")?.lang).toBe(
-      "en",
+      "sw",
     );
     expect(document.querySelector<HTMLElement>("ul.bring-list")?.lang).toBe(
-      "en",
+      "sw",
     );
     expect(
       document.querySelector<HTMLElement>("ul.explanation-list")?.lang,
-    ).toBe("en");
+    ).toBe("sw");
     expect(document.querySelector<HTMLElement>("ul.warning-list")?.lang).toBe(
-      "en",
+      "sw",
     );
     expect(document.querySelector<HTMLElement>("ul.notice-list")?.lang).toBe(
-      "en",
+      "sw",
     );
     const officialName = screen.getByRole("heading", {
-      name: normalResponse.selected_place.name,
+      name: swahiliNormalResponse.selected_place.name,
     });
     expect(officialName.hasAttribute("lang")).toBe(false);
     expect(document.querySelector(".place-address")?.hasAttribute("lang")).toBe(
@@ -3861,12 +3848,13 @@ describe("M6.12 RTL interface foundation", () => {
         target: { value: SYNTHETIC_SITUATION },
       });
 
-      await selectInterfaceLanguage(locale);
+      await selectLanguage(locale);
 
       expect(storageWrite.mock.calls).toEqual([
         [INTERFACE_LOCALE_STORAGE_KEY, locale],
+        [OUTPUT_LOCALE_STORAGE_KEY, locale],
       ]);
-      expect(interfaceLanguageSelect().value).toBe(locale);
+      expect(languageSelect().value).toBe(locale);
       expect(document.documentElement.lang).toBe(locale);
       expect(document.documentElement.dir).toBe("rtl");
       expect(document.title).toBe(catalog["metadata.title"]);
@@ -3882,7 +3870,7 @@ describe("M6.12 RTL interface foundation", () => {
       ).not.toBeNull();
       expect(fetchMock).not.toHaveBeenCalled();
 
-      await selectInterfaceLanguage("en");
+      await selectLanguage("en");
 
       expect(document.documentElement.lang).toBe("en");
       expect(document.documentElement.dir).toBe("ltr");
@@ -3908,7 +3896,7 @@ describe("M6.12 RTL interface foundation", () => {
       target: { value: "English العربية فارسی" },
     });
 
-    await selectInterfaceLanguage("ar");
+    await selectLanguage("ar");
 
     expectVisualMode("standard");
     expect(document.documentElement.dir).toBe("rtl");
@@ -3928,7 +3916,7 @@ describe("M6.12 RTL interface foundation", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("keeps Urdu RTL in Enhanced Visibility during one pending request", async () => {
+  it("keeps the submission-time locale and Enhanced Visibility during one pending request", async () => {
     let resolveFetch!: (response: Response) => void;
     fetchMock.mockReturnValue(
       new Promise<Response>((resolve) => {
@@ -3939,12 +3927,9 @@ describe("M6.12 RTL interface foundation", () => {
     fireEvent.change(visualModeSelect(), { target: { value: "enhanced" } });
     submitSituation();
 
-    await selectInterfaceLanguage("ur");
-
     expectVisualMode("enhanced");
-    expect(document.documentElement.lang).toBe("ur");
-    expect(document.documentElement.dir).toBe("rtl");
-    expect(interfaceLanguageSelect().disabled).toBe(false);
+    expect(languageSelect().value).toBe("en");
+    expect(languageSelect().disabled).toBe(true);
     expect(situationField().value).toBe(SYNTHETIC_SITUATION);
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
@@ -3952,15 +3937,16 @@ describe("M6.12 RTL interface foundation", () => {
       resolveFetch(jsonResponse(normalResponse));
     });
     await screen.findByRole("heading", {
-      name: URDU_CATALOG["priority.actNow"],
+      name: ENGLISH_CATALOG["priority.actNow"],
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(document.documentElement.dir).toBe("rtl");
+    expect(languageSelect().disabled).toBe(false);
+    expect(languageSelect().value).toBe("en");
   });
 
   it("keeps the last confirmed RTL localization when another supported change rejects", async () => {
     render(<App />);
-    await selectInterfaceLanguage("ar");
+    await selectLanguage("ar");
     fireEvent.change(situationField(), {
       target: { value: SYNTHETIC_SITUATION },
     });
@@ -3970,11 +3956,11 @@ describe("M6.12 RTL interface foundation", () => {
       .spyOn(testI18n, "changeLanguage")
       .mockRejectedValue(new Error("Synthetic RTL language rejection"));
 
-    fireEvent.change(interfaceLanguageSelect(), { target: { value: "he" } });
+    fireEvent.change(languageSelect(), { target: { value: "he" } });
 
     await waitFor(() => expect(changeLanguage).toHaveBeenCalledWith("he"));
     expect(testI18n.resolvedLanguage).toBe("ar");
-    expect(interfaceLanguageSelect().value).toBe("ar");
+    expect(languageSelect().value).toBe("ar");
     expect(document.documentElement.lang).toBe("ar");
     expect(document.documentElement.dir).toBe("rtl");
     expect(situationField().value).toBe(SYNTHETIC_SITUATION);
@@ -3984,11 +3970,11 @@ describe("M6.12 RTL interface foundation", () => {
 
   it("ignores an unsupported synthetic selection after an RTL locale is confirmed", async () => {
     render(<App />);
-    await selectInterfaceLanguage("ar");
+    await selectLanguage("ar");
     const storageWrite = vi.spyOn(window.localStorage, "setItem");
     storageWrite.mockClear();
 
-    fireEvent.change(interfaceLanguageSelect(), { target: { value: "eo" } });
+    fireEvent.change(languageSelect(), { target: { value: "eo" } });
 
     expect(testI18n.resolvedLanguage).toBe("ar");
     expect(document.documentElement.lang).toBe("ar");
@@ -4006,7 +3992,7 @@ describe("M6.12 RTL interface foundation", () => {
       ENGLISH_CATALOG["validation.empty"],
     );
 
-    await selectInterfaceLanguage("ar");
+    await selectLanguage("ar");
 
     expect(fieldError.isConnected).toBe(true);
     expect(fieldError.textContent).toBe(ARABIC_CATALOG["validation.empty"]);
@@ -4026,7 +4012,7 @@ describe("M6.12 RTL interface foundation", () => {
       name: ENGLISH_CATALOG["result.noPlaceTitle"],
     });
 
-    await selectInterfaceLanguage("ar");
+    await selectLanguage("ar");
 
     expect(terminal.isConnected).toBe(true);
     expect(terminal.textContent).toBe(ARABIC_CATALOG["result.noPlaceTitle"]);
@@ -4039,11 +4025,11 @@ describe("M6.12 RTL interface foundation", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("keeps the Arabic interface independent from the App's default English output request", async () => {
-    fetchMock.mockResolvedValue(jsonResponse(normalResponse));
+  it("uses the Arabic selection for both the interface and exact request locale", async () => {
+    fetchMock.mockResolvedValue(jsonResponse(arabicNormalResponse));
     render(<App />);
 
-    await selectInterfaceLanguage("ar");
+    await selectLanguage("ar");
     submitSituation();
 
     await screen.findByRole("heading", {
@@ -4055,13 +4041,14 @@ describe("M6.12 RTL interface foundation", () => {
       situation_text: SYNTHETIC_SITUATION,
       origin: { latitude: 41.3874, longitude: 2.1686 },
       maximum_distance_m: 3000,
-      output_locale: "en",
+      output_locale: "ar",
     });
     expect(document.documentElement.lang).toBe("ar");
     expect(document.documentElement.dir).toBe("rtl");
-    expect(screen.getAllByRole("combobox")).toHaveLength(3);
-    expect(outputLanguageSelect().value).toBe("en");
-    expect(window.localStorage.getItem(OUTPUT_LOCALE_STORAGE_KEY)).toBeNull();
+    expect(screen.getAllByRole("combobox")).toHaveLength(2);
+    expect(languageSelect().value).toBe("ar");
+    expect(window.localStorage.getItem(INTERFACE_LOCALE_STORAGE_KEY)).toBe("ar");
+    expect(window.localStorage.getItem(OUTPUT_LOCALE_STORAGE_KEY)).toBe("ar");
   });
 
   it("preserves a backend error terminal state after switching to Urdu", async () => {
@@ -4072,7 +4059,7 @@ describe("M6.12 RTL interface foundation", () => {
     submitSituation();
     const terminal = await screen.findByRole("alert");
 
-    await selectInterfaceLanguage("ur");
+    await selectLanguage("ur");
 
     expect(terminal.isConnected).toBe(true);
     expect(terminal.textContent).toContain(URDU_CATALOG["error.unavailableTitle"]);
@@ -4089,7 +4076,7 @@ describe("M6.12 RTL interface foundation", () => {
       name: ENGLISH_CATALOG["priority.actNow"],
     });
 
-    await selectInterfaceLanguage("fa");
+    await selectLanguage("fa");
 
     expect(resultHeading.isConnected).toBe(true);
     expect(resultHeading.textContent).toBe(PERSIAN_CATALOG["priority.actNow"]);
@@ -4179,7 +4166,7 @@ describe("M6.12 RTL interface foundation", () => {
       name: ENGLISH_CATALOG["urgent.title"],
     });
 
-    await selectInterfaceLanguage("he");
+    await selectLanguage("he");
 
     expect(terminal.isConnected).toBe(true);
     expect(terminal.textContent).toBe(HEBREW_CATALOG["urgent.title"]);
@@ -4227,18 +4214,23 @@ describe("M6.12 RTL interface foundation", () => {
       .mockResolvedValueOnce(jsonResponse(spanishPhraseResponse));
 
     render(<App />);
-    await selectInterfaceLanguage("ar");
     submitSituation();
-    await screen.findByRole("heading", { name: ARABIC_CATALOG["priority.actNow"] });
+    await screen.findByRole("heading", { name: ENGLISH_CATALOG["priority.actNow"] });
+    await selectLanguage("ar");
     let phrase = document.querySelector<HTMLElement>(".local-phrase blockquote");
     expect(phrase?.lang).toBe("ca");
     expect(phrase?.dir).toBe("ltr");
 
     cleanup();
+    window.localStorage.clear();
+    await act(async () => {
+      await testI18n.changeLanguage("en");
+    });
+    synchronizeDocumentLocalization(testI18n);
     render(<App />);
-    await selectInterfaceLanguage("ar");
     submitSituation();
-    await screen.findByRole("heading", { name: ARABIC_CATALOG["priority.actNow"] });
+    await screen.findByRole("heading", { name: ENGLISH_CATALOG["priority.actNow"] });
+    await selectLanguage("ar");
     phrase = document.querySelector<HTMLElement>(".local-phrase blockquote");
     expect(phrase?.lang).toBe("es");
     expect(phrase?.dir).toBe("ltr");
@@ -4330,7 +4322,7 @@ describe("Barcelona action-plan flow", () => {
     expect(appSource).not.toMatch(/new Intl\.|\.toLocaleString\(|\.toFixed\(/);
   });
 
-  it("renders an accessible initial form with permanent essential guidance", () => {
+  it("renders an accessible initial form with compact permanent guidance", () => {
     render(<App />);
 
     expect(
@@ -4354,15 +4346,11 @@ describe("Barcelona action-plan flow", () => {
 
     const textarea = situationField();
     expect(textarea.getAttribute("aria-describedby")).toBe(
-      "privacy-description identity-warning situation-hint character-count boundary-note",
+      "situation-hint character-count identity-warning",
     );
     expect(textarea.hasAttribute("aria-invalid")).toBe(false);
     expect(textarea.hasAttribute("aria-errormessage")).toBe(false);
-    expect(screen.getByText(/2,000 code points/i)).toBeTruthy();
-    expect(
-      screen.getByText(/sent server-side.*GPT-5\.6 processing/i),
-    ).toBeTruthy();
-    expect(screen.getByText(/does not intentionally store/i)).toBeTruthy();
+    expect(screen.getByText(/2,000 characters/i)).toBeTruthy();
     expect(
       screen.getByText(/situation text is not stored in browser storage/i),
     ).toBeTruthy();
@@ -4378,76 +4366,163 @@ describe("Barcelona action-plan flow", () => {
       "Situation text is not stored in browser storage.",
     );
     expect(privacyCopy).toContain(
-      "Explicit visual-mode, interface-language, and action-plan-language preferences are stored locally.",
+      "Explicit visual-mode and language preferences are stored locally.",
     );
     expect(privacyCopy).toContain(
-      "Only the selected action-plan language code enters the action-plan request; visual mode and interface locale do not.",
+      "Only the selected language code enters the action-plan request; visual mode does not.",
     );
     expect(privacyCopy).toContain(
       "HeatRelay does not use analytics, cookies, URL parameters, or geolocation in this demo.",
     );
-    expect(
-      screen.getByText(/only the selected action-plan language code enters the action-plan request/i),
-    ).toBeTruthy();
-    expect(
-      screen.getByText(
-        /do not include names, contact details, addresses, or other identifying information/i,
-      ),
-    ).toBeTruthy();
+    expect(screen.getByText(ENGLISH_CATALOG["form.identityWarning"])).toBeTruthy();
     expect(
       screen.getByRole("button", { name: "Load Barcelona demo" }),
     ).toBeTruthy();
     expect(
       screen.getByRole("button", { name: "Create my heat action plan" }),
     ).toBeTruthy();
-    expect(
-      screen.getByText(/fixed Barcelona demo coordinates/i),
-    ).toBeTruthy();
-    expect(
-      screen.getByText(/browser location is not available yet/i),
-    ).toBeTruthy();
-    expect(screen.getByText(/straight-line estimates/i)).toBeTruthy();
-    expect(screen.getByText(/not medical or emergency advice/i)).toBeTruthy();
     const disclosure = document.querySelector("details.form-disclosure");
     expect(disclosure?.hasAttribute("open")).toBe(false);
-    for (const id of [
-      "privacy-description",
-      "identity-warning",
-      "boundary-note",
-      "situation-hint",
-    ]) {
-      const guidance = document.getElementById(id);
-      expect(guidance).not.toBeNull();
-      expect(guidance?.closest("details")).toBeNull();
-      expect(guidance?.hidden).toBe(false);
-    }
+    expect(document.getElementById("identity-warning")?.closest("details")).toBeNull();
+    expect(document.getElementById("situation-hint")?.closest("details")).toBeNull();
+    expect(document.getElementById("privacy-description")?.closest("details")).toBe(
+      disclosure,
+    );
+    expect(document.getElementById("boundary-note")?.closest("details")).toBe(
+      disclosure,
+    );
+    const submitButton = screen.getByRole("button", {
+      name: "Create my heat action plan",
+    });
+    expect(
+      submitButton.compareDocumentPosition(disclosure as Node) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     expectNoLocalizationLeak();
   });
 
-  it("renders three localized non-interactive scenario examples without changing the request", async () => {
+  it.each([320, 768, 1280])(
+    "uses the same compact semantic form hierarchy at %ipx",
+    (width) => {
+      vi.stubGlobal("innerWidth", width);
+      render(<App />);
+
+      const form = screen.getByRole("form", { name: "How can we help?" });
+      const orderedNodes = [
+        form.querySelector('label[for="situation-text"]'),
+        document.getElementById("character-count"),
+        document.getElementById("situation-text"),
+        document.getElementById("situation-hint"),
+        document.getElementById("identity-warning"),
+        screen.getByRole("button", { name: "Create my heat action plan" }),
+        form.querySelector("details.form-disclosure"),
+      ];
+      expect(orderedNodes.every(Boolean)).toBe(true);
+      for (let index = 0; index < orderedNodes.length - 1; index += 1) {
+        expect(
+          (orderedNodes[index] as Node).compareDocumentPosition(
+            orderedNodes[index + 1] as Node,
+          ) & Node.DOCUMENT_POSITION_FOLLOWING,
+        ).toBeTruthy();
+      }
+
+      const disclosure = orderedNodes.at(-1) as HTMLDetailsElement;
+      expect(disclosure.open).toBe(false);
+      expect(document.getElementById("privacy-description")?.closest("details")).toBe(
+        disclosure,
+      );
+      expect(document.getElementById("boundary-note")?.closest("details")).toBe(
+        disclosure,
+      );
+      expect(document.querySelectorAll(".plan-form")).toHaveLength(1);
+      expect(document.querySelectorAll("#identity-warning")).toHaveLength(1);
+      expect(fetchMock).not.toHaveBeenCalled();
+    },
+  );
+
+  it("opens and closes the native disclosure without changing input, result, or requests", async () => {
     fetchMock.mockResolvedValue(jsonResponse(normalResponse));
+    render(<App />);
+    submitSituation(SYNTHETIC_SITUATION);
+    const resultHeading = await screen.findByRole("heading", { name: "Act now" });
+    const disclosure = document.querySelector<HTMLDetailsElement>(
+      "details.form-disclosure",
+    );
+    const summary = disclosure?.querySelector("summary");
+    expect(disclosure?.open).toBe(false);
+
+    fireEvent.click(summary as HTMLElement);
+    expect(disclosure?.open).toBe(true);
+    expect(situationField().value).toBe(SYNTHETIC_SITUATION);
+    expect(resultHeading.isConnected).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(summary as HTMLElement);
+    expect(disclosure?.open).toBe(false);
+    expect(situationField().value).toBe(SYNTHETIC_SITUATION);
+    expect(resultHeading.isConnected).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("moves one form among three native scenario buttons without side effects", async () => {
+    const storageWrite = vi.spyOn(window.localStorage, "setItem");
     render(<App />);
 
     const scenarios = Array.from(
       document.querySelectorAll<HTMLElement>(".scenario-option"),
     );
+    const scenarioButtons = screen.getAllByRole("button").filter((button) =>
+      button.classList.contains("scenario-example"),
+    );
+    const expectSharedScenarioRelationship = (expandedIndex: number) => {
+      expect(
+        scenarioButtons.map((button) => button.getAttribute("aria-controls")),
+      ).toEqual(["scenario-form", "scenario-form", "scenario-form"]);
+      expect(
+        scenarioButtons.map((button) => button.getAttribute("aria-expanded")),
+      ).toEqual(
+        scenarioButtons.map((_button, index) =>
+          index === expandedIndex ? "true" : "false",
+        ),
+      );
+      expect(document.querySelectorAll("#scenario-form")).toHaveLength(1);
+      expect(document.getElementById("scenario-form")).not.toBeNull();
+      expect(document.querySelectorAll("form.plan-form")).toHaveLength(1);
+    };
     expect(scenarios).toHaveLength(3);
-    expect(scenarios.map((scenario) => scenario.textContent)).toEqual([
+    expect(scenarioButtons).toHaveLength(3);
+    expect(scenarioButtons.map((button) => button.textContent)).toEqual([
       expect.stringContaining(ENGLISH_CATALOG["scenario.selfTitle"]),
       expect.stringContaining(ENGLISH_CATALOG["scenario.someoneTitle"]),
       expect.stringContaining(ENGLISH_CATALOG["scenario.placeTitle"]),
     ]);
     expect(screen.queryByRole("radio")).toBeNull();
     expect(document.querySelector('[role="radiogroup"]')).toBeNull();
-    expect(scenarios[0].getAttribute("data-primary")).toBe("true");
-    expect(scenarios[0].querySelector("form")).not.toBeNull();
-    expect(scenarios[1].querySelector("form")).toBeNull();
-    expect(scenarios[2].querySelector("form")).toBeNull();
-    expect(fetchMock).not.toHaveBeenCalled();
+    expectSharedScenarioRelationship(0);
 
-    fireEvent.change(situationField(), {
-      target: { value: SYNTHETIC_SITUATION },
-    });
+    fireEvent.change(situationField(), { target: { value: SYNTHETIC_SITUATION } });
+    fireEvent.click(scenarioButtons[1]);
+    await waitFor(() => expect(document.activeElement).toBe(situationField()));
+    expect(situationField().value).toBe(SYNTHETIC_SITUATION);
+    expectSharedScenarioRelationship(1);
+
+    fireEvent.click(scenarioButtons[2]);
+    await waitFor(() => expect(document.activeElement).toBe(situationField()));
+    expect(situationField().value).toBe(SYNTHETIC_SITUATION);
+    expectSharedScenarioRelationship(2);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(storageWrite).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["Help someone I care about"],
+    ["Find a cool place nearby"],
+  ])("submits the unchanged four-field request from %s", async (scenarioName) => {
+    fetchMock.mockResolvedValue(jsonResponse(normalResponse));
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: new RegExp(scenarioName) }));
+    await waitFor(() => expect(document.activeElement).toBe(situationField()));
+    fireEvent.change(situationField(), { target: { value: `  ${SYNTHETIC_SITUATION}  ` } });
     fireEvent.click(
       screen.getByRole("button", { name: "Create my heat action plan" }),
     );
@@ -4459,6 +4534,59 @@ describe("Barcelona action-plan flow", () => {
       maximum_distance_m: 3000,
       output_locale: "en",
     });
+    expect(Object.keys(JSON.parse(String(fetchMock.mock.calls[0][1]?.body)))).toEqual([
+      "situation_text",
+      "origin",
+      "maximum_distance_m",
+      "output_locale",
+    ]);
+  });
+
+  it("preserves a displayed result, settings, and RTL state when the form moves", async () => {
+    fetchMock.mockResolvedValue(jsonResponse(arabicNormalResponse));
+    render(<App />);
+    await selectLanguage("ar");
+    fireEvent.change(visualModeSelect(), { target: { value: "high-contrast" } });
+    submitSituation(SYNTHETIC_SITUATION);
+    const resultHeading = await screen.findByRole("heading", {
+      name: ARABIC_CATALOG["priority.actNow"],
+    });
+    const storageWrite = vi.spyOn(window.localStorage, "setItem");
+    storageWrite.mockClear();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: new RegExp(ARABIC_CATALOG["scenario.someoneTitle"]),
+      }),
+    );
+
+    await waitFor(() => expect(document.activeElement).toBe(situationField()));
+    expect(resultHeading.isConnected).toBe(true);
+    expect(situationField().value).toBe(SYNTHETIC_SITUATION);
+    expect(document.documentElement.dir).toBe("rtl");
+    expect(languageSelect().value).toBe("ar");
+    expectVisualMode("high-contrast");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(storageWrite).not.toHaveBeenCalled();
+  });
+
+  it("preserves an existing field error when switching scenarios", async () => {
+    render(<App />);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Create my heat action plan" }),
+    );
+    expect(document.getElementById("situation-error")).not.toBeNull();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /Help someone I care about/ }),
+    );
+
+    await waitFor(() => expect(document.activeElement).toBe(situationField()));
+    expect(document.getElementById("situation-error")?.textContent).toBe(
+      "Describe the situation before creating a plan.",
+    );
+    expect(situationField().getAttribute("aria-invalid")).toBe("true");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("uses the associated field-error path for an empty submission", async () => {
@@ -4476,7 +4604,7 @@ describe("Barcelona action-plan flow", () => {
     expect(textarea.getAttribute("aria-invalid")).toBe("true");
     expect(textarea.getAttribute("aria-errormessage")).toBe("situation-error");
     expect(textarea.getAttribute("aria-describedby")).toBe(
-      "privacy-description identity-warning situation-hint character-count boundary-note situation-error",
+      "situation-hint character-count identity-warning situation-error",
     );
     await waitFor(() => expect(document.activeElement).toBe(textarea));
     expect(screen.queryByRole("alert")).toBeNull();
@@ -4498,7 +4626,7 @@ describe("Barcelona action-plan flow", () => {
     expect(textarea.hasAttribute("aria-invalid")).toBe(false);
     expect(textarea.hasAttribute("aria-errormessage")).toBe(false);
     expect(textarea.getAttribute("aria-describedby")).toBe(
-      "privacy-description identity-warning situation-hint character-count boundary-note",
+      "situation-hint character-count identity-warning",
     );
     expect(fetchMock).not.toHaveBeenCalled();
   });
@@ -6120,6 +6248,11 @@ describe("Barcelona action-plan flow", () => {
     expect(status.getAttribute("aria-live")).toBe("polite");
     expect(status.getAttribute("aria-atomic")).toBe("true");
     expect(status.textContent).toBe("Creating your action plan.");
+    const scenarioButtons = screen.getAllByRole("button").filter((button) =>
+      button.classList.contains("scenario-example"),
+    ) as HTMLButtonElement[];
+    expect(scenarioButtons).toHaveLength(3);
+    expect(scenarioButtons.every((button) => button.disabled)).toBe(true);
 
     fireEvent.submit(form as HTMLFormElement);
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -6129,6 +6262,12 @@ describe("Barcelona action-plan flow", () => {
     });
     await screen.findByRole("heading", { name: "Act now" });
     expect(status.textContent).toBe("Your action plan is ready.");
+    expect(
+      screen
+        .getAllByRole("button")
+        .filter((button) => button.classList.contains("scenario-example"))
+        .every((button) => !(button as HTMLButtonElement).disabled),
+    ).toBe(true);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
@@ -6329,6 +6468,19 @@ describe("Barcelona action-plan flow", () => {
     ).toHaveLength(1);
     expect(screen.getAllByText("Current temperature")).toHaveLength(1);
     expect(screen.getAllByText("33.0°C")).toHaveLength(1);
+    const details = document.querySelector<HTMLDetailsElement>(
+      ".temperature-status .weather-details",
+    );
+    expect(details).not.toBeNull();
+    expect(details?.querySelector("summary")?.textContent).toBe(
+      "Weather summary",
+    );
+    expect(stylesSource).not.toMatch(
+      /\.weather-details\[open\]\s*\{[^}]*grid-column:\s*1\s*\/\s*-1;/s,
+    );
+    expect(stylesSource).toMatch(
+      /\.temperature-status \.weather-details\s*\{[^}]*min-width:\s*11rem;[^}]*overflow-wrap:\s*anywhere;/s,
+    );
   });
 
   it.each([
@@ -6759,7 +6911,7 @@ describe("Barcelona action-plan flow", () => {
         "situation-error",
       );
       expect(textarea.getAttribute("aria-describedby")).toBe(
-        "privacy-description identity-warning situation-hint character-count boundary-note situation-error",
+        "situation-hint character-count identity-warning situation-error",
       );
       await waitFor(() => expect(document.activeElement).toBe(textarea));
       expect(screen.queryByRole("alert")).toBeNull();
@@ -6896,7 +7048,28 @@ describe("Barcelona action-plan flow", () => {
     expect(alert.textContent).not.toContain(privateText);
   });
 
-  it("validates the 2,000 limit by Unicode code points", async () => {
+  it("counts trimmed Unicode code points while presenting ordinary character copy", async () => {
+    fetchMock.mockResolvedValue(jsonResponse(normalResponse));
+    render(<App />);
+    const submittedText = "👩‍🚒🧊";
+
+    fireEvent.change(situationField(), {
+      target: { value: `  ${submittedText}  ` },
+    });
+
+    expect(document.getElementById("character-count")?.textContent).toBe(
+      "4 / 2,000 characters",
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Create my heat action plan" }),
+    );
+    await screen.findByRole("heading", { name: "Act now" });
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1]?.body))).toMatchObject({
+      situation_text: submittedText,
+    });
+  });
+
+  it("keeps the 2,000 Unicode-code-point validation boundary", async () => {
     fetchMock.mockResolvedValue(jsonResponse(urgentResponse));
     render(<App />);
 
@@ -6912,7 +7085,7 @@ describe("Barcelona action-plan flow", () => {
     fireEvent.change(textarea, { target: { value: "🧚".repeat(2001) } });
 
     expect(
-      screen.getByText("2,001 / 2,000 code points — 1 over limit"),
+      screen.getByText("2,001 / 2,000 characters — shorten by 1"),
     ).toBeTruthy();
     expect(textarea.getAttribute("aria-invalid")).toBe("true");
     expect(textarea.hasAttribute("aria-errormessage")).toBe(false);
@@ -6925,12 +7098,12 @@ describe("Barcelona action-plan flow", () => {
     );
 
     const fieldError = screen.getByText(
-      "Keep the description within 2,000 Unicode characters.",
+      "The description is too long. Shorten the text.",
     );
     expect(fieldError.id).toBe("situation-error");
     expect(textarea.getAttribute("aria-errormessage")).toBe("situation-error");
     expect(textarea.getAttribute("aria-describedby")).toBe(
-      "privacy-description identity-warning situation-hint character-count boundary-note situation-error",
+      "situation-hint character-count identity-warning situation-error",
     );
     await waitFor(() => expect(document.activeElement).toBe(textarea));
     expect(screen.queryByRole("alert")).toBeNull();

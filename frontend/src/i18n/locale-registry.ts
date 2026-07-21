@@ -351,9 +351,24 @@ export function resolveInitialInterfaceLocale(
   let storage: LocaleStorage | null = null;
   try {
     storage = environment === undefined ? browserStorage() : environment.storage;
+  } catch {
+    // Continue through the remaining deterministic resolution sources.
+  }
+
+  try {
     const storedLocale = storage?.getItem(INTERFACE_LOCALE_STORAGE_KEY) ?? null;
     if (isInterfaceLocale(storedLocale)) {
       return storedLocale;
+    }
+  } catch {
+    // A blocked legacy key does not prevent checking the other legacy key.
+  }
+
+  try {
+    const storedOutputLocale =
+      storage?.getItem(OUTPUT_LOCALE_STORAGE_KEY) ?? null;
+    if (isOutputLocale(storedOutputLocale)) {
+      return storedOutputLocale;
     }
   } catch {
     // Local persistence is optional; browser-language matching remains available.
@@ -423,6 +438,18 @@ export function persistOutputLocale(
   } catch {
     // The explicit in-memory selection remains usable if persistence is blocked.
   }
+}
+
+export function persistUnifiedLocale(
+  locale: InterfaceLocale,
+  storage: LocaleStorage | null = browserStorage(),
+): void {
+  if (!isInterfaceLocale(locale) || !isOutputLocale(locale)) {
+    return;
+  }
+
+  persistInterfaceLocale(locale, storage);
+  persistOutputLocale(locale, storage);
 }
 
 export function getLocaleDefinition(

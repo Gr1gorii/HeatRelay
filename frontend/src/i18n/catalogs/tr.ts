@@ -18,9 +18,9 @@ export const TURKISH_CATALOG = {
   "visualMode.description":
     "Geliştirilmiş Görünürlük, az gören kişiler veya daha büyük ve daha net içerik tercih eden herkes için tasarlanmıştır.",
 
-  "interfaceLanguage.label": "Arayüz dili",
+  "interfaceLanguage.label": "Dil",
   "interfaceLanguage.description":
-    "Gezinmeyi, formları ve sayfa etiketlerini değiştirir. Eylem planının dilini değiştirmez.",
+    "Arayüzün ve sonraki eylem planının dilini değiştirir. Açıklamanızı çevirmez veya görüntülenen planı yeniden yazmaz.",
   "interfaceLanguage.optionWithEnglishName":
     "{{nativeName}} — {{englishName}}",
 
@@ -44,7 +44,7 @@ export const TURKISH_CATALOG = {
     "Görüntülenen plan yeniden yazılmaz. Kaydedilen seçiminiz sonraki plana uygulanır.",
   "languageContext.otherValue": "Başka bir dil",
   "languageContext.unknownValue": "Belirlenemedi",
-  "languageContext.changeAction": "Eylem planı dilini değiştir",
+  "languageContext.changeAction": "Dili değiştir",
 
   "hero.eyebrow": "Barcelona pilotu · Kilometre Taşı 5",
   "hero.title": "Sıcak hava uyarısından güvenli bir sonraki adıma.",
@@ -68,17 +68,17 @@ export const TURKISH_CATALOG = {
   "form.title": "Sıcak hava eylem planınızı oluşturun",
   "form.introduction":
     "Sınırları belirlenmiş, arka uç tarafından doğrulanan bir planı kişiselleştirmek için yalnızca gerekli durum ayrıntılarını paylaşın. Her gönderim tek bir istek oluşturur.",
-  "form.privacyTitle": "Göndermeden önce",
+  "form.privacyTitle": "Gizlilik ve demo ayrıntıları",
   "form.privacyDescription":
     "Açıklamanız, GPT-5.6 tarafından işlenmek üzere sunucu tarafında OpenAI’a gönderilir. HeatRelay ham metni bilerek saklamaz veya günlüğe kaydetmez; sağlayıcının veri işleme politikaları yine de geçerli olabilir.",
   "form.identityWarning":
-    "Ad, iletişim bilgileri, adres veya kimliğinizi belirleyebilecek başka bilgiler eklemeyin.",
+    "Metin OpenAI’a gönderilir; HeatRelay özgün metni bilerek kaydetmez veya günlüğe almaz. Ad, iletişim bilgileri veya adres eklemeyin. Sabit Barcelona demo koordinatları. Tıbbi tavsiye veya acil yardım değildir.",
   "form.situationLabel": "Sıcak hava durumunu açıklayın",
-  "form.characterCount": "{{currentCount}} / {{limit}} kod noktası",
+  "form.characterCount": "{{currentCount}} / {{limit}} karakter",
   "form.characterCountOverLimit":
-    "{{currentCount}} / {{limit}} kod noktası — sınırın {{overLimitCount}} üzerinde",
+    "{{currentCount}} / {{limit}} karakter — {{overLimitCount}} karakter kısaltın",
   "form.situationHint":
-    "En fazla {{limit}} Unicode kod noktası kullanın. Yaş, serinleme imkânı, hareket kabiliyeti, zamanlama veya kapsamı belirli uyarı belirtilerini açıklayabilirsiniz.",
+    "Yaşı, serinleme imkânını, hareket kabiliyetini, zamanı ve ilgili belirtileri kısaca açıklayın.",
   "form.demoButton": "Barcelona demosunu yükle",
   "form.submitButton": "Sıcak hava eylem planımı oluştur",
   "form.submittingButton": "Planınız oluşturuluyor…",
@@ -98,8 +98,7 @@ export const TURKISH_CATALOG = {
   "scenario.importantNow": "Şimdi önemli",
 
   "validation.empty": "Plan oluşturmadan önce durumu açıklayın.",
-  "validation.overLimit":
-    "Açıklamayı {{limit}} Unicode karakter sınırı içinde tutun.",
+  "validation.overLimit": "Açıklama çok uzun. Metni kısaltın.",
   "validation.serverInput": "Açıklamayı gözden geçirip yeniden deneyin.",
 
   "status.creating": "Eylem planınız oluşturuluyor.",
@@ -182,7 +181,7 @@ export const TURKISH_CATALOG = {
   "trust.privacyLabel": "Gizlilik",
   "trust.privacyTitle": "Kimliğinizi belirleyebilecek ayrıntıları paylaşmayın",
   "trust.privacyDescription":
-    "Durum metni tarayıcı depolama alanında saklanmaz. Açıkça seçilen görsel mod, arayüz dili ve eylem planı dili tercihleri yerel olarak saklanır. İsteğe yalnızca seçilen eylem planı dili kodu girer; görsel mod ve arayüz dili girmez. HeatRelay bu demoda analiz araçları, çerezler, URL parametreleri veya coğrafi konum kullanmaz.",
+    "Durum metni tarayıcı depolama alanında saklanmaz. Açıkça seçilen görsel mod ve dil tercihleri yerel olarak saklanır. Eylem planı isteğine yalnızca seçilen dil kodu girer; görsel mod girmez. HeatRelay bu demoda analiz araçları, çerezler, URL parametreleri veya coğrafi konum kullanmaz.",
 
   "footer.description": "Barcelona demosu · Sabit koordinatlar",
 

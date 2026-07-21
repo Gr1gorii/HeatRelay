@@ -18,9 +18,9 @@ export const SWAHILI_CATALOG = {
   "visualMode.description":
     "Mwonekano ulioboreshwa umekusudiwa watu wenye uoni hafifu au mtu yeyote anayependelea maudhui makubwa na yaliyo wazi zaidi.",
 
-  "interfaceLanguage.label": "Lugha ya kiolesura",
+  "interfaceLanguage.label": "Lugha",
   "interfaceLanguage.description":
-    "Hubadilisha urambazaji, fomu na lebo za ukurasa. Haibadilishi lugha ya mpango wa hatua.",
+    "Hubadilisha lugha ya kiolesura na mpango wa hatua unaofuata. Haitafsiri maelezo yako wala kuandika upya mpango unaoonyeshwa.",
   "interfaceLanguage.optionWithEnglishName":
     "{{nativeName}} — {{englishName}}",
 
@@ -44,7 +44,7 @@ export const SWAHILI_CATALOG = {
     "Mpango unaoonyeshwa hauandikwi upya. Chaguo lako lililohifadhiwa litatumika kwa mpango unaofuata.",
   "languageContext.otherValue": "Lugha nyingine",
   "languageContext.unknownValue": "Haikuweza kubainishwa",
-  "languageContext.changeAction": "Badilisha lugha ya mpango wa hatua",
+  "languageContext.changeAction": "Badilisha lugha",
 
   "hero.eyebrow": "Majaribio ya Barcelona · Hatua kuu ya 5",
   "hero.title": "Kutoka onyo la joto hadi hatua inayofuata iliyo salama.",
@@ -68,17 +68,17 @@ export const SWAHILI_CATALOG = {
   "form.title": "Tengeneza mpango wako wa hatua dhidi ya joto",
   "form.introduction":
     "Shiriki tu maelezo ya hali yanayohitajika ili kubinafsisha mpango wenye mipaka na uliothibitishwa na mfumo wa nyuma. Uwasilishaji mmoja hufanya ombi moja.",
-  "form.privacyTitle": "Kabla ya kuwasilisha",
+  "form.privacyTitle": "Faragha na maelezo ya onyesho",
   "form.privacyDescription":
     "Maelezo yako yanatumwa kutoka upande wa seva kwenda OpenAI ili yachakatwe na GPT-5.6. HeatRelay haikusudii kuhifadhi au kurekodi maandishi ghafi; sera za mtoa huduma za kushughulikia data bado zinaweza kutumika.",
   "form.identityWarning":
-    "Usijumuishe majina, maelezo ya mawasiliano, anwani au taarifa nyingine zinazoweza kukutambulisha.",
+    "Maandishi yanatumwa kwa OpenAI; HeatRelay haihifadhi wala kurekodi maandishi ya asili kwa makusudi. Usijumuishe majina, mawasiliano au anwani. Viwianishi vya onyesho la Barcelona ni vya kudumu. Si ushauri wa kitabibu wala msaada wa dharura.",
   "form.situationLabel": "Eleza hali ya joto",
-  "form.characterCount": "{{currentCount}} / {{limit}} alama za msimbo",
+  "form.characterCount": "{{currentCount}} / {{limit}} herufi",
   "form.characterCountOverLimit":
-    "{{currentCount}} / {{limit}} alama za msimbo — {{overLimitCount}} zaidi ya kikomo",
+    "{{currentCount}} / {{limit}} herufi — punguza kwa {{overLimitCount}}",
   "form.situationHint":
-    "Tumia hadi alama {{limit}} za msimbo wa Unicode. Unaweza kueleza umri, upatikanaji wa sehemu ya kujituliza, uwezo wa kusogea, muda au dalili za tahadhari zilizo katika mipaka iliyowekwa.",
+    "Eleza kwa ufupi umri, upatikanaji wa sehemu ya kujituliza, uwezo wa kusogea, muda na dalili zinazohusika.",
   "form.demoButton": "Pakia onyesho la Barcelona",
   "form.submitButton": "Tengeneza mpango wangu wa hatua dhidi ya joto",
   "form.submittingButton": "Mpango wako unatengenezwa…",
@@ -98,8 +98,7 @@ export const SWAHILI_CATALOG = {
   "scenario.importantNow": "Muhimu sasa",
 
   "validation.empty": "Eleza hali kabla ya kutengeneza mpango.",
-  "validation.overLimit":
-    "Weka maelezo ndani ya kikomo cha herufi {{limit}} za Unicode.",
+  "validation.overLimit": "Maelezo ni marefu sana. Fupisha maandishi.",
   "validation.serverInput": "Kagua maelezo kisha ujaribu tena.",
 
   "status.creating": "Mpango wako wa hatua unatengenezwa.",
@@ -182,7 +181,7 @@ export const SWAHILI_CATALOG = {
   "trust.privacyLabel": "Faragha",
   "trust.privacyTitle": "Usijumuishe maelezo yanayoweza kukutambulisha",
   "trust.privacyDescription":
-    "Maandishi ya hali hayahifadhiwi katika hifadhi ya kivinjari. Mapendeleo ya wazi ya hali ya mwonekano, lugha ya kiolesura na lugha ya mpango wa hatua huhifadhiwa kwenye kifaa. Ni msimbo wa lugha ya mpango wa hatua uliochaguliwa pekee unaoingia katika ombi; hali ya mwonekano na lugha ya kiolesura haziingii. HeatRelay haitumii uchanganuzi, vidakuzi, vigezo vya URL au eneo la kijiografia katika onyesho hili.",
+    "Maandishi ya hali hayahifadhiwi katika hifadhi ya kivinjari. Mapendeleo ya wazi ya hali ya mwonekano na lugha huhifadhiwa kwenye kifaa. Ni msimbo wa lugha uliochaguliwa pekee unaoingia katika ombi la mpango wa hatua; hali ya mwonekano haiingii. HeatRelay haitumii uchanganuzi, vidakuzi, vigezo vya URL au eneo la kijiografia katika onyesho hili.",
 
   "footer.description": "Onyesho la Barcelona · Viwianishi visivyobadilika",
 
