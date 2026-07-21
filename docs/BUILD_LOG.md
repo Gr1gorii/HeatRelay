@@ -1638,13 +1638,14 @@ transport; it did not start Uvicorn or invoke extraction, weather, places, or
 grounded planning. Docker was inspected but not built because base-layer and
 package resolution could require downloads. Current online CVE status,
 third-party notice legal sufficiency, host-level distributed limiting, hosting
-selection, deployment, and post-deployment verification remain for a later
-authorized milestone.
+selection, deployment, and post-deployment verification remained for a later
+authorized milestone at the time of that offline record.
 
 At the time this verification record was written, Milestone 8.2 A–D was
 uncommitted and unpublished. The verified release safeguards were later
 published through the repository commit containing this revision. Deployment,
-online CVE review, legal review, and deployed verification remain pending.
+online CVE review, legal review, and deployed verification remained pending at
+the time of that verification record.
 
 ## Milestone 8.4A hosting selection — 2026-07-20
 
@@ -1805,3 +1806,70 @@ overflow. Three compact candidates rendered with a single closed verification
 disclosure and one shared attribution. Exactly one places POST occurred, with
 zero action-plan POSTs, invalid requests, unexpected requests, retries,
 provider calls, or console errors.
+
+## Deployed release and mobile/RTL/security audit — 2026-07-21
+
+Release commit `00e3991628830d0a6a7affaa994aa49d833eb836` was deployed to
+`https://heatrelay-gr1gorii.fly.dev` on one started Amsterdam
+`shared-cpu-1x`, 512 MB Fly Machine. Fly health checks, `/api/health`, and
+`/api/ready` passed. HTTP redirected once to HTTPS; the hostname certificate,
+one-year HSTS with subdomains, the checked-in restrictive CSP, nosniff,
+no-referrer, restrictive Permissions Policy, framing denial, HTML `no-cache`,
+and immutable caching for a real hashed asset matched the production contract.
+The disabled docs routes and tested error responses retained the same security
+header boundary.
+
+The audit exercised Russian Standard at 320×800, Arabic Enhanced at 320×800,
+Hebrew Standard at 390×844, and Russian High Contrast at 1280×800. Tested root,
+body, main, active panels, and cards did not horizontally overflow. The tested
+views had no mixed-content request or console error. Exactly two explicit
+deterministic places searches produced two places POSTs and zero action-plan,
+OpenAI, or Open-Meteo calls. Scenario selection made no request. The audit was
+Chrome-specific and was not penetration testing, formal WCAG certification,
+or complete locale/assistive-technology coverage.
+
+## Final bounded deployed E2E smoke — 2026-07-21
+
+One Russian normal submission and one Traditional Chinese urgent submission
+passed through the deployed UI. Both returned action-plan schema `1.16.0` with
+nested situation schema `1.1.0`. The Russian result retained Russian interface
+and response ownership, complete normal phases, non-overlapping weather, and
+focused result heading. The Traditional Chinese result retained the fixed
+urgent `112` alert, focused urgent heading, and omitted normal plan, weather,
+place, travel, and grounded-plan content.
+
+| Accounting | Result |
+| --- | ---: |
+| UI action-plan submissions | 2 |
+| OpenAI calls / sanitized usage records | 3 |
+| Inferred Open-Meteo calls | 1 |
+| Retries | 0 |
+| Input tokens | 4,126 |
+| Output tokens | 382 |
+| Total tokens | 4,508 |
+| Conservative reservation bound | `$0.45` (`3 × $0.15`) |
+
+The three usage records contained allowlisted model metadata and internally
+consistent non-negative aggregate token counts without submitted text, keys,
+or private provider payloads. The `$0.45` figure is the configured conservative
+reservation bound, not an assertion about exact provider billing. This
+two-scenario smoke is not 25-locale coverage, native-speaker or medical review,
+formal WCAG conformance, cross-browser validation, or release certification.
+
+## Final M8 evidence and submission-kit synchronization — 2026-07-21
+
+The official Rules, FAQs, Resources, and Updates were refreshed without a
+product test, build, provider call, deployment, or repository publication.
+The authoritative deadline remains Tuesday, July 21, 2026 at 5:00 PM PT. The
+required submission materials include category, English feature description,
+publicly accessible YouTube demo under three minutes with audio, repository and
+testing access, meaningful Codex/GPT-5.6 explanation, and the primary build
+thread's `/feedback` Session ID. The latest update clarifies that meaningful
+GPT-5.6 use does not itself require API credits.
+
+Current deployment, audit, and E2E facts were synchronized into the release
+documents. Copy-ready Devpost material, a 2:30–2:45 video script, release
+evidence map, and a submission checklist were added. Devpost registration,
+personal eligibility confirmation, public YouTube publication, and the
+primary thread's `/feedback` Session ID remain `HUMAN_REQUIRED`; no value or
+claim was invented.

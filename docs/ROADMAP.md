@@ -1,17 +1,18 @@
 # HeatRelay Roadmap
 
 This is HeatRelay's authoritative forward-looking development sequence as of
-2026-07-19. Completed milestones below are historical facts. Milestone 5 is
+2026-07-21. Completed milestones below are historical facts. Milestone 5 is
 published at `5f5d23c4ba3af9c318e8427ed717f7b5b7656a00`. Milestone 6 is
 implemented, verified within the explicitly tested scope, and published
 through the repository commit containing this roadmap revision. Milestone 7 is
 published at `6866b4c31649751ecea665c8045d028e228796fb`. Milestone 8.1's
 offline audit and the bounded M8.2 corrections are implemented and verified
 offline, and the release safeguards are published through the repository
-commit containing this roadmap revision; deployment remains deferred. This
-roadmap does not claim
-accessibility certification, complete standards conformance, deployment
-readiness, or release status.
+commit containing this roadmap revision. The current release commit
+`00e3991628830d0a6a7affaa994aa49d833eb836` is deployed and has passed the
+bounded checks recorded below. This roadmap does not claim accessibility
+certification, complete standards conformance, medical approval, or universal
+release readiness.
 
 ## Completed milestones
 
@@ -197,8 +198,12 @@ support, medical approval, or release readiness.
 corrections are implemented, verified offline, and published through the
 repository commit containing this roadmap revision. M8.4A selected Fly.io Pay
 As You Go; M8.4B adds the bounded single-Machine Fly configuration, proxy
-identity contract, and deterministic license bundle. Deployment, legal review,
-golden-path verification, and release approval remain separately gated.
+identity contract, and deterministic license bundle. Release commit
+`00e3991628830d0a6a7affaa994aa49d833eb836` is deployed to one Amsterdam
+Machine; health, readiness, HTTPS/security headers, caching, multilingual
+mobile/RTL behavior, and the bounded Russian-normal/Traditional-Chinese-urgent
+live smoke passed. Legal and human translation review, broader accessibility
+and browser coverage, and the human Devpost submission steps remain separate.
 
 All release work moves to this milestone:
 
@@ -213,12 +218,19 @@ All release work moves to this milestone:
    exclusion.
 4. **Selected/configured:** Fly.io Pay As You Go, one `shared-cpu-1x`, 512 MB
    Machine in `ams`, autostop off, readiness at `/api/ready`.
-5. Deploy once and verify HTTPS, headers, health, static assets, logs, proxy
-   identity, bundled notices, and secret exposure without a provider call.
-6. Run one separately authorized deployed browser golden-path smoke.
-7. Finalize documentation and release evidence.
-8. Prepare the Devpost description, video script and storyboard, submission
-   checklist, and the primary build thread's `/feedback` Session ID.
+5. **Completed within the tested scope:** deployed one Amsterdam
+   `shared-cpu-1x`, 512 MB Machine and verified HTTPS, exact security headers,
+   health/readiness, cache policy, mobile/RTL layout, and deterministic places
+   without a provider call.
+6. **Completed within the tested scope:** one Russian normal and one
+   Traditional Chinese urgent deployed UI smoke produced two submissions,
+   three OpenAI calls, one inferred Open-Meteo call, zero retries, and a
+   `$0.45` conservative reservation bound.
+7. **Completed:** synchronized current release evidence and limitations.
+8. **Prepared; human actions remain:** Devpost copy, a 2:30–2:45 video script,
+   and the submission checklist are documented. Registration, personal
+   eligibility confirmation, public YouTube publication, and the primary build
+   thread's `/feedback` Session ID remain `HUMAN_REQUIRED`.
 
 Planning the remaining gates does not establish compliance or authorize
 deployment, network calls, paid verification, or submission activity.

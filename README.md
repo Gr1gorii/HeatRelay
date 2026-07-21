@@ -28,10 +28,14 @@ at `6866b4c31649751ecea665c8045d028e228796fb`. Milestone 8.2 adds the bounded
 single-instance production perimeter described below. These release safeguards
 are published through the repository commit containing this revision;
 Milestone 8.4 selects a single-machine Fly.io target and adds its explicit
-proxy, licensing, and deployment configuration. Deployed verification and
-release approval remain separate gates.
+proxy, licensing, and deployment configuration. The current release commit
+`00e3991628830d0a6a7affaa994aa49d833eb836` is deployed at
+[heatrelay-gr1gorii.fly.dev](https://heatrelay-gr1gorii.fly.dev); bounded
+health, readiness, HTTPS/header, multilingual mobile/RTL, and two-case live
+workflow checks passed. Human submission steps and the review limitations
+below remain separate from that evidence.
 
-## Implemented scope through Milestone 7
+## Implemented product scope
 
 Included in the implemented scope:
 
@@ -400,6 +404,20 @@ always-running `shared-cpu-1x` Machine with 512 MB, one Uvicorn worker, and
 a single canonical provider-authenticated `Fly-Client-IP`; malformed or
 missing identity falls back to the immediate peer and `X-Forwarded-For` is
 ignored. Fly mode cannot be combined with generic trusted proxy CIDRs.
+
+The deployment of release commit
+`00e3991628830d0a6a7affaa994aa49d833eb836` passed liveness and readiness,
+one-hop HTTP-to-HTTPS redirection, the documented production security-header
+set, HTML `no-cache`, and immutable caching for hashed assets. A deployed
+Russian/Arabic/Hebrew mobile and RTL audit plus Russian High Contrast desktop
+audit found no horizontal overflow, mixed content, or console error in the
+tested views. Two deterministic place searches made two places POSTs and no
+provider call. A separate bounded live smoke passed one Russian normal result
+and one Traditional Chinese urgent result with action-plan schema `1.16.0`,
+situation schema `1.1.0`, three OpenAI calls, one inferred Open-Meteo call, no
+retry, 4,126 input plus 382 output tokens (4,508 total), and a `$0.45`
+conservative reservation bound. This is narrow operational evidence, not a
+release-readiness, medical, security-certification, or complete locale claim.
 
 The runtime image carries the project license, third-party inventory, and the
 deterministically collected upstream production license/notice texts at
@@ -1180,7 +1198,7 @@ contract, request fields, GPT boundary, dependency, or API behavior.
 Chrome/macOS multilingual, bidirectional, 320px reflow, actual 200% zoom, and
 one author-confirmed VoiceOver session have been exercised within bounded
 scenarios. Broader browser and assistive-technology coverage, independent
-linguistic and safety review, and publication remain pending.
+linguistic and safety review remain pending.
 
 The second GPT-5.6 call receives only the validated bounded profile, minimal
 weather numbers, deterministic priority/reason codes, and up to three frozen
@@ -1231,5 +1249,9 @@ docs/COMPLIANCE.md          Competition, source, privacy, and license record
 - [Development roadmap](docs/ROADMAP.md)
 - [Build log](docs/BUILD_LOG.md)
 - [Compliance, data sources, and direct dependency licenses](docs/COMPLIANCE.md)
+- [Release evidence](docs/RELEASE_EVIDENCE.md)
+- [Devpost submission draft](docs/DEVPOST_SUBMISSION.md)
+- [Demo video script](docs/VIDEO_SCRIPT.md)
+- [Submission checklist](docs/SUBMISSION_CHECKLIST.md)
 - [Barcelona snapshot notes](data/barcelona/README.md)
 - [MIT License](LICENSE)

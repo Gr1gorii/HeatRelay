@@ -4,9 +4,9 @@ HeatRelay has a single-process production package and a selected Fly.io Pay As
 You Go target. The checked-in configuration names app `heatrelay-gr1gorii`,
 region `ams`, and one always-running `shared-cpu-1x` Machine with 512 MB. The
 expected Fly hostname is `heatrelay-gr1gorii.fly.dev`. Repository configuration
-or a successful deploy does not establish release readiness; refreshed online
-advisory, legal, golden-path, and ongoing operational review remain separate
-gates.
+or a successful deploy does not establish release readiness; legal, broader
+accessibility/browser, translation, and ongoing operational review remain
+separate gates.
 
 ## Topology
 
@@ -122,7 +122,7 @@ This package does not establish provider suitability, availability, backups,
 disaster recovery, deployment readiness, current-CVE status, formal security
 certification, or release readiness.
 
-## Fly.io release-candidate profile
+## Fly.io deployed profile
 
 `fly.toml` defines one Docker process and one Machine in `ams`, with HTTPS
 forced at Fly Proxy, autostop off, automatic start enabled, minimum running
@@ -143,3 +143,31 @@ scale the existing app to zero and preserve it for diagnosis.
 The selected approximate base cost is `$3.32` per month plus usage; Fly may
 place a temporary card authorization below `$10`. These are planning figures,
 not an invoice or a guarantee of future pricing.
+
+## Verified deployed state
+
+Release commit `00e3991628830d0a6a7affaa994aa49d833eb836` is deployed at
+[heatrelay-gr1gorii.fly.dev](https://heatrelay-gr1gorii.fly.dev) on the one
+configured Amsterdam `shared-cpu-1x`, 512 MB Machine. The bounded verification
+observed a started Machine, passing Fly check, `status=ok` liveness, and
+`status=ready` readiness. HTTP redirected once to the equivalent HTTPS URL.
+The certificate was valid for the hostname.
+
+The root, liveness, readiness, a 404, and a disabled-documentation response
+all retained the exact effective production headers: one-year HSTS with
+subdomains, the checked-in same-origin CSP, `nosniff`, `no-referrer`, denied
+geolocation/microphone/camera permissions, and framing denial. Index HTML was
+`no-cache`; a real hashed asset was `public, max-age=31536000, immutable`.
+There was no permissive cross-origin response or mixed-content request in the
+tested flow.
+
+The deployed multilingual UI audit exercised Russian, Arabic, and Hebrew
+mobile/RTL states plus Russian High Contrast desktop without horizontal
+overflow or console error. Two explicit places searches made two deterministic
+places POSTs and no provider call. The final bounded workflow smoke then passed
+one Russian normal and one Traditional Chinese urgent submission with two UI
+POSTs, three OpenAI calls, one inferred Open-Meteo call, zero retries, and
+4,508 aggregate tokens. The conservative provider reservation bound was
+`$0.45`. These checks do not establish complete locale/browser coverage,
+medical approval, penetration testing, security certification, formal WCAG
+conformance, universal assistive-technology support, or release readiness.

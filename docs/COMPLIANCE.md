@@ -2,7 +2,7 @@
 
 ## Official competition baseline
 
-This submission-planning baseline was verified on 2026-07-16 using only the
+This submission-planning baseline was refreshed on 2026-07-21 using only the
 [Official Rules](https://openai.devpost.com/rules),
 [FAQs](https://openai.devpost.com/details/faqs),
 [Resources](https://openai.devpost.com/resources), and
@@ -19,11 +19,19 @@ HeatRelay already satisfies every submission requirement.
   required judging access.
 - The demo video must be public on YouTube, strictly under three minutes, and
   include audio explaining the project and its use of Codex and GPT-5.6.
+- The required submission fields include a category, an English text
+  description of functionality, the public YouTube demo URL, the code
+  repository URL and access instructions, and the primary build thread's
+  `/feedback` Session ID. The project must remain available without payment or
+  restriction through judging.
+- The July 21 Update corrected an earlier mistaken weekday reference: the
+  authoritative deadline is Tuesday, July 21, 2026 at 5:00 PM PT.
 - Event Codex credits are not OpenAI API credits. They do not replace
   separate API access or the author's responsibility for API billing.
 - HeatRelay's server-side GPT-5.6 workflow is a stricter
   internal implementation strategy. The Devpost requirements mandate
-  meaningful GPT-5.6 use but do not prescribe that runtime transport.
+  meaningful GPT-5.6 use but do not prescribe that runtime transport or
+  require API credits.
 
 ## Author confirmations and publication status
 
@@ -47,6 +55,7 @@ supplied publication reports, not inferred from Git author metadata.
 | Milestone 4 commit and push | **Confirmed; primary Codex build thread performed** | The supplied publication report records commit `88f56a25f1f9dd372809010721ce5733701e0033` (`feat: add Barcelona action-plan frontend`) pushed normally to `origin/main`. |
 | Milestone 5 commit and push | **Confirmed; primary Codex build thread performed** | The supplied publication report records commit `5f5d23c4ba3af9c318e8427ed717f7b5b7656a00` (`feat: add accessibility and low-vision mode`) pushed normally to `origin/main`. |
 | Milestone 7 commit and push | **Confirmed; primary Codex build thread performed** | The verified redesign was published at `6866b4c31649751ecea665c8045d028e228796fb`. |
+| Current deployed release | **Verified within the bounded deployed scope** | Commit `00e3991628830d0a6a7affaa994aa49d833eb836` is deployed at [heatrelay-gr1gorii.fly.dev](https://heatrelay-gr1gorii.fly.dev); liveness, readiness, HTTPS/header/cache checks, the multilingual UI audit, and the final two-case workflow smoke are recorded below. |
 | Codex access | **Confirmed for this build context** | Milestones 0 through the Milestone 6 implementation use the designated primary Codex build thread. |
 | Separate OpenAI API access and billing for GPT-5.6 runtime use | **Author confirmed** | The author confirmed separate API access and billing; no balance amount is published. |
 | Live GPT-5.6 extraction access | **Verified for one bounded Milestone 2 smoke on 2026-07-17** | One synthetic extraction request through the documented local backend returned HTTP 200, passed the strict public schema, and matched its expected explicit facts on the first OpenAI network attempt. No broader accuracy claim is made. |
@@ -621,7 +630,8 @@ CVE status, security certification, medical approval, or release readiness.
 At the time this verification record was written, Milestone 8.2 A–D was
 uncommitted and unpublished. The verified release safeguards were later
 published through the repository commit containing this revision. Deployment,
-online CVE review, legal review, and deployed verification remain pending.
+online CVE review, legal review, and deployed verification remained pending at
+the time of that offline record.
 
 ## Milestone 8.4 deployment preparation boundary
 
@@ -643,3 +653,35 @@ metadata and README MIT declaration. This is engineering notice packaging,
 not legal approval. Dependency CVEs, license/notice sufficiency, deployed
 behavior, provider suitability, medical approval, and release readiness remain
 separate review boundaries.
+
+## Current deployment and bounded live evidence
+
+Release commit `00e3991628830d0a6a7affaa994aa49d833eb836` is deployed at
+[heatrelay-gr1gorii.fly.dev](https://heatrelay-gr1gorii.fly.dev) on one
+Amsterdam `shared-cpu-1x`, 512 MB Fly Machine. Liveness and readiness returned
+their stable passing states. HTTP redirected once to HTTPS; the certificate,
+HSTS, restrictive CSP, nosniff, no-referrer, restrictive Permissions Policy,
+framing protection, same-origin boundary, HTML `no-cache`, and immutable
+hashed-asset caching matched the documented production contract.
+
+The deployed UI audit exercised Russian, Arabic, and Hebrew mobile/RTL states
+and Russian High Contrast desktop. The tested views had no horizontal overflow,
+mixed-content request, or console error. Two explicit deterministic place
+searches produced two places POSTs and no action-plan, OpenAI, or Open-Meteo
+call. This was not a penetration test, formal accessibility assessment, or
+complete locale/browser matrix.
+
+The final bounded deployed workflow smoke exercised one Russian normal result
+and one Traditional Chinese urgent result. Both returned action-plan schema
+`1.16.0` with nested situation schema `1.1.0`; the urgent result preserved the
+fixed `112` bypass. Accounting was exactly two UI submissions, three OpenAI
+calls, one inferred Open-Meteo call, zero retries, 4,126 input tokens, 382
+output tokens, and 4,508 total tokens. The operator reservation boundary was
+`3 × $0.15 = $0.45`; that is a conservative bound, not provider billing.
+
+All 24 non-English catalogs remain AI-assisted drafts without independent
+native-speaker, linguistic, cultural, medical, emergency, accessibility, or
+safety-critical approval. This record does not establish medical approval,
+formal WCAG conformance, penetration testing, security certification,
+universal browser or assistive-technology support, multiple-city coverage,
+real geolocation, legal sufficiency, or general release readiness.
