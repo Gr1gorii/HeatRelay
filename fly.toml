@@ -1,47 +1,52 @@
-app = "heatrelay-gr1gorii"
-primary_region = "ams"
-kill_signal = "SIGTERM"
-kill_timeout = 30
+# fly.toml app configuration file generated for heatrelay on 2026-07-21T11:56:43Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'heatrelay'
+primary_region = 'ams'
+kill_signal = 'SIGTERM'
+kill_timeout = '30s'
 
 [build]
-  dockerfile = "Dockerfile"
+  dockerfile = 'Dockerfile'
 
 [env]
-  HEATRELAY_HOST = "0.0.0.0"
-  HEATRELAY_PORT = "8000"
-  HEATRELAY_ALLOWED_HOSTS = "heatrelay-gr1gorii.fly.dev"
-  HEATRELAY_FLY_PROXY_MODE = "true"
-  HEATRELAY_MAX_REQUEST_BODY_BYTES = "16384"
-  HEATRELAY_RATE_LIMIT_REQUESTS = "10"
-  HEATRELAY_RATE_LIMIT_WINDOW_SECONDS = "60"
-  HEATRELAY_RATE_LIMIT_MAX_CLIENTS = "4096"
-  HEATRELAY_OPENAI_DAILY_BUDGET_USD = "1.50"
-  HEATRELAY_OPENAI_PER_CALL_RESERVATION_USD = "0.15"
-  HEATRELAY_HTTPS_EXPECTED = "true"
+  HEATRELAY_ALLOWED_HOSTS = 'heatrelay-gr1gorii.fly.dev'
+  HEATRELAY_FLY_PROXY_MODE = 'true'
+  HEATRELAY_HOST = '0.0.0.0'
+  HEATRELAY_HTTPS_EXPECTED = 'true'
+  HEATRELAY_MAX_REQUEST_BODY_BYTES = '16384'
+  HEATRELAY_OPENAI_DAILY_BUDGET_USD = '1.50'
+  HEATRELAY_OPENAI_PER_CALL_RESERVATION_USD = '0.15'
+  HEATRELAY_PORT = '8000'
+  HEATRELAY_RATE_LIMIT_MAX_CLIENTS = '4096'
+  HEATRELAY_RATE_LIMIT_REQUESTS = '10'
+  HEATRELAY_RATE_LIMIT_WINDOW_SECONDS = '60'
 
 [http_service]
-  internal_port = 8000
+  internal_port = 8080
   force_https = true
-  auto_stop_machines = "off"
+  auto_stop_machines = 'off'
   auto_start_machines = true
   min_machines_running = 1
-  processes = ["app"]
+  processes = ['app']
 
   [[http_service.checks]]
-    grace_period = "15s"
-    interval = "30s"
-    method = "GET"
-    path = "/api/ready"
-    timeout = "5s"
+    interval = '30s'
+    timeout = '5s'
+    grace_period = '15s'
+    method = 'GET'
+    path = '/api/ready'
 
     [http_service.checks.headers]
-      Host = "heatrelay-gr1gorii.fly.dev"
-
-[[vm]]
-  size = "shared-cpu-1x"
-  memory = "512mb"
-  processes = ["app"]
+      Host = 'heatrelay-gr1gorii.fly.dev'
 
 [[restart]]
-  policy = "on-failure"
-  processes = ["app"]
+  policy = 'on-failure'
+  processes = ['app']
+
+[[vm]]
+  size = 'shared-cpu-1x'
+  memory = '512mb'
+  processes = ['app']
